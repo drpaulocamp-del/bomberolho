@@ -63,6 +63,11 @@ document.getElementById('bt-recomecar').addEventListener('click', (e) => { e.cur
 document.getElementById('bt-faixa').addEventListener('click', () => reiniciar());
 botaoPausa.addEventListener('click', (e) => { e.currentTarget.blur(); pausar(); });
 
+// Aba escondida (a criança foi chamada para a consulta): pausa sozinho.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && jogo.tela === 'jogando') pausar(true);
+});
+
 // Sem menu de contexto nem seleção acidental (público infantil, celular).
 window.addEventListener('contextmenu', (e) => e.preventDefault());
 
@@ -75,7 +80,8 @@ function ajustarTamanho() {
   const estilo = getComputedStyle(palco);
   const largura = palco.clientWidth - parseFloat(estilo.paddingLeft) - parseFloat(estilo.paddingRight);
   const altura = palco.clientHeight - parseFloat(estilo.paddingTop) - parseFloat(estilo.paddingBottom);
-  renderizador.ajustar(largura, altura, Math.min(window.devicePixelRatio || 1, 3), jogo.mundo);
+  // Densidade limitada a 2: nítido em qualquer celular e bem mais leve que 3.
+  renderizador.ajustar(largura, altura, Math.min(window.devicePixelRatio || 1, 2), jogo.mundo);
 }
 new ResizeObserver(() => { ajustarTamanho(); redesenhar(); }).observe(palco);
 

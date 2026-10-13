@@ -12,8 +12,6 @@ export const PERSONAGENS = Object.freeze({
   lente: Object.freeze({ id: 'lente', nome: 'Lente', cor: '#2B4C9B', escura: '#16285C', iris: '#6D8FE0', irisEscura: '#2D4FA8', estilo: 'oculos' }),
 });
 
-export const ORDEM_PERSONAGENS = Object.freeze(Object.keys(PERSONAGENS));
-
 /** Escolhe os 4 da partida: o do humano primeiro, depois os rivais padrão sem repetir. */
 export function escalarPersonagens(escolhido) {
   const preferidos = ['iris', 'pupilo', 'retina', 'macula', 'cornea', 'cristalino', 'cilio', 'lente'];

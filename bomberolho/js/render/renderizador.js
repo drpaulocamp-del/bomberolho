@@ -1,7 +1,7 @@
 // Desenha o estado da simulação num Canvas 2D nítido em qualquer densidade de
 // pixels. Só lê o mundo; nunca o altera.
 
-import { BLOCO, QUEBRANDO, TPS, CASA } from '../sim/constantes.js';
+import { BLOCO, TPS, CASA } from '../sim/constantes.js';
 import { PERSONAGENS } from '../dados/personagens.js';
 import { obterTema } from './temas.js';
 import { criarPecas } from './pecas.js';
@@ -44,9 +44,47 @@ export class Renderizador {
 
   prepararPecas(mundo) {
     const chave = `${mundo.arena}|${this.s}|${this.dpr}|${mundo.semente}`;
-    if (chave === this.chavePecas) return;
-    this.pecas = criarPecas(mundo, obterTema(mundo.arena), this.s, this.dpr);
-    this.chavePecas = chave;
+    if (chave !== this.chavePecas) {
+      this.pecas = criarPecas(mundo, obterTema(mundo.arena), this.s, this.dpr);
+      this.chavePecas = chave;
+      this.chaveCenario = '';
+      this.cenario = null;
+      this.itensProntos = {};
+    }
+    // Cenário = fundo + blocos parados, num canvas só; refeito apenas quando
+    // algum bloco muda. Poupa o quadro em telas de alta densidade.
+    const chaveCenario = mundo.grade.join('');
+    if (chaveCenario !== this.chaveCenario) {
+      const { fundo, bloco } = this.pecas;
+      if (!this.cenario) {
+        this.cenario = document.createElement('canvas');
+        this.cenario.width = fundo.width;
+        this.cenario.height = fundo.height;
+      }
+      const c = this.cenario.getContext('2d');
+      const px = this.s * this.dpr;
+      c.clearRect(0, 0, fundo.width, fundo.height);
+      c.drawImage(fundo, 0, 0);
+      for (let i = 0; i < mundo.grade.length; i++) {
+        if (mundo.grade[i] === BLOCO) c.drawImage(bloco, (i % mundo.colunas) * px, Math.floor(i / mundo.colunas) * px);
+      }
+      this.chaveCenario = chaveCenario;
+    }
+  }
+
+  /** Medalhão do item pré-desenhado (o quadro só o copia, flutuando). */
+  spriteDoItem(tipo) {
+    if (!this.itensProntos[tipo]) {
+      const px = this.s * this.dpr;
+      const c = document.createElement('canvas');
+      c.width = Math.ceil(px);
+      c.height = Math.ceil(px);
+      const ctx = c.getContext('2d');
+      ctx.scale(this.dpr, this.dpr);
+      desenharItem(ctx, tipo, this.s / 2, this.s / 2, this.s);
+      this.itensProntos[tipo] = c;
+    }
+    return this.itensProntos[tipo];
   }
 
   /** Transforma eventos da simulação em partículas e tremidinhas. */
@@ -78,7 +116,7 @@ export class Renderizador {
   desenhar(mundo, anteriores, fracao, tempoSeg, dtSeg) {
     this.prepararPecas(mundo);
     const { ctx, s, dpr } = this;
-    const { fundo, bloco } = this.pecas;
+    const { bloco } = this.pecas;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -91,17 +129,18 @@ export class Renderizador {
       this.tremor *= Math.pow(0.02, dtSeg);
     }
     ctx.setTransform(dpr, 0, 0, dpr, tx * dpr, ty * dpr);
-    ctx.drawImage(fundo, 0, 0, s * mundo.colunas, s * mundo.linhas);
+    ctx.drawImage(this.cenario, 0, 0, s * mundo.colunas, s * mundo.linhas);
 
-    const quebras = new Map(mundo.quebras.map((q) => [q.i, q.t]));
-    for (let l = 1; l < mundo.linhas - 1; l++) {
-      for (let c = 1; c < mundo.colunas - 1; c++) {
-        const i = l * mundo.colunas + c;
-        const t = mundo.grade[i];
-        if (t === BLOCO) ctx.drawImage(bloco, c * s, l * s, s, s);
-        else if (t === QUEBRANDO) desenharQuebra(ctx, bloco, c * s, l * s, s, quebras.get(i) ?? 0);
-        else if (mundo.itens[i]) desenharItem(ctx, mundo.itens[i], (c + 0.5) * s, (l + 0.5) * s, s, tempoSeg);
-      }
+    for (const q of mundo.quebras) {
+      desenharQuebra(ctx, bloco, (q.i % mundo.colunas) * s, Math.floor(q.i / mundo.colunas) * s, s, q.t);
+    }
+    for (let i = 0; i < mundo.itens.length; i++) {
+      const tipo = mundo.itens[i];
+      if (!tipo) continue;
+      const c = i % mundo.colunas;
+      const l = Math.floor(i / mundo.colunas);
+      const flut = Math.sin(tempoSeg * 3 + c * 0.9 + l * 0.4) * s * 0.04;
+      ctx.drawImage(this.spriteDoItem(tipo), c * s, l * s + flut, s, s);
     }
 
     for (const g of mundo.gotas) desenharGota(ctx, (g.col + 0.5) * s, (g.lin + 0.5) * s, s, g, tempoSeg);

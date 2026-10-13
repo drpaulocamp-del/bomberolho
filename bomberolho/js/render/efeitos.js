@@ -127,11 +127,32 @@ export function desenharRespingos(ctx, respingos, s, tempoSeg) {
       }
     }
   }
-  // Ponta de cada braço: uma gota arredondada maior; e brilhos no centro.
+  // Ponta de cada braço: coroinha de gotas espirrando para fora (ou batendo
+  // no bloco); e brilhos girando no centro.
   for (const r of respingos) {
     const w = larguraRespingo(r.t) * s;
     const cx = (r.col + 0.5) * s;
     const cy = (r.lin + 0.5) * s;
+    const vida = 1 - r.t / DURACAO_RESPINGO;
+    const abre = Math.min(1, vida * 4);
+    ctx.fillStyle = 'rgba(120, 210, 255, 0.95)';
+    for (const nome of NOMES_DIRECOES) {
+      const n = r.bracos[nome];
+      if (!n && !r.batida[nome]) continue;
+      const { dc, dl } = DIRECOES[nome];
+      const alcance = (n + (r.batida[nome] ? 0.45 : 0.25)) * s;
+      const px = cx + dc * alcance;
+      const py = cy + dl * alcance;
+      for (const lado of [-1, 0, 1]) {
+        const ang = Math.atan2(dl, dc) + lado * 0.75;
+        const d = w * (0.25 + abre * 0.35);
+        ctx.save();
+        ctx.translate(px + Math.cos(ang) * d, py + Math.sin(ang) * d);
+        ctx.rotate(ang + Math.PI / 2);
+        gotinha(ctx, 0, 0, w * 0.11 * (1 - vida * 0.5));
+        ctx.restore();
+      }
+    }
     ctx.fillStyle = 'rgba(255,255,255,0.9)';
     for (let k = 0; k < 5; k++) {
       const a = (k / 5) * TAU + tempoSeg * 3 + r.id;
@@ -160,13 +181,12 @@ export function desenharQuebra(ctx, sprite, x, y, s, t) {
   ctx.restore();
 }
 
-/** Itens: medalhão de vidro com o desenho do poder, flutuando. */
-export function desenharItem(ctx, tipo, x, y, s, tempoSeg) {
-  const flut = Math.sin(tempoSeg * 3 + x * 0.05) * s * 0.04;
-  const cy = y + flut;
-  ctx.fillStyle = 'rgba(30, 60, 80, 0.18)';
+/** Itens: medalhão de vidro com o desenho do poder (centro em x, y). */
+export function desenharItem(ctx, tipo, x, y, s) {
+  const cy = y - s * 0.03;
+  ctx.fillStyle = 'rgba(30, 60, 80, 0.16)';
   ctx.beginPath();
-  ctx.ellipse(x, y + s * 0.36, s * 0.22 - flut * 0.5, s * 0.06, 0, 0, TAU);
+  ctx.ellipse(x, y + s * 0.38, s * 0.2, s * 0.05, 0, 0, TAU);
   ctx.fill();
   const g = ctx.createRadialGradient(x - s * 0.1, cy - s * 0.12, s * 0.05, x, cy, s * 0.34);
   g.addColorStop(0, '#FFFFFF');
