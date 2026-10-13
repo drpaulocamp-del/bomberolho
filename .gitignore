@@ -1,0 +1,14 @@
+# ROMs e binarios de terceiros nunca entram neste repositorio
+*.smc
+*.sfc
+*.bin
+*.iso
+*.cue
+*.zip
+
+node_modules/
+qa/node_modules/
+qa/capturas/
+*.log
+.DS_Store
+Thumbs.db
