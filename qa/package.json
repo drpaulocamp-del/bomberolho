@@ -1,0 +1,15 @@
+{
+  "name": "bomberolho-qa",
+  "private": true,
+  "type": "module",
+  "description": "Testes do Bomberolho: simulação (node --test, sem dependências) e navegador (Playwright).",
+  "scripts": {
+    "test": "node --test \"sim/*.test.mjs\"",
+    "e2e": "node --test --test-concurrency=1 \"navegador/*.test.mjs\"",
+    "capturas": "node navegador/capturas.mjs",
+    "todos": "npm test && npm run e2e"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

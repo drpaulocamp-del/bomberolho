@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Bomberolho — A batalha das gotinhas</title>
+  <meta name="description" content="Bomberolho: batalha de gotinhas de colírio entre criaturinhas-olho, para jogar no navegador.">
+  <meta name="theme-color" content="#F5F5F7">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/estilo.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="painel">
+      <div class="topo">
+        <div class="marca">
+          <img src="favicon.svg" alt="" width="40" height="40">
+          <div>
+            <h1>Bomberolho</h1>
+            <p class="subtitulo">A batalha das gotinhas</p>
+          </div>
+        </div>
+        <div class="botoes">
+          <button id="bt-pausa" type="button" aria-pressed="false">Pausar</button>
+          <button id="bt-recomecar" type="button" class="secundario">Recomeçar</button>
+        </div>
+      </div>
+      <ul id="placar" class="placar" aria-label="Competidores"></ul>
+      <p class="dica"><kbd>Setas</kbd> ou <kbd>WASD</kbd> andam · <kbd>Espaço</kbd> solta a gota · <kbd>P</kbd> pausa</p>
+    </header>
+    <main id="palco" class="palco">
+      <canvas id="arena" role="img" aria-label="Arena do Bomberolho"></canvas>
+      <div id="faixa" class="faixa" hidden>
+        <span>Você foi descansar! Torça pelos outros ou</span>
+        <button id="bt-faixa" type="button">recomece</button>
+      </div>
+      <div id="aviso" class="aviso" hidden>
+        <div class="cartao-aviso" role="dialog" aria-live="polite">
+          <h2></h2>
+          <p></p>
+          <button type="button"></button>
+        </div>
+      </div>
+    </main>
+  </div>
+  <noscript><p class="sem-js">O Bomberolho precisa de JavaScript ligado para funcionar.</p></noscript>
+</body>
+</html>
