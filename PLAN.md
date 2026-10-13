@@ -67,12 +67,17 @@ Três níveis. **Fácil** (padrão): uma criança de 6 anos tem de conseguir gan
 - **Arenas** (mínimo 4, cada uma com paleta, peças e trilha próprias; ao menos 2 com um elemento de arena simples e justo, p.ex. esteiras, túneis de lado a lado, casas escorregadias): **Jardim da Íris**, **Lago Lacrimal**, **Caverna da Pupila** (mais escura, com contraste garantido), **Vale da Retina** (cones e bastonetes), opcional **Consultório das Lentes**.
 - **Interface** no padrão do site da clínica: fonte do sistema/Inter se disponível localmente (não baixar), cantos arredondados, vidro fosco, azul `#0071E3`, texto `#1D1D1F`, fundo `#F5F5F7`, escuro `#0B0D12`. O jogo em si pode e deve ser mais colorido que o site.
 
+### 3.7 Bancada de ajuste do "sentir" (decisão do dono, entra na parte 2)
+- A referência de "sentir" do dono é o modo batalha dos clássicos de console de 16 bits do gênero, **lembrado por quem jogou** — nunca extraído de jogo nenhum (seção 2 continua valendo integralmente: nenhuma ROM é lida, desmontada ou consultada). Metas: movimento ágil com deslize de quina generoso (nunca enganchar ao virar), pavio ≈ 2,5 s, cadeia imediata, chute que desliza e para na casa certa, itens de velocidade que se sentem, aperto final tenso.
+- Painel escondido aberto por `?ajuste=1` (fora disso, invisível e sem custo): controles deslizantes, com efeito imediato na partida em andamento, para velocidade base do personagem, ganho por Lágrima Veloz, pavio, duração do respingo, tolerância do deslize de quina, velocidade do chute e momento de início do aperto final; botão **"Restaurar padrão"** e botão **"Copiar ajuste"** que copia um texto curto (JSON) com os valores, para o dono colar ao orquestrador e eles virarem o padrão.
+- Os valores vivem num único módulo de parâmetros da simulação (sem números mágicos espalhados); a simulação continua determinística para uma mesma configuração. Funciona no celular (alvos ≥ 44 px, não cobre a arena inteira, fecha com um toque).
+
 ## 4. Partes
 
 | # | Parte | Entrega |
 |---|---|---|
 | 1 | Motor e regras centrais | Estrutura de módulos; simulação determinística (grade, movimento contínuo com deslize de quina, gotas, respingo em cruz, cadeia, blocos, itens básicos +gota/+alcance/+velocidade, eliminação); renderização funcional (ainda simples, mas já original); teclado; gancho `__bomberolho`; suíte `node --test` da simulação; uma arena jogável com 4 competidores (os 3 rivais podem ser bonecos parados ou aleatórios nesta parte). |
-| 2 | Batalha completa | IA em 3 níveis; rodadas, cronômetro, aperto final, vitória/empate, placar de troféus; chute, Super Lupa, Cisco; 4+ arenas com layout e elementos próprios; balanceamento medido por simulação em lote (milhares de partidas sem cabeça). |
+| 2 | Batalha completa | IA em 3 níveis; rodadas, cronômetro, aperto final, vitória/empate, placar de troféus; chute, Super Lupa, Cisco; 4+ arenas com layout e elementos próprios; balanceamento medido por simulação em lote (milhares de partidas sem cabeça); **bancada de ajuste** (ver 3.7). |
 | 3 | Estética, identidade e som | 8 personagens originais animados; peças e paleta por arena; efeitos (respingo, blocos quebrando, itens, vitória); menus, seleção de personagem/arena/dificuldade, HUD, pausa, resultado, curiosidades; áudio procedural WebAudio (efeitos + música leve por arena, mudo). |
 | 4 | Celular e acabamento | Controles de toque; retrato/paisagem; desempenho e peso; robustez (aba em segundo plano, girar, redimensionar, recarregar); acessibilidade; limpeza; `README.md` com como rodar, como testar e **como integrar ao site na etapa 2** (copiar a pasta, link sugerido, nada mais). |
 
@@ -135,6 +140,7 @@ VEREDITO: APROVADO|REPROVADO
 - 20 Itens avançados: chute (desliza, para, encadeia corretamente), Super Lupa, Cisco — divertidos e equilibrados.
 - 15 Arenas: 4+, distintas, elementos de arena justos e legíveis.
 - 15 Evidência de balanceamento (tabelas de simulação em lote no relatório, reproduzíveis) e robustez (sem NaN, sem partida infinita).
+- A **bancada de ajuste** (3.7) é entrega obrigatória da parte 2: ausente ou quebrada = bloqueador; sua qualidade conta dentro de "Regras da batalha" e "Itens avançados".
 
 **Parte 3 — Estética, identidade e som**
 - 30 Beleza e originalidade: personagens carismáticos e inconfundivelmente próprios, tema oftalmológico presente e charmoso, arenas bonitas e distintas; uma criança acharia fofo, um adulto acharia caprichado.
