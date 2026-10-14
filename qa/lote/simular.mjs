@@ -64,7 +64,7 @@ function relatorio(res, segundos, escala, n) {
   const cenarios = [...new Set(res.map((r) => r.cenario))];
   partes.push('## 1. Visão geral por cenário');
   partes.push(tabela(
-    ['Cenário', 'Partidas', 'Rodadas', 'Rodadas com vencedor', 'Empate (relógio)', 'Empate (todos caíram)', 'Duração média', 'p90', 'Máx.', 'Rodadas/partida (máx.)'],
+    ['Cenário', 'Partidas', 'Rodadas', 'Rodadas com vencedor', 'Empate (relógio)', 'Empate (todos caíram)', 'Duração média', 'p90', 'Máx.', 'Rodadas/partida (máx.)', 'Taça no desempate', 'Partida empatada'],
     cenarios.map((c) => {
       const rs = res.filter((r) => r.cenario === c);
       const rd = rs.flatMap((r) => r.rodadas);
@@ -72,13 +72,14 @@ function relatorio(res, segundos, escala, n) {
       return [c, rs.length, rd.length, pct(rd.filter((x) => x.vencedor !== null).length, rd.length),
         pct(rd.filter((x) => x.tempoEsgotado).length, rd.length), pct(rd.filter((x) => x.vencedor === null && !x.tempoEsgotado).length, rd.length),
         `${media(seg).toFixed(0)} s`, `${quantil(seg, 0.9).toFixed(0)} s`, `${Math.max(...seg).toFixed(0)} s`,
-        `${media(rs.map((r) => r.rodadas.length)).toFixed(2)} (${Math.max(...rs.map((r) => r.rodadas.length))})`];
+        `${media(rs.map((r) => r.rodadas.length)).toFixed(2)} (${Math.max(...rs.map((r) => r.rodadas.length))})`,
+        pct(rs.filter((r) => r.desempate).length, rs.length), pct(rs.filter((r) => r.campeao === null).length, rs.length)];
     }),
   ));
 
   // 2. Justiça por canto (mesmo nível)
   partes.push('## 2. Vitórias de partida por canto (todos do mesmo nível)');
-  partes.push('Cantos: 0 = cima/esquerda, 1 = cima/direita, 2 = baixo/esquerda, 3 = baixo/direita. O esperado, se for justo, é ~25% cada (o resto até 100% são partidas empatadas no limite de rodadas).');
+  partes.push('Cantos: 0 = cima/esquerda, 1 = cima/direita, 2 = baixo/esquerda, 3 = baixo/direita. O esperado, se for justo, é ~25% cada (o resto até 100% são partidas empatadas até no desempate).');
   partes.push(tabela(['Nível', 'Partidas', 'Canto 0', 'Canto 1', 'Canto 2', 'Canto 3', 'Partida sem campeão'],
     ['facil', 'medio', 'dificil'].map((nv) => {
       const rs = res.filter((r) => r.cenario === `mesmo:${nv}`);

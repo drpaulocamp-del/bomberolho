@@ -155,7 +155,7 @@ function fugir(r, m, j, an, ocupada) {
     }
   }
   if (proximo(r.rng) < Math.max(n.usaTatica, 0.5)) {
-    const p = T.fugaComPinca(m, j, n.margem);
+    const p = T.fugaComPinca(m, j, n.margem) || T.fugaComChute(m, j, n.margem);
     if (p) {
       r.contas.fugasDeEmergencia++;
       return sequencia(r, p);

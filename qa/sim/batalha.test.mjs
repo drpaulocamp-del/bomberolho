@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { criarMundo, passo, avancar, e, centro, posicionar, K } from './ajuda.mjs';
 import { sequenciaDoAperto, proximaQueda } from '../../bomberolho/js/sim/aperto.js';
-import { criarPartida, registrarRodada, sementeDaRodada, limiteDeRodadas } from '../../bomberolho/js/sim/partida.js';
+import { criarPartida, registrarRodada, sementeDaRodada, limiteDeRodadas, molhadosNaRodada } from '../../bomberolho/js/sim/partida.js';
 import { criarAjuste } from '../../bomberolho/js/sim/ajustes.js';
 import { Jogo, INTERVALO } from '../../bomberolho/js/jogo.js';
 
@@ -119,6 +119,27 @@ test('partida: troféu para o vencedor, empate não conta, campeão com N vitór
   for (const v of [0, 1, null, 0, null, 1, null, null, 2]) registrarRodada(r, v);
   assert.equal(r.encerrada, true);
   assert.equal(r.campeao, null, 'empate no topo depois do limite');
+});
+
+test('no limite de rodadas, empate nos troféus desempata por rivais molhados; empate nisso também, partida empatada', () => {
+  const p = criarPartida(2, 4);
+  registrarRodada(p, 0, [0, 0, 0, 1]);
+  registrarRodada(p, 3, [0, 0, 0, 1]);
+  registrarRodada(p, null, [2, 0, 0, 0]);
+  registrarRodada(p, null, [0, 0, 0, 0]);
+  registrarRodada(p, null, [0, 0, 0, 0]);
+  assert.equal(p.encerrada, true);
+  assert.deepEqual(p.vitorias, [1, 0, 0, 1]);
+  assert.deepEqual(p.molhados, [2, 0, 0, 2]);
+  assert.equal(p.campeao, null, '1×1 em troféus e 2×2 em molhados');
+  const q = criarPartida(1, 4);
+  registrarRodada(q, null, [1, 0, 0, 0]);
+  registrarRodada(q, null, [0, 2, 0, 0]);
+  registrarRodada(q, null, [0, 1, 0, 0]);
+  assert.equal(q.campeao, 1, 'ninguém com troféu: leva quem molhou mais');
+  assert.equal(q.desempate, true);
+  const m = { jogadores: [{ id: 0, vivo: true, eliminadoPor: null }, { id: 1, vivo: false, eliminadoPor: 0 }, { id: 2, vivo: false, eliminadoPor: 2 }, { id: 3, vivo: false, eliminadoPor: null }] };
+  assert.deepEqual(molhadosNaRodada(m), [1, 0, 0, 0], 'molhar a si mesmo e cair no aperto não contam');
 });
 
 test('cada rodada tem arena própria (semente derivada), mas reprodutível', () => {

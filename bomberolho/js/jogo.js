@@ -4,7 +4,7 @@
 import { criarMundo, passo, ENTRADA_VAZIA } from './sim/mundo.js';
 import { retratar, impressaoDigital, hashDe } from './sim/retrato.js';
 import { criarAjuste } from './sim/ajustes.js';
-import { criarPartida, registrarRodada, sementeDaRodada } from './sim/partida.js';
+import { criarPartida, registrarRodada, sementeDaRodada, molhadosNaRodada } from './sim/partida.js';
 import { criarRobo, decidir } from './ia/robo.js';
 import { criarRelogio, avancarRelogio, fracaoDoTick } from './nucleo/relogio.js';
 import { escalarPersonagens } from './dados/personagens.js';
@@ -100,7 +100,7 @@ export class Jogo {
 
   encerrarRodada() {
     this.registrada = true;
-    registrarRodada(this.partida, this.mundo.vencedor);
+    registrarRodada(this.partida, this.mundo.vencedor, molhadosNaRodada(this.mundo));
     this.eventos.push({ tipo: 'fimRodada', vencedor: this.mundo.vencedor, encerrada: this.partida.encerrada, campeao: this.partida.campeao });
     if (!this.partida.encerrada) this.intervalo = INTERVALO;
   }
@@ -150,8 +150,8 @@ export class Jogo {
       tela: this.tela,
       rodada: p.rodada,
       partida: {
-        alvo: p.alvo, vitorias: [...p.vitorias], historico: [...p.historico],
-        campeao: p.campeao, encerrada: p.encerrada, intervalo: this.intervalo,
+        alvo: p.alvo, vitorias: [...p.vitorias], molhados: [...p.molhados], historico: [...p.historico],
+        campeao: p.campeao, encerrada: p.encerrada, desempate: p.desempate, intervalo: this.intervalo,
       },
       pausado: this.pausado,
       timeScale: this.escala,

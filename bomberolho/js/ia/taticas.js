@@ -231,3 +231,22 @@ export function atalhoDoSaltinho(m, j, distAteAlvo) {
   }
   return null;
 }
+
+/** Fuga com chute: sem saída a pé, chuta para longe a gota colada que fecha o caminho. */
+export function fugaComChute(m, j, margem) {
+  if (!j.chute) return null;
+  const c = colDe(j);
+  const l = linDe(j);
+  for (const dir of NOMES_DIRECOES) {
+    const { dc, dl } = DIRECOES[dir];
+    const g = gotaEm(m, c + dc, l + dl);
+    if (!g || g.mov || g.passantes.length) continue;
+    const parada = paradaDoChute(m, g, dir);
+    if (Math.abs(parada.col - c) + Math.abs(parada.lin - l) < 3) continue; // não vai longe o bastante
+    const outras = m.gotas.filter((o) => o !== g);
+    const hip = { col: parada.col, lin: parada.lin, pavio: g.pavio, alcance: g.alcance, penetrante: g.penetrante };
+    const sem = { ...m, gotas: outras };
+    if (planejarFuga(sem, j, analisar(sem, [hip]), casasComGota(sem, j, [hip]), { margem }).ok) return [entrada({ [dir]: true })];
+  }
+  return null;
+}

@@ -47,9 +47,9 @@ export class Avisos {
     } else if (p.campeao === null) {
       this.mostrar('Partida empatada!', 'Foi uma disputa e tanto. Vamos de novo?', 'Jogar de novo', 'recomecar', jogo);
     } else if (p.campeao === 0 && !jogo.demo) {
-      this.mostrar('Você levou a taça!', 'Que pontaria! Os respingos foram todos certeiros.', 'Jogar de novo', 'recomecar', jogo);
+      this.mostrar('Você levou a taça!', p.desempate ? 'Empate nos troféus, mas você molhou mais rivais!' : 'Que pontaria! Os respingos foram todos certeiros.', 'Jogar de novo', 'recomecar', jogo);
     } else {
-      this.mostrar(`${nome(p.campeao)} levou a taça!`, 'Na próxima é você. Vamos de novo?', 'Jogar de novo', 'recomecar', jogo);
+      this.mostrar(`${nome(p.campeao)} levou a taça!`, p.desempate ? 'Empate nos troféus: levou quem molhou mais rivais. Vamos de novo?' : 'Na próxima é você. Vamos de novo?', 'Jogar de novo', 'recomecar', jogo);
     }
     if (novo) this.botao.focus({ preventScroll: true });
   }

@@ -64,6 +64,7 @@ export function jogarPartida(spec) {
     }
   }
   r.campeao = jogo.partida.campeao;
+  r.desempate = jogo.partida.desempate;
   r.encerrada = jogo.partida.encerrada;
   return r;
 }
