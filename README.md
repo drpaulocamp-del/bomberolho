@@ -55,28 +55,58 @@ módulos ES fora de um servidor.
 
 ## Como testar (`qa/`)
 
-Os testes ficam em `qa/` e usam a única dependência do projeto, o Playwright.
-Ele serve só para desenvolvimento e não vai para o site.
+Os testes ficam em `qa/` e usam a única dependência do projeto, o Playwright
+(versão fixa em `qa/package.json`). Ele serve só para desenvolvimento e não vai
+para o site.
+
+### Instalação numa máquina nova (uma vez só)
+
+Precisa do Node 18 ou mais novo e de acesso à internet nesta etapa:
 
 ```bash
 cd qa
-npm install          # só na primeira vez (Playwright)
-npm test             # simulação e lógica pura, com node --test, sem navegador (~30 s)
-npm run e2e          # navegador (Chromium): jogo, menus, toque, robustez (~3 min)
+npm i                               # baixa o Playwright para qa/node_modules
+npx playwright install chromium     # baixa o Chromium que essa versão do Playwright usa
 ```
 
-Ferramentas de medição, todas rodadas de dentro de `qa/`:
+- O `npm test` não precisa de nada disso: roda só com o Node.
+- **Chromium já instalado** (contêineres e máquinas de CI costumam trazer um, por
+  exemplo em `/opt/pw-browsers`): dá para pular o `npx playwright install` e
+  usar esse navegador pelo `executablePath` do Playwright. O
+  `qa/navegador/apoio.mjs` já faz isso sozinho quando o Chromium do pacote não
+  existe e há um em `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`; em
+  outro caminho, troque a constante `local` na função `abrirNavegador()`.
+
+### Suítes
+
+```bash
+cd qa
+npm test             # simulação e lógica pura, com node --test, sem navegador (~30 s)
+npm run e2e          # navegador (Chromium): jogo, menus, toque, robustez (~2–3 min)
+npm run todos        # as duas, em sequência
+npm run test:regras  # só as regras, pulando os testes de partida inteira e de IA (mais rápido)
+```
+
+Os testes de navegador sobem sozinhos o `dev-server.mjs` numa porta livre; não
+é preciso deixar o servidor rodando.
+
+### Ferramentas de medição
+
+Todas rodam de dentro de `qa/` e também sobem o servidor sozinhas.
 
 | Comando | O que faz |
 |---|---|
-| `npm run desempenho` | Quadros por segundo no começo, no meio e no aperto final. Mede no desktop e num "celular de entrada" emulado (390×844, DPR 3, CPU 4× mais lenta), além do menu. |
+| `npm run desempenho` | Quadros por segundo numa partida em modo demo (Jardim, Difícil), no desktop 1280×720 e num "celular de entrada" emulado (390×844, DPR 3, CPU 4× mais lenta). Para cada momento da rodada — **começo** (relógio em 1:55), **meio** (1:25) e **aperto final** (0:45, com o aperto já ligado) — dá o fps médio, o p95 do tempo de quadro, o pior fps numa janela de 0,5 s e a fatia de quadros acima de 34 ms, separando o 1,5 s logo após chegar (adaptação da nitidez) dos 6 s seguintes. Mede também, em tempo real, a **entrada no aperto** (antes, nos 2 s depois de ligar e em seguida) e o menu no celular lento. Opções: `-- --vezes N` (repetições) e `-- --json arquivo.json`. Termina com erro se não conseguir chegar a algum momento. ~1,5 min por repetição. |
 | `npm run memoria` | 5 min de partidas seguidas, medindo o heap, os nós do DOM e os ouvintes de evento a cada 30 s. |
-| `npm run capturas:p4` | Capturas das telas de celular e acabamento em `qa/capturas/p4/`. Há também `capturas.mjs` e `capturas-p3.mjs`. |
-| `npm run lote` (ou `lote:rapido`) | Milhares de partidas sem cabeça, com tabelas de balanceamento em `qa/lote/resultado.md`. Inclui o perfil "criança", escrito fora da IA do jogo (`qa/lote/crianca.mjs`). |
+| `npm run capturas:p4` | Capturas das telas de celular e acabamento em `qa/capturas/p4/`. `npm run capturas:p3` faz as da parte 3 (em `qa/capturas/p3/`). |
+| `npm run lote` | Simulação em lote sem cabeça (≈ 2 300 partidas, sementes fixas), com tabelas de balanceamento em `qa/lote/resultado.md`. Inclui o perfil "criança", escrito fora da IA do jogo (`qa/lote/crianca.mjs`). Demora (dezenas de minutos). |
+| `npm run lote:rapido` | O mesmo lote a 5% (`qa/lote/rapido.md`), em poucos minutos. |
 | `npm run som` | Volume (pico e LUFS) dos efeitos e das trilhas, medido pela cadeia de áudio real. |
 
-Se o Playwright não achar o próprio Chromium, `qa/navegador/apoio.mjs` usa o
-que estiver em `/opt/pw-browsers`.
+Os JSON brutos que o lote e os scripts de verificação gravam (`qa/lote/*.json`,
+`qa/verificacao/**/*.json`) ficam fora do git: são grandes e se recriam rodando
+o script de novo. Versionam-se só as tabelas em `.md`. As capturas
+(`qa/capturas/`) também ficam fora do git.
 
 ## Parâmetros de URL (para testes e links diretos)
 
@@ -91,14 +121,19 @@ direto na partida.
 | `?rodadas=` | `1`, `2` (padrão), `3` | troféus para levar a taça |
 | `?semente=` | número ou texto | mapa e sorteios fixos (reprodutível) |
 | `?demo=1` | | seu personagem joga sozinho (piloto automático) |
-| `?escala=` | `0` a `8` | velocidade do tempo (2 = dobro) |
+| `?escala=` | número maior que `0`, até `8` | velocidade do tempo (2 = dobro); fora disso, 1 |
 | `?ajuste=1` | | abre a bancada de ajuste do "sentir" (ver abaixo) |
 | `?toque=1` / `?toque=0` | | força ou esconde os controles de toque. Com `1`, o mouse também move a alavanca, para testar no computador. |
 | `?densidade=` | `1` a `3` | fixa a nitidez do canvas. Sem o parâmetro, ela começa em até 2× e desce sozinha se o aparelho estiver lento. |
 
+Valores desconhecidos caem no padrão em silêncio (`bomberolho/js/parametros.js`).
+
 Para testes automatizados, existe o gancho `window.__bomberolho`, com `state`,
 `start()`, `step()`, `input()`, `setTimeScale()`, `demo()`, `pause()`,
-`menu()`, `ajustar()` e `hash()`. Ele está descrito em `bomberolho/js/gancho.js`.
+`menu()`, `ajustar()`, `restaurarAjuste()`, `darItem()`, `hash()` e
+`hashCompleto()`. Ele está descrito em `bomberolho/js/gancho.js`. No `state`, o
+relógio da rodada é `relogio` (segundos que faltam) e o aperto final é
+`aperto.ativo`.
 
 ## Bancada de ajuste (`?ajuste=1`)
 
@@ -138,6 +173,7 @@ bomberolho/            ← o jogo (é só esta pasta que vai para o site)
     input/             teclado, toque
     audio/             síntese WebAudio
     dados/             personagens, curiosidades
+    nucleo/            relógio de passo fixo (tempo real → ticks)
 qa/                    testes e ferramentas (não vai para o site)
 reports/, reviews/     relatórios e pareceres do desenvolvimento (não vão para o site)
 dev-server.mjs         servidor local de desenvolvimento (não vai para o site)
@@ -159,9 +195,14 @@ Copie **apenas** a pasta `bomberolho/` deste repositório para a raiz do site,
 de modo que fique `/<pasta-do-site>/bomberolho/index.html`.
 
 ```bash
-# exemplo: o site está em ~/meu-site
-cp -R bomberolho ~/meu-site/bomberolho
+# exemplo: o site está em ~/meu-site (rode da raiz deste repositório)
+cp -R bomberolho ~/meu-site/
+# resultado esperado: ~/meu-site/bomberolho/index.html
 ```
+
+Se já existir uma `bomberolho/` antiga no site, apague-a antes de copiar
+(`rm -rf ~/meu-site/bomberolho`); senão o `cp` cria uma pasta dentro da outra
+(`bomberolho/bomberolho/`).
 
 Também funciona em outra subpasta (por exemplo
 `/<site>/jogos/bomberolho/`), porque todos os caminhos dentro do jogo são
@@ -197,11 +238,16 @@ ocupar a tela inteira do celular.
 
 ### 3. Conferir se funcionou
 
-1. Abra `https://<domínio>/bomberolho/` (ou o servidor local do site). Deve
-   aparecer o logotipo "Bomberolho" com os personagens desfilando e o botão
-   **Jogar**.
-2. Toque em **Jogar**, escolha um personagem e uma arena e toque em
-   **Começar!**. A contagem "3, 2, 1, Já!" aparece e a partida começa.
+1. Abra `https://<domínio>/bomberolho/`. Deve aparecer o logotipo
+   "Bomberolho" com os personagens desfilando e o botão **Jogar**.
+   - Para conferir antes de publicar, sirva a pasta do site localmente (de
+     dentro dela, por exemplo `python3 -m http.server 8000`) e abra
+     `http://localhost:8000/bomberolho/`.
+   - Abrir o `index.html` direto do disco (`file://`) não funciona: o
+     navegador bloqueia módulos ES fora de um servidor.
+2. Toque em **Jogar**, escolha um personagem, toque em **Próximo**, escolha
+   uma arena e toque em **Começar!**. A contagem "3, 2, 1, Já!" aparece e a
+   partida começa.
 3. No celular, a alavanca (canto de baixo à esquerda) e o botão azul da gota
    aparecem embaixo da arena, ou ao lado dela com o celular deitado.
 4. No console do navegador (F12 → Console), não pode haver nenhum erro em
@@ -212,6 +258,6 @@ ocupar a tela inteira do celular.
    - o servidor entrega arquivos `.js` como `text/javascript`. Qualquer
      hospedagem comum já faz isso.
 
-E só isso. Não há configuração, chave, banco de dados nem servidor
+É só isso. Não há configuração, chave, banco de dados nem servidor
 especial: atualizar o jogo no futuro é substituir a pasta `bomberolho/` inteira
 pela nova.

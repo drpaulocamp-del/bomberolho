@@ -422,6 +422,17 @@ button.pausado:hover { background: #0F6532; }
   .barra .tempo { font-size: 0.9rem; }
   .barra svg { width: 14px; height: 14px; }
   .nome { font-size: 0.8rem; }
-  .nome em { display: none; }
   .cartao { gap: 4px; }
+}
+
+/* Cartão do placar: o nome, o selo "você" e os troféus nunca são cortados.
+   O cartão de quem joga tem contorno azul (se reconhece mesmo sem o selo); em
+   cartão estreito o selo sai, e em último caso os troféus descem de linha. */
+.cartao { container: cartao / inline-size; }
+.cartao.eu { background: #EEF6FF; box-shadow: inset 0 0 0 2px rgba(0, 113, 227, 0.45); }
+.nome { display: flex; flex-wrap: wrap; align-items: center; column-gap: 4px; }
+.nome em { margin-left: 0; }
+.trofeus { margin-left: 2px; }
+@container cartao (max-width: 229px) {
+  .nome em { display: none; }
 }

@@ -127,8 +127,11 @@ body[data-lado="canhoto"] .alavanca.repouso { left: auto; right: calc(var(--marg
 .bt-acao.ligado { background: #DDF1FF; }
 
 @media (orientation: landscape) {
-  /* Deitado, a alavanca em repouso fica sobre o placar: só um contorno leve. */
+  /* Deitado, a alavanca em repouso fica sobre o placar: só um contorno leve,
+     e some depois do primeiro uso (a criança já sabe onde pôr o dedo e o
+     placar volta a ficar legível). */
   .alavanca.repouso { opacity: 0.4; }
+  .alavanca.repouso.conhecida { opacity: 0; }
   /* Deitado: o botão do bichinho fica em cima do da gota (a coluna é estreita). */
   .bt-acao {
     right: calc(var(--margem-toque) + (var(--gota-toque) - var(--acao-toque)) / 2 + env(safe-area-inset-right));

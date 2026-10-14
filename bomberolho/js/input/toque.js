@@ -158,6 +158,7 @@ export function criarToque(doc, op) {
     if (alavanca.id !== null || !noLadoDaAlavanca(e.clientX)) return;
     e.preventDefault();
     alavanca.id = e.pointerId;
+    op.alavanca.classList.add('conhecida'); // já achou a alavanca: o contorno de dica pode sumir (CSS)
     alavanca.x = e.clientX;
     alavanca.y = e.clientY;
     alavanca.dir = null;

@@ -40,6 +40,18 @@ async function auditar() {
   const arena = document.getElementById('arena').getBoundingClientRect();
   const doc = document.documentElement;
   if (doc.scrollWidth > innerWidth || doc.scrollHeight > innerHeight) out.push(`rolagem ${doc.scrollWidth}×${doc.scrollHeight}`);
+  // Cartões do placar: inteiros dentro do painel, e nada dentro deles cortado (nome, selo, troféus, poderes).
+  const painel = document.querySelector('.painel').getBoundingClientRect();
+  for (const c of document.querySelectorAll('.placar .cartao')) {
+    if (document.querySelector('.app[data-modo="menu"]')) break;
+    const cb = c.getBoundingClientRect();
+    const quem = c.querySelector('.nome').firstChild.textContent.trim();
+    if (cb.bottom > painel.bottom + 0.5 || cb.right > painel.right + 0.5) out.push(`cartão ${quem} cortado pelo painel`);
+    for (const el of c.querySelectorAll('.nome em, .trofeus i, .poderes > span')) {
+      const b = el.getBoundingClientRect();
+      if (b.width && (b.right > cb.right + 0.5 || b.bottom > cb.bottom + 0.5)) out.push(`cartão ${quem}: ${el.className || el.tagName} cortado`);
+    }
+  }
   for (const el of document.querySelectorAll('button')) {
     const st = getComputedStyle(el);
     if (el.closest('[hidden]') || st.display === 'none' || st.visibility === 'hidden') continue;
@@ -67,7 +79,7 @@ async function auditar() {
   return out;
 }
 
-test('alcance: nenhum botão cortado, coberto ou pequeno em 14 telas (menu, ajuda, jogo montado, pausa, resultado)', async () => {
+test('alcance: nenhum botão ou cartão do placar cortado, coberto ou pequeno em 14 telas (menu, ajuda, jogo montado, pausa, resultado)', async () => {
   const falhas = [];
   for (const [w, h, toque] of TELAS_ALCANCE) {
     const tela = `${w}×${h}${toque ? ' toque' : ''}`;

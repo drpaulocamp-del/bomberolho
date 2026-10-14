@@ -50,7 +50,7 @@ export class Placar {
     this.cartoes = mundo.jogadores.map((j) => {
       const p = PERSONAGENS[j.personagem];
       const el = document.createElement('li');
-      el.className = 'cartao';
+      el.className = j.id === 0 ? 'cartao eu' : 'cartao';
       el.style.setProperty('--cor', p.cor);
       const retrato = document.createElement('canvas');
       retrato.className = 'retrato';
