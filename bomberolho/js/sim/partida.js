@@ -1,12 +1,13 @@
 // Partida = várias rodadas; vence quem ganhar `alvo` rodadas primeiro (1 a 3).
-// Empate não dá troféu a ninguém. Para nunca haver partida infinita, depois de
-// `2 × alvo + 3` rodadas a partida acaba: leva quem tem mais troféus, ou
-// termina empatada se houver empate no topo.
+// Empate não dá troféu a ninguém. Para nunca haver partida infinita (e ela
+// caber numa espera de consultório), depois de `2 × alvo + 1` rodadas a
+// partida acaba: leva quem tem mais troféus, ou termina empatada se houver
+// empate no topo.
 
 export const ALVO_PADRAO = 2;
 
 export function limiteDeRodadas(alvo) {
-  return alvo * 2 + 3;
+  return alvo * 2 + 1;
 }
 
 export function criarPartida(alvo = ALVO_PADRAO, competidores = 4) {

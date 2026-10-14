@@ -25,8 +25,16 @@ function gotaLida(m, g) {
     const { dc, dl } = DIRECOES[p.dir];
     ({ col, lin } = darVolta(m, g.col + dc * m.ajuste.distanciaPinca, g.lin + dl * m.ajuste.distanciaPinca));
   } else if (g.estado === 'voo') {
+    // Segue os quiques: casa ocupada (sólido ou gota) manda a gota uma casa adiante.
     ({ col, lin } = destinoDoVoo(m, g.voo));
-    pavio = Math.max(pavio, g.voo.duracao - g.voo.t);
+    let resta = g.voo.duracao - g.voo.t;
+    const { dc, dl } = DIRECOES[g.voo.dir];
+    for (let k = 0; k < 30 && (m.grade[lin * m.colunas + col] !== VAZIO
+      || m.gotas.some((o) => o !== g && o.estado === 'chao' && o.col === col && o.lin === lin)); k++) {
+      ({ col, lin } = darVolta(m, col + dc, lin + dl));
+      resta += m.ajuste.vooPorCasa;
+    }
+    pavio = Math.max(pavio, resta);
   }
   return { col, lin, pavio, alcance: g.alcance, penetrante: !!g.penetrante };
 }
@@ -76,7 +84,9 @@ export function alcanceDaGota(m, g, ocupadas) {
 export function analisar(m, extras = [], op = {}) {
   // Reação: gotas alheias soltas há menos de `op.reacao` ticks ainda não foram notadas.
   const reacao = op.reacao || 0;
-  const chave = reacao ? `${reacao}:${op.quem}` : '';
+  const miope = op.alcanceVisto || 0; // enxerga o respingo alheio no máximo com este alcance
+  const semCadeia = !!op.semCadeia; // não prevê reação em cadeia
+  const chave = reacao || miope || semCadeia ? `${reacao}:${op.quem}:${miope}:${semCadeia}` : '';
   if (!extras.length) {
     const c = cache.get(m);
     if (c && c.tick === m.tick && c.porChave[chave]) return c.porChave[chave];
@@ -96,12 +106,16 @@ export function analisar(m, extras = [], op = {}) {
     for (const i of casas) marcar(i, 0, r.t);
   }
   const vistas = reacao ? m.gotas.filter((g) => g.dono === op.quem || g.pavioTotal - g.pavio >= reacao) : m.gotas;
-  const gotas = [...vistas.map((g) => gotaLida(m, g)), ...extras];
+  const gotas = [...vistas.map((g) => {
+    const lida = gotaLida(m, g);
+    if (miope && g.dono !== op.quem) lida.alcance = Math.min(lida.alcance, miope);
+    return lida;
+  }), ...extras];
   const ocupadas = new Set(gotas.map((g) => g.lin * m.colunas + g.col));
   const tempo = gotas.map((g) => g.pavio);
   const casas = gotas.map((g) => alcanceDaGota(m, g, ocupadas));
   // Cadeia: quem é atingido estoura junto (propaga até estabilizar).
-  let mudou = true;
+  let mudou = !semCadeia;
   while (mudou) {
     mudou = false;
     for (let a = 0; a < gotas.length; a++) {

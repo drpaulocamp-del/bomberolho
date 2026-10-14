@@ -25,18 +25,18 @@ export const NIVEIS = Object.freeze({
   // alheias, enxerga pouco à frente na fuga, só ataca depois de 20 s e quase
   // nunca persegue. Às vezes se atrapalha sozinho.
   facil: Object.freeze({
-    margem: 0, reacao: 22, camadas: 7, calma: 20 * S, perseguir: 0.05, perseguirFinal: 0.2, atacar: 0.3, atacaNaFuga: 0, armadilha: false, erro: 0.1,
+    margem: 0, reacao: 30, alcanceVisto: 2, semCadeia: true, camadas: 6, calma: 20 * S, perseguir: 0.05, perseguirFinal: 0.2, atacar: 0.3, atacaNaFuga: 0, atacaNoFim: false, armadilha: false, emboscada: 0, erro: 0.1,
     usaTatica: 0.12, usaPoder: 0.35, evitaCisco: false, duasSaidas: false, pensar: 12, notaMinimaTatica: 3, pausaEntreGotas: 70,
   }),
   // Médio: foge bem, ataca quem está na mira e encurrala de vez em quando.
   medio: Object.freeze({
-    margem: 4, reacao: 8, camadas: 11, calma: 6 * S, perseguir: 0.3, perseguirFinal: 0.75, atacar: 0.7, atacaNaFuga: 0.25, armadilha: false, erro: 0,
+    margem: 2, reacao: 14, alcanceVisto: 0, semCadeia: false, camadas: 9, calma: 6 * S, perseguir: 0.3, perseguirFinal: 0.75, atacar: 0.7, atacaNaFuga: 0.25, atacaNoFim: true, armadilha: false, emboscada: 45, erro: 0,
     usaTatica: 0.6, usaPoder: 0.85, evitaCisco: true, duasSaidas: true, pensar: 6, notaMinimaTatica: 2, pausaEntreGotas: 15,
   }),
   // Difícil: lê o perigo com antecedência, monta armadilhas (cadeia incluída),
   // usa chute, Pinça e bichinhos sempre que valem a pena; quase nunca se molha.
   dificil: Object.freeze({
-    margem: 8, reacao: 0, camadas: 16, calma: 3 * S, perseguir: 0.6, perseguirFinal: 0.95, atacar: 0.95, atacaNaFuga: 0.6, armadilha: true, erro: 0,
+    margem: 8, reacao: 0, alcanceVisto: 0, semCadeia: false, camadas: 16, calma: 3 * S, perseguir: 0.6, perseguirFinal: 0.95, atacar: 0.95, atacaNaFuga: 0.6, atacaNoFim: true, armadilha: true, emboscada: 15, erro: 0,
     usaTatica: 1, usaPoder: 1, evitaCisco: true, duasSaidas: true, pensar: 4, notaMinimaTatica: 2, pausaEntreGotas: 0,
   }),
 });
@@ -51,6 +51,7 @@ export function criarRobo(id, dificuldade, semente) {
     motivo: null, // 'item' | 'bloco' | 'ataque' | 'passeio'
     refugio: null, // casa segura escolhida na fuga
     recusadas: {}, // casa → tick até quando não vale tentar soltar ali de novo
+    proximaEmboscada: 0,
     roteiro: [], // entradas já decididas para os próximos ticks
     proximoPensar: 0,
     ultimaGota: -1000,
@@ -70,7 +71,9 @@ export function decidir(r, m) {
   if (r.roteiro.length) return r.roteiro.shift();
   if (j.salto) return VAZIA;
   const n = r.nivel;
-  const an = n.reacao ? analisar(m, [], { reacao: n.reacao, quem: j.id }) : analisar(m);
+  const an = n.reacao || n.alcanceVisto || n.semCadeia
+    ? analisar(m, [], { reacao: n.reacao, quem: j.id, alcanceVisto: n.alcanceVisto, semCadeia: n.semCadeia })
+    : analisar(m);
   const aqui = casaDe(m, j);
   if (j.disparada) {
     // Segura a arrancada até sair do perigo.
@@ -85,6 +88,7 @@ export function decidir(r, m) {
 }
 
 function sequencia(r, lista) {
+  if (lista.some((e) => e.acao)) r.contas.poderes++;
   r.roteiro = lista.slice(1);
   return lista[0];
 }
@@ -127,6 +131,8 @@ function fugir(r, m, j, an, ocupada) {
   const escolher = (lista) => escolherRefugio(r, m, ocupada, lista);
   const plano = planejarFuga(m, j, an, ocupada, { margem: n.margem, camadas: n.camadas, origemBloqueada, escolher, alvo: r.refugio });
   r.refugio = plano.ok ? plano.destino : null;
+  if (n.atacaNoFim && apostaFinal(m) && gotasAtivasDe(m, j.id) < j.gotas && !gotaEm(m, colDe(j), linDe(j))
+    && notaDoAtaque(m, j, casaDe(m, j), true) >= 2) return soltar(r, m, 'ataques');
   if (plano.ok) {
     // Fugindo com folga e com gota sobrando: uma segunda gota pode fechar a
     // saída de um rival (é assim que se encurrala de verdade).
@@ -143,11 +149,17 @@ function fugir(r, m, j, an, ocupada) {
   // Sem fuga a pé com folga: bichinho, Pinça, ou fuga com folga zero.
   if (proximo(r.rng) < n.usaPoder) {
     const b = T.fugaComBichinho(m, j, an, n.margem);
-    if (b) return sequencia(r, b);
+    if (b) {
+      r.contas.fugasDeEmergencia++;
+      return sequencia(r, b);
+    }
   }
   if (proximo(r.rng) < Math.max(n.usaTatica, 0.5)) {
     const p = T.fugaComPinca(m, j, n.margem);
-    if (p) return sequencia(r, p);
+    if (p) {
+      r.contas.fugasDeEmergencia++;
+      return sequencia(r, p);
+    }
   }
   const justo = planejarFuga(m, j, an, ocupada, { margem: 0, camadas: n.camadas, origemBloqueada, escolher });
   return irPara(m, j, (justo.ok ? justo : plano).caminho[1]);
@@ -161,6 +173,9 @@ function agir(r, m, j, an, ocupada) {
   const n = r.nivel;
   const aqui = casaDe(m, j);
   const podeAtacar = tempoDeJogo(m) >= n.calma;
+  // Últimos segundos: com o relógio quase no fim (empate certo), uma gota que
+  // estoura antes do 0:00 e encurrala alguém só pode melhorar o resultado.
+  if (n.atacaNoFim && apostaFinal(m) && gotasAtivasDe(m, j.id) < j.gotas && notaDoAtaque(m, j, aqui, true) >= 2) return soltar(r, m, 'ataques');
   if (m.tick >= r.proximoPensar) {
     r.proximoPensar = m.tick + n.pensar;
     if (podeAtacar && proximo(r.rng) < n.usaTatica) {
@@ -232,10 +247,29 @@ function podeSoltar(r, m, j) {
   }
   const an = analisar(m, [hip]);
   const ocupada = casasComGota(m, j, [hip]);
-  const plano = planejarFuga(m, j, an, ocupada, { margem: n.margem, camadas: n.camadas, origemBloqueada: true });
+  const plano = planejarFuga(m, j, an, ocupada, { margem: margemParaSoltar(m, n), camadas: n.camadas, origemBloqueada: true });
   if (!plano.ok) return false;
-  if (n.duasSaidas && rivalPerto(m, j, 5) && plano.seguras.length < 2) return false;
+  if (n.duasSaidas && !faseFinal(m) && rivalPerto(m, j, 5) && plano.seguras.length < 2) return false;
   return true;
+}
+
+/** Aperto final avançado ou só dois de pé: os robôs ficam mais ousados. */
+function faseFinal(m) {
+  const a = m.aperto;
+  if (a && a.ativo && a.seq && a.indice > a.seq.length * 0.4) return true;
+  return m.jogadores.filter((o) => o.vivo).length === 2;
+}
+
+/** Janela da aposta final: a gota solta agora estoura antes de o relógio zerar, por pouco. */
+function apostaFinal(m) {
+  if (m.tempoRestante === null || m.fase !== 'jogando') return false;
+  const p = m.ajuste.pavio;
+  return m.tempoRestante > p + 5 && m.tempoRestante <= p + 150;
+}
+
+/** Folga exigida para soltar: na fase final, até o Difícil aceita fugas justas. */
+function margemParaSoltar(m, n) {
+  return faseFinal(m) ? Math.min(n.margem, 3) : n.margem;
 }
 
 function rivalPerto(m, j, d) {
@@ -250,23 +284,58 @@ function rivalPerto(m, j, d) {
 function querAtacarDaqui(r, m, j, chegouNoPonto = false, notaMinima = 1) {
   const n = r.nivel;
   if (gotasAtivasDe(m, j.id) >= j.gotas) return false;
-  const hip = gotaHipotetica(m, j);
-  const aqui = casaDe(m, j);
-  const perto = m.jogadores.filter((o) => o.vivo && o !== j && distancia(m, casaDe(m, o), aqui) <= hip.alcance + 2);
-  if (!perto.length) return false;
+  const nota = notaDoAtaque(m, j, casaDe(m, j), n.armadilha);
+  if (nota < notaMinima || nota === 0) return false;
+  let chance = nota === 3 ? n.atacar : nota === 2 ? n.atacar * 0.8 : n.atacar * (chegouNoPonto ? 0.6 : 0.3);
+  if (faseFinal(m)) chance = Math.min(1, chance * 1.6); // arena encolhendo: hora de arriscar
+  return proximo(r.rng) < chance;
+}
+
+/**
+ * Quanto uma gota solta na casa `i` aperta os rivais (com eles parados onde
+ * estão): 3 = algum fica sem fuga, 2 = fuga apertada, 1 = na cruz mas foge.
+ * Com `armadilha`, conta também quem não está na cruz mas fica encurralado
+ * (cadeias e corredores fechados).
+ */
+function notaDoAtaque(m, j, i, armadilha) {
+  const falso = { ...j, x: (i % m.colunas) * CASA + MEIA_CASA, y: Math.floor(i / m.colunas) * CASA + MEIA_CASA };
+  const hip = gotaHipotetica(m, falso);
+  const perto = m.jogadores.filter((o) => o.vivo && o !== j && distancia(m, casaDe(m, o), i) <= hip.alcance + 2);
+  if (!perto.length) return 0;
   const an = analisar(m, [hip]);
   const cruz = alcanceDaGota(m, hip, an.ocupadas);
   let nota = 0;
   for (const o of perto) {
     const naCruz = cruz.includes(casaDe(m, o));
-    if (!naCruz && !n.armadilha) continue;
+    if (!naCruz && !armadilha) continue;
     const fuga = planejarFuga(m, o, an, casasComGota(m, o, [hip]), { margem: 0, camadas: 12 });
     const v = !fuga.ok ? 3 : fuga.seguras.length <= 2 ? 2 : naCruz ? 1 : 0;
     if (v > nota) nota = v;
   }
-  if (nota < notaMinima || nota === 0) return false;
-  const chance = nota === 3 ? n.atacar : nota === 2 ? n.atacar * 0.8 : n.atacar * (chegouNoPonto ? 0.6 : 0.3);
-  return proximo(r.rng) < chance;
+  return nota;
+}
+
+/**
+ * Emboscada (Difícil): procura, perto dos rivais, a casa de onde uma gota
+ * deixaria alguém sem saída (ou quase) e de onde o próprio robô ainda foge.
+ */
+function procurarEmboscada(r, m, j, busca) {
+  const n = r.nivel;
+  const rivais = m.jogadores.filter((o) => o.vivo && o !== j).map((o) => casaDe(m, o));
+  const candidatas = busca.fila
+    .filter((i) => busca.dist[i] <= 7 && rivais.some((ir) => distancia(m, i, ir) <= Math.min(j.alcance, 4) + 1))
+    .sort((a, b) => busca.dist[a] - busca.dist[b])
+    .slice(0, 10);
+  let melhor = null;
+  for (const i of candidatas) {
+    const nota = notaDoAtaque(m, j, i, true);
+    if (nota < 2) continue;
+    const valor = nota * 15 - busca.dist[i] * 2;
+    if (melhor && valor <= melhor.valor) continue;
+    if (!fugaPossivelEm(m, j, i, n)) continue;
+    melhor = { i, valor };
+  }
+  return melhor;
 }
 
 /** Blocos que as gotas já no chão vão quebrar (não vale a pena mirar neles de novo). */
@@ -325,7 +394,7 @@ function fugaPossivelEm(m, j, i, n) {
   const falso = { ...j, x: (i % m.colunas) * CASA + MEIA_CASA, y: Math.floor(i / m.colunas) * CASA + MEIA_CASA };
   const hip = gotaHipotetica(m, falso);
   const an = analisar(m, [hip]);
-  return planejarFuga(m, falso, an, casasComGota(m, j, [hip]), { margem: n.margem, camadas: n.camadas, origemBloqueada: true }).ok;
+  return planejarFuga(m, falso, an, casasComGota(m, j, [hip]), { margem: margemParaSoltar(m, n), camadas: n.camadas, origemBloqueada: true }).ok;
 }
 
 function escolherAlvo(r, m, j, an, ocupada, podeAtacar) {
@@ -359,6 +428,11 @@ function escolherAlvo(r, m, j, an, ocupada, podeAtacar) {
     if (b.v <= melhorNota) break;
     if (fugaPossivelEm(m, j, b.i, n)) { melhorNota = b.v; melhor = { i: b.i, motivo: 'bloco' }; break; }
     r.recusadas[b.i] = m.tick + 90;
+  }
+  if (podeAtacar && n.emboscada && m.tick >= r.proximaEmboscada) {
+    r.proximaEmboscada = m.tick + n.emboscada;
+    const e = procurarEmboscada(r, m, j, busca);
+    if (e) considerar(e.i, 30 + e.valor, 'ataque');
   }
   if (podeAtacar && proximo(r.rng) < vontadeDePerseguir(m, n)) {
     const rival = rivalMaisProximo(m, j);

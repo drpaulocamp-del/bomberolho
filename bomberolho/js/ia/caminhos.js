@@ -86,55 +86,87 @@ export function buscarSeguro(m, j, an, ocupada) {
  * passos de uma casa (ficar parado conta como passo). Cada casa precisa estar
  * seca enquanto ele a ocupa (com `margem` ticks de folga). Devolve o caminho
  * até a casa mais próxima que fica seca para sempre, ou, se não houver, até a
- * que aguenta mais tempo. `alvo`: refúgio preferido (mantido se ainda servir). `origemBloqueada`: há gota na casa de partida (ele
- * pode ficar nela, mas não voltar a ela depois de sair).
+ * que aguenta mais tempo. `alvo`: refúgio preferido (mantido se não custar
+ * mais caro). `origemBloqueada`: há gota na casa de partida (ele pode ficar
+ * nela, mas não voltar a ela depois de sair).
+ *
+ * O primeiro passo é tratado à parte, com o tempo real até o centro da casa
+ * vizinha (quem já está a meio caminho de uma casa chega antes nela e demora
+ * mais para as outras); os seguintes custam uma casa cada.
  */
 export function planejarFuga(m, j, an, ocupada, op = {}) {
   const T = ticksPorCasa(m, j);
-  const margem = op.margem ?? 6;
-  const camadas = op.camadas ?? 16;
+  const vel = velocidadeDe(j, m.ajuste);
   const origem = casaDe(m, j);
+  const cx = (origem % m.colunas) * CASA + CASA / 2;
+  const cy = Math.floor(origem / m.colunas) * CASA + CASA / 2;
+  const margem = op.margem ?? 6;
+  const opcoes = [{ casa: origem, t1: Math.ceil((Math.abs(j.x - cx) + Math.abs(j.y - cy)) / vel) + T }];
+  for (const [v, nome] of vizinhos(m, origem)) {
+    if (!passavel(m, v, ocupada) || (v === origem && op.origemBloqueada)) continue;
+    const { dc, dl } = DIRECOES[nome];
+    const lateral = dc !== 0 ? Math.abs(j.y - cy) : Math.abs(j.x - cx);
+    const axial = dc !== 0 ? Math.abs(cx + dc * CASA - j.x) : Math.abs(cy + dl * CASA - j.y);
+    const t1 = Math.ceil((lateral + Math.min(axial, CASA * 1.5)) / vel);
+    // A casa de partida precisa ficar seca até o centro do corpo sair dela.
+    if (!secaDurante(an, origem, 0, Math.max(0, t1 - Math.floor(T / 2)) + margem)) continue;
+    opcoes.push({ casa: v, t1 });
+  }
+  let melhor = null;
+  let melhorFalha = null;
+  for (const o of opcoes) {
+    const p = camadasDeFuga(m, an, ocupada, op, origem, o.casa, o.t1, T, margem);
+    p.chegada = o.t1 + (p.passos - 1) * T;
+    if (p.ok) {
+      // O refúgio já escolhido ganha de qualquer outro enquanto der para chegar
+      // nele a tempo: trocar de ideia na fronteira entre duas casas faz ir e voltar.
+      const preferido = op.alvo !== undefined && op.alvo !== null && p.destino === op.alvo;
+      const nota = p.chegada - (preferido ? 10000 : 0);
+      if (!melhor || nota < melhor.nota) melhor = { ...p, nota };
+    } else if (!melhorFalha || p.chegada > melhorFalha.chegada) melhorFalha = p;
+  }
+  return melhor || melhorFalha || { ok: false, passos: 0, destino: origem, caminho: [origem], seguras: [] };
+}
+
+function camadasDeFuga(m, an, ocupada, op, origem, primeira, t1, T, margem) {
+  const camadas = op.camadas ?? 16;
   const n = m.grade.length;
+  const metade = Math.ceil(T / 2);
+  const escolher = op.escolher || ((lista) => lista[0]);
   const pais = [];
   let atual = [origem];
-  const metade = Math.ceil(T / 2);
-  let melhorFallback = { k: 0, casa: origem };
-  const escolher = op.escolher || ((lista) => lista[0]);
-  let primeira = null;
+  let fallback = { k: 0, casa: origem };
   for (let k = 1; k <= camadas; k++) {
-    const ini = k * T - metade - margem;
-    const fim = k * T + metade + margem;
+    const t = t1 + (k - 1) * T;
+    const ini = Math.max(0, t - metade - margem);
+    const fim = t + metade + margem;
     const pai = new Int16Array(n).fill(-1);
     const proxima = [];
-    for (const c of atual) {
-      if (pai[c] === -1 && secaDurante(an, c, Math.max(0, ini), fim)) { pai[c] = c; proxima.push(c); }
-      for (const [v] of vizinhos(m, c)) {
-        if (pai[v] !== -1 || !passavel(m, v, ocupada)) continue;
-        if (v === origem && op.origemBloqueada) continue;
-        if (!secaDurante(an, v, Math.max(0, ini), fim)) continue;
-        pai[v] = c;
-        proxima.push(v);
+    if (k === 1) {
+      if (secaDurante(an, primeira, ini, fim)) { pai[primeira] = origem; proxima.push(primeira); }
+    } else {
+      for (const c of atual) {
+        if (pai[c] === -1 && secaDurante(an, c, ini, fim)) { pai[c] = c; proxima.push(c); }
+        for (const [v] of vizinhos(m, c)) {
+          if (pai[v] !== -1 || !passavel(m, v, ocupada)) continue;
+          if (v === origem && op.origemBloqueada) continue;
+          if (!secaDurante(an, v, ini, fim)) continue;
+          pai[v] = c;
+          proxima.push(v);
+        }
       }
     }
     if (!proxima.length) break;
     pais.push(pai);
     atual = proxima;
-    melhorFallback = { k, casa: proxima[0] };
-    const seguras = proxima.filter((c) => secaDesde(an, c, Math.max(0, ini)));
-    // Refúgio já escolhido antes: mantém enquanto der (trocar de ideia a cada
-    // tick entre dois refúgios parecidos deixaria o robô indo e voltando).
-    if (op.alvo !== undefined && op.alvo !== null && seguras.includes(op.alvo)) {
-      return { ok: true, passos: k, destino: op.alvo, caminho: refazer(pais, op.alvo, origem), seguras };
-    }
-    if (seguras.length && !primeira) {
-      const destino = escolher(seguras);
-      primeira = { ok: true, passos: k, destino, caminho: refazer(pais, destino, origem), seguras };
-      if (op.alvo === undefined || op.alvo === null) return primeira;
+    fallback = { k, casa: proxima[0] };
+    const seguras = proxima.filter((c) => secaDesde(an, c, ini));
+    if (seguras.length) {
+      const destino = op.alvo !== undefined && seguras.includes(op.alvo) ? op.alvo : escolher(seguras);
+      return { ok: true, passos: k, destino, caminho: refazer(pais, destino, origem), seguras };
     }
   }
-  if (primeira) return primeira;
-  const { casa } = melhorFallback;
-  return { ok: false, passos: melhorFallback.k, destino: casa, caminho: refazer(pais.slice(0, melhorFallback.k), casa, origem), seguras: [] };
+  return { ok: false, passos: fallback.k, destino: fallback.casa, caminho: refazer(pais.slice(0, fallback.k), fallback.casa, origem), seguras: [] };
 }
 
 function refazer(pais, destino, origem) {

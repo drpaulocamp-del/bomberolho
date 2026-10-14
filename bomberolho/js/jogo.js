@@ -42,6 +42,7 @@ export class Jogo {
       semente: (op.semente ?? anterior.semente ?? 1) >>> 0,
       rodadas: op.rodadas ?? anterior.rodadas ?? 2,
       contagem: op.contagem ?? true,
+      niveis: op.niveis ?? null, // nível por competidor (simulações em lote); null = todos na dificuldade
     };
     this.partida = criarPartida(this.opcoes.rodadas, 4);
     this.opcoes.rodadas = this.partida.alvo;
@@ -63,7 +64,8 @@ export class Jogo {
       contagem: contagem ? this.ajuste.contagem : 0,
       duracao: this.ajuste.duracaoRodada,
     });
-    this.robos = this.mundo.jogadores.map((j) => criarRobo(j.id, dificuldade, s));
+    const niveis = this.opcoes.niveis;
+    this.robos = this.mundo.jogadores.map((j) => criarRobo(j.id, niveis?.[j.id] ?? dificuldade, s));
     this.intervalo = 0;
     this.registrada = false;
     this.eventos.push({ tipo: 'rodada', rodada: this.partida.rodada });

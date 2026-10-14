@@ -1,6 +1,6 @@
 // Gota de colírio, respingo de água, itens e partículas.
 
-import { PAVIO, DURACAO_RESPINGO, DURACAO_QUEBRA, DIRECOES, NOMES_DIRECOES } from '../sim/constantes.js';
+import { DIRECOES, NOMES_DIRECOES } from '../sim/constantes.js';
 import { gotinha } from './personagens.js';
 
 const TAU = Math.PI * 2;
@@ -9,27 +9,59 @@ const TAU = Math.PI * 2;
  * Gota de colírio: incha e pulsa cada vez mais rápido conforme o pavio acaba;
  * tem carinha, que aperta os olhos no último meio segundo.
  */
-export function desenharGota(ctx, x, y, s, gota, tempoSeg) {
-  const restante = gota.pavio / PAVIO; // 1 → 0
+// Cores da gota comum e da gota de Colírio Penetrante (violeta, com losango).
+const CORES_GOTA = {
+  comum: { topo: '#A8ECFF', meio: '#43B4FF', base: '#1C6FE0', contorno: '#1458B8', rosto: '#0D3F86' },
+  penetrante: { topo: '#F3D6FF', meio: '#B067F5', base: '#6A1FC9', contorno: '#4C1496', rosto: '#36096E' },
+};
+
+/**
+ * Gota de colírio. `o.sombra` = false quando ela está no ar (a sombra vai no
+ * chão, desenhada à parte). `o.escala` encolhe a gota (na mão, no ar).
+ */
+export function desenharGota(ctx, x, y, s, gota, tempoSeg, o = {}) {
+  const restante = gota.pavio / (gota.pavioTotal || 165); // 1 → 0
   const ritmo = 4 + (1 - restante) * 14;
   const pulso = 1 + Math.sin(tempoSeg * ritmo) * (0.04 + (1 - restante) * 0.06);
-  const r = s * 0.27 * pulso;
+  const r = s * 0.27 * pulso * (o.escala ?? 1);
   const cy = y + s * 0.08;
+  const cor = gota.penetrante ? CORES_GOTA.penetrante : CORES_GOTA.comum;
 
-  ctx.fillStyle = 'rgba(20, 60, 110, 0.22)';
-  ctx.beginPath();
-  ctx.ellipse(x, y + s * 0.36, s * 0.24, s * 0.07, 0, 0, TAU);
-  ctx.fill();
+  if (o.sombra !== false) {
+    ctx.fillStyle = 'rgba(20, 60, 110, 0.22)';
+    ctx.beginPath();
+    ctx.ellipse(x, y + s * 0.36, s * 0.24, s * 0.07, 0, 0, TAU);
+    ctx.fill();
+  }
 
   const g = ctx.createLinearGradient(0, cy - r * 1.9, 0, cy + r);
-  g.addColorStop(0, '#A8ECFF');
-  g.addColorStop(0.55, '#43B4FF');
-  g.addColorStop(1, '#1C6FE0');
+  g.addColorStop(0, cor.topo);
+  g.addColorStop(0.55, cor.meio);
+  g.addColorStop(1, cor.base);
   ctx.fillStyle = g;
   gotinha(ctx, x, cy, r);
-  ctx.strokeStyle = '#1458B8';
+  ctx.strokeStyle = cor.contorno;
   ctx.lineWidth = s * 0.03;
   ctx.stroke();
+  if (gota.penetrante) {
+    // Losango brilhante na testa e anel tracejado: lê-se "atravessa" num relance.
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(x, cy - r * 1.25);
+    ctx.lineTo(x + r * 0.22, cy - r * 0.95);
+    ctx.lineTo(x, cy - r * 0.65);
+    ctx.lineTo(x - r * 0.22, cy - r * 0.95);
+    ctx.closePath();
+    ctx.fill();
+    ctx.save();
+    ctx.strokeStyle = 'rgba(176, 103, 245, 0.8)';
+    ctx.setLineDash([s * 0.05, s * 0.05]);
+    ctx.lineWidth = s * 0.025;
+    ctx.beginPath();
+    ctx.arc(x, cy - r * 0.2, r * 1.45, 0, TAU);
+    ctx.stroke();
+    ctx.restore();
+  }
 
   // Aviso final: clareia piscando.
   if (gota.pavio < 30 && Math.floor(gota.pavio / 4) % 2 === 0) {
@@ -43,8 +75,8 @@ export function desenharGota(ctx, x, y, s, gota, tempoSeg) {
   ctx.fill();
 
   // Carinha.
-  ctx.strokeStyle = '#0D3F86';
-  ctx.fillStyle = '#0D3F86';
+  ctx.strokeStyle = cor.rosto;
+  ctx.fillStyle = cor.rosto;
   ctx.lineWidth = s * 0.025;
   ctx.lineCap = 'round';
   const ex = r * 0.32;
@@ -73,8 +105,8 @@ export function desenharGota(ctx, x, y, s, gota, tempoSeg) {
 }
 
 /** Largura relativa do respingo ao longo da vida: espirra, segura, recolhe. */
-function larguraRespingo(t) {
-  const p = 1 - t / DURACAO_RESPINGO; // 0 → 1
+function larguraRespingo(t, duracao) {
+  const p = 1 - t / duracao; // 0 → 1
   if (p < 0.15) return 0.45 + (p / 0.15) * 0.45;
   if (p < 0.7) return 0.9 - (p - 0.15) * 0.15;
   return Math.max(0.1, 0.82 - ((p - 0.7) / 0.3) * 0.7);
@@ -87,14 +119,14 @@ function larguraRespingo(t) {
 export function desenharRespingos(ctx, respingos, s, tempoSeg) {
   if (!respingos.length) return;
   const camadas = [
-    { cor: 'rgba(30, 120, 230, 0.9)', fator: 1 },
-    { cor: 'rgba(90, 200, 255, 0.95)', fator: 0.78 },
-    { cor: 'rgba(230, 251, 255, 0.95)', fator: 0.36 },
+    { cor: 'rgba(30, 120, 230, 0.9)', penetrante: 'rgba(118, 46, 214, 0.9)', fator: 1 },
+    { cor: 'rgba(90, 200, 255, 0.95)', penetrante: 'rgba(196, 140, 255, 0.95)', fator: 0.78 },
+    { cor: 'rgba(230, 251, 255, 0.95)', penetrante: 'rgba(250, 238, 255, 0.95)', fator: 0.36 },
   ];
   for (const camada of camadas) {
-    ctx.fillStyle = camada.cor;
     for (const r of respingos) {
-      const w = larguraRespingo(r.t) * camada.fator * s;
+      ctx.fillStyle = r.penetrante ? camada.penetrante : camada.cor;
+      const w = larguraRespingo(r.t, r.duracao) * camada.fator * s;
       const cx = (r.col + 0.5) * s;
       const cy = (r.lin + 0.5) * s;
       ctx.beginPath();
@@ -130,10 +162,10 @@ export function desenharRespingos(ctx, respingos, s, tempoSeg) {
   // Ponta de cada braço: coroinha de gotas espirrando para fora (ou batendo
   // no bloco); e brilhos girando no centro.
   for (const r of respingos) {
-    const w = larguraRespingo(r.t) * s;
+    const w = larguraRespingo(r.t, r.duracao) * s;
     const cx = (r.col + 0.5) * s;
     const cy = (r.lin + 0.5) * s;
-    const vida = 1 - r.t / DURACAO_RESPINGO;
+    const vida = 1 - r.t / r.duracao;
     const abre = Math.min(1, vida * 4);
     ctx.fillStyle = 'rgba(120, 210, 255, 0.95)';
     for (const nome of NOMES_DIRECOES) {
@@ -164,8 +196,8 @@ export function desenharRespingos(ctx, respingos, s, tempoSeg) {
 }
 
 /** Bloco se desfazendo: encolhe, abre em quatro tufos e some. */
-export function desenharQuebra(ctx, sprite, x, y, s, t) {
-  const p = 1 - t / DURACAO_QUEBRA; // 0 → 1
+export function desenharQuebra(ctx, sprite, x, y, s, t, duracao) {
+  const p = 1 - t / duracao; // 0 → 1
   ctx.save();
   ctx.globalAlpha = Math.max(0, 1 - p * 1.1);
   const meio = s / 2;
@@ -188,24 +220,192 @@ export function desenharItem(ctx, tipo, x, y, s) {
   ctx.beginPath();
   ctx.ellipse(x, y + s * 0.38, s * 0.2, s * 0.05, 0, 0, TAU);
   ctx.fill();
+  const estilo = ESTILO_MEDALHAO[tipo] || ESTILO_MEDALHAO.comum;
   const g = ctx.createRadialGradient(x - s * 0.1, cy - s * 0.12, s * 0.05, x, cy, s * 0.34);
   g.addColorStop(0, '#FFFFFF');
-  g.addColorStop(1, '#D9F0FF');
+  g.addColorStop(1, estilo.fundo);
   ctx.fillStyle = g;
   ctx.beginPath();
   ctx.arc(x, cy, s * 0.33, 0, TAU);
   ctx.fill();
-  ctx.strokeStyle = '#0071E3';
-  ctx.lineWidth = s * 0.04;
+  ctx.strokeStyle = estilo.aro;
+  ctx.lineWidth = s * (estilo.grosso ? 0.06 : 0.04);
   ctx.stroke();
   ctx.save();
   ctx.translate(x, cy);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  if (tipo === 'gota') iconeFrasco(ctx, s);
-  else if (tipo === 'alcance') iconeLupa(ctx, s);
-  else if (tipo === 'velocidade') iconeVeloz(ctx, s);
+  (ICONES[tipo] || iconeFrasco)(ctx, s);
   ctx.restore();
+}
+
+// Aro do medalhão: azul (comum), dourado (raro), coral (azar), rosa (estojo).
+const ESTILO_MEDALHAO = {
+  comum: { fundo: '#D9F0FF', aro: '#0071E3' },
+  superLupa: { fundo: '#FFF1C2', aro: '#E0A100', grosso: true },
+  penetrante: { fundo: '#F1E3FF', aro: '#8B3FE0', grosso: true },
+  cisco: { fundo: '#FFE3DD', aro: '#E2574C' },
+  estojo: { fundo: '#FFE6F3', aro: '#E0479A', grosso: true },
+};
+
+const ICONES = {
+  gota: iconeFrasco,
+  alcance: iconeLupa,
+  velocidade: iconeVeloz,
+  chute: iconeChute,
+  superLupa: iconeSuperLupa,
+  cisco: iconeCisco,
+  pinca: iconePinca,
+  penetrante: iconePenetrante,
+  estojo: iconeEstojo,
+};
+
+/** Chute-Pisca: tênis com riscos de movimento. */
+function iconeChute(ctx, s) {
+  ctx.strokeStyle = '#2BA5F7';
+  ctx.lineWidth = s * 0.03;
+  for (const y of [-0.06, 0.02, 0.1]) {
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.22, s * y);
+    ctx.lineTo(-s * 0.13, s * y);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#FF8A3D';
+  ctx.strokeStyle = '#B4501A';
+  ctx.lineWidth = s * 0.03;
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.08, -s * 0.13);
+  ctx.lineTo(s * 0.02, -s * 0.13);
+  ctx.quadraticCurveTo(s * 0.04, -s * 0.02, s * 0.12, 0);
+  ctx.quadraticCurveTo(s * 0.22, s * 0.02, s * 0.21, s * 0.1);
+  ctx.lineTo(-s * 0.09, s * 0.1);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(-s * 0.09, s * 0.06, s * 0.3, s * 0.04);
+}
+
+/** Super Lupa: lupa dourada com estrela. */
+function iconeSuperLupa(ctx, s) {
+  ctx.strokeStyle = '#8A5A00';
+  ctx.lineWidth = s * 0.07;
+  ctx.beginPath();
+  ctx.moveTo(s * 0.06, s * 0.06);
+  ctx.lineTo(s * 0.18, s * 0.18);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255, 236, 160, 0.95)';
+  ctx.strokeStyle = '#E0A100';
+  ctx.lineWidth = s * 0.05;
+  ctx.beginPath();
+  ctx.arc(-s * 0.04, -s * 0.04, s * 0.14, 0, TAU);
+  ctx.fill();
+  ctx.stroke();
+  estrela(ctx, -s * 0.04, -s * 0.04, s * 0.08, '#E0A100');
+}
+
+function estrela(ctx, x, y, r, cor) {
+  ctx.fillStyle = cor;
+  ctx.beginPath();
+  for (let k = 0; k < 10; k++) {
+    const a = (k / 10) * TAU - Math.PI / 2;
+    const rr = k % 2 ? r * 0.45 : r;
+    const px = x + Math.cos(a) * rr;
+    const py = y + Math.sin(a) * rr;
+    if (k) ctx.lineTo(px, py);
+    else ctx.moveTo(px, py);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+/** Cisco: bolinha de poeira cinza, tonta (espiral nos olhos). */
+function iconeCisco(ctx, s) {
+  ctx.fillStyle = '#A7A2A0';
+  for (const [x, y, r] of [[-0.07, 0.02, 0.1], [0.07, 0.03, 0.1], [0, -0.06, 0.11], [0, 0.07, 0.09]]) {
+    ctx.beginPath();
+    ctx.arc(s * x, s * y, s * r, 0, TAU);
+    ctx.fill();
+  }
+  ctx.strokeStyle = '#4A4441';
+  ctx.lineWidth = s * 0.022;
+  for (const lado of [-1, 1]) {
+    ctx.beginPath();
+    ctx.arc(s * 0.05 * lado, -s * 0.02, s * 0.03, 0, Math.PI * 1.6);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.arc(0, s * 0.07, s * 0.03, Math.PI * 1.15, Math.PI * 1.85);
+  ctx.stroke();
+}
+
+/** Pinça: duas hastes que se encontram, segurando uma gotinha. */
+function iconePinca(ctx, s) {
+  ctx.strokeStyle = '#5E6B7D';
+  ctx.lineWidth = s * 0.045;
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.16, -s * 0.18);
+  ctx.lineTo(s * 0.05, s * 0.12);
+  ctx.moveTo(-s * 0.06, -s * 0.2);
+  ctx.lineTo(s * 0.09, s * 0.1);
+  ctx.stroke();
+  ctx.fillStyle = '#9AA6B6';
+  ctx.beginPath();
+  ctx.arc(-s * 0.11, -s * 0.19, s * 0.045, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = '#43B4FF';
+  gotinha(ctx, s * 0.12, s * 0.16, s * 0.055);
+}
+
+/** Colírio Penetrante: gota violeta atravessando um bloquinho. */
+function iconePenetrante(ctx, s) {
+  ctx.fillStyle = '#FFD772';
+  ctx.strokeStyle = '#C9842E';
+  ctx.lineWidth = s * 0.025;
+  ctx.beginPath();
+  ctx.roundRect(-s * 0.05, -s * 0.12, s * 0.12, s * 0.24, s * 0.03);
+  ctx.fill();
+  ctx.stroke();
+  ctx.strokeStyle = '#8B3FE0';
+  ctx.lineWidth = s * 0.045;
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.22, 0);
+  ctx.lineTo(s * 0.2, 0);
+  ctx.moveTo(s * 0.12, -s * 0.07);
+  ctx.lineTo(s * 0.2, 0);
+  ctx.lineTo(s * 0.12, s * 0.07);
+  ctx.stroke();
+  ctx.fillStyle = '#B067F5';
+  ctx.save();
+  ctx.translate(-s * 0.16, 0);
+  ctx.rotate(Math.PI / 2);
+  gotinha(ctx, 0, 0, s * 0.06);
+  ctx.restore();
+}
+
+/** Estojo Surpresa: estojinho de lente (dois potinhos tampados) com "?". */
+function iconeEstojo(ctx, s) {
+  ctx.fillStyle = '#FFB3D9';
+  ctx.strokeStyle = '#B0216A';
+  ctx.lineWidth = s * 0.03;
+  ctx.beginPath();
+  ctx.roundRect(-s * 0.21, -s * 0.09, s * 0.42, s * 0.18, s * 0.09);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#FFFFFF';
+  for (const x of [-0.11, 0.11]) {
+    ctx.beginPath();
+    ctx.arc(s * x, 0, s * 0.075, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#B0216A';
+  ctx.font = `900 ${Math.round(s * 0.12)}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('?', -s * 0.11, s * 0.005);
+  ctx.fillText('?', s * 0.11, s * 0.005);
+  estrela(ctx, s * 0.2, -s * 0.15, s * 0.05, '#FFC93C');
 }
 
 function iconeFrasco(ctx, s) {
@@ -295,13 +495,19 @@ export class Particulas {
         vida: base.vida * (0.7 + Math.random() * 0.6), idade: 0,
         r: base.r * (0.6 + Math.random() * 0.8), cor: base.cores[k % base.cores.length],
         gravidade: base.gravidade, forma: base.forma,
+        alvo: base.alvo, // id de jogador: nasce onde ele estiver no próximo quadro
       });
     }
     if (this.lista.length > 400) this.lista.splice(0, this.lista.length - 400);
   }
 
-  atualizar(dt) {
+  atualizar(dt, posicoes = []) {
     for (const p of this.lista) {
+      if (p.alvo !== undefined) {
+        const alvo = posicoes.find((q) => q.j.id === p.alvo);
+        if (alvo) { p.x += alvo.x; p.y += alvo.y; }
+        p.alvo = undefined;
+      }
       p.idade += dt;
       p.x += p.vx * dt;
       p.y += p.vy * dt;

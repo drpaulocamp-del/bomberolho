@@ -1,6 +1,7 @@
 // Relógio da rodada e aperto final: com `inicioAperto` ticks no relógio,
 // peças sólidas caem uma a uma em espiral, de fora para dentro (sentido
-// horário a partir do canto de cima à esquerda), até sobrar um miolo 5×3.
+// horário a partir do canto de cima à esquerda), até sobrar o miolo: um "H"
+// de 7 casas em volta do centro.
 // A próxima casa a cair fica marcada no chão durante todo o intervalo (aviso
 // justo). Quem estiver nela quando a peça cai vai descansar (mesmo montado);
 // gota e item embaixo somem.
@@ -25,6 +26,16 @@ export function sequenciaDoAperto(m) {
     for (let l = l0 + 1; l <= l1; l++) add(c1, l);
     if (l1 > l0) for (let c = c1 - 1; c >= c0; c--) add(c, l1);
     if (c1 > c0) for (let l = l1 - 1; l > l0; l--) add(c0, l);
+  }
+  // Por fim fecham-se as duas colunas das pontas do miolo, de cima para baixo,
+  // alternando os lados: sobra um "H" de 7 casas em volta do centro.
+  const c0 = 1 + ANEIS_APERTO;
+  const c1 = m.colunas - 2 - ANEIS_APERTO;
+  if (c1 - c0 >= 4) {
+    for (let l = 1 + ANEIS_APERTO; l <= m.linhas - 2 - ANEIS_APERTO; l++) {
+      add(c0, l);
+      add(c1, l);
+    }
   }
   return seq;
 }

@@ -1,6 +1,7 @@
 // Leitura dos parâmetros de URL (?arena=, ?dificuldade=, ?semente=, ?demo=1,
-// ?personagem=, ?escala=). Função pura: recebe a query string, devolve opções
-// já validadas — valores desconhecidos caem no padrão em silêncio.
+// ?personagem=, ?escala=, ?rodadas=, ?ajuste=1). Função pura: recebe a query
+// string, devolve opções já validadas — valores desconhecidos caem no padrão
+// em silêncio.
 
 import { ARENAS, ARENA_PADRAO } from './sim/arenas.js';
 import { sementeDeTexto } from './sim/aleatorio.js';
@@ -14,9 +15,13 @@ export function lerParametros(busca) {
   const dificuldade = DIFICULDADES.includes(q.get('dificuldade')) ? q.get('dificuldade') : 'facil';
   const sementeTexto = q.get('semente');
   const semente = sementeTexto !== null && sementeTexto !== '' ? sementeDeTexto(sementeTexto) : null;
-  const demo = ['1', 'true', 'sim'].includes(q.get('demo'));
+  const sim = (v) => ['1', 'true', 'sim'].includes(v);
+  const demo = sim(q.get('demo'));
   const personagem = PERSONAGENS[q.get('personagem')] ? q.get('personagem') : null;
   const escalaNum = Number(q.get('escala'));
   const escala = Number.isFinite(escalaNum) && escalaNum > 0 && escalaNum <= 8 ? escalaNum : 1;
-  return { arena, dificuldade, semente, demo, personagem, escala };
+  const rodadasNum = Number(q.get('rodadas'));
+  const rodadas = [1, 2, 3].includes(rodadasNum) ? rodadasNum : 2;
+  const ajuste = sim(q.get('ajuste'));
+  return { arena, dificuldade, semente, demo, personagem, escala, rodadas, ajuste };
 }

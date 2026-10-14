@@ -29,8 +29,8 @@ export const VELOCIDADE_BASE = AJUSTE_PADRAO.velocidadeBase;
 export const VELOCIDADE_PASSO = AJUSTE_PADRAO.velocidadePasso;
 
 export const ATRASO_FIM = 90; // 1,5 s entre a última queda e o resultado
-export const SOBRA_APERTO = 480; // o aperto termina 8 s antes do fim do relógio
-export const ANEIS_APERTO = 4; // anéis que caem, de fora para dentro (sobra um miolo 5×3)
+export const SOBRA_APERTO = 1200; // o aperto termina 20 s antes do fim do relógio (miolo 5×3 no fim)
+export const ANEIS_APERTO = 4; // anéis que caem, de fora para dentro (depois fecham as pontas do miolo 5×3)
 export const DISTANCIA_SALTO = 2; // casas do pulo do Saltinho
 export const DURACAO_SALTO = 20; // ticks no ar
 export const ALCANCE_DISPARADA = 6; // casas máximas de uma arrancada

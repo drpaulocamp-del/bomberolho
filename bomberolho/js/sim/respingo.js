@@ -30,6 +30,7 @@ export function estourar(m, iniciais) {
       // Ponta do braço que termina num bloco (para a arte mostrar o choque).
       batida: { cima: false, baixo: false, esq: false, dir: false },
       cadeia: k >= iniciais.length,
+      disparadoPor: g.disparadoPor ?? null, // na cadeia: dono do respingo que a atingiu
     };
     for (const nome of NOMES_DIRECOES) {
       const { dc, dl } = DIRECOES[nome];
@@ -57,7 +58,11 @@ export function estourar(m, iniciais) {
         const outra = gotaEm(m, c, l);
         if (outra) {
           // Cadeia: a gota atingida estoura agora; o braço termina nela.
-          if (!marcadas.has(outra.id)) { marcadas.add(outra.id); fila.push(outra); }
+          if (!marcadas.has(outra.id)) {
+            marcadas.add(outra.id);
+            outra.disparadoPor = r.disparadoPor ?? g.dono;
+            fila.push(outra);
+          }
           break;
         }
       }

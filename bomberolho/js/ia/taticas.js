@@ -54,7 +54,7 @@ export function pousoDoArremesso(m, c, l, dir) {
 }
 
 /** Algum rival dentro da cruz de uma gota nesta casa e sem saída boa? Devolve o melhor alvo. */
-function rivalAcertado(m, j, gotaHipotetica, nivel) {
+function rivalAcertado(m, j, gotaHipotetica, nivel, notaMinima = nivel.notaMinimaTatica) {
   const an = analisar(m, [gotaHipotetica]);
   const cruz = alcanceDaGota(m, gotaHipotetica, an.ocupadas);
   let melhor = null;
@@ -64,7 +64,7 @@ function rivalAcertado(m, j, gotaHipotetica, nivel) {
     const nota = fuga.ok ? (fuga.seguras.length <= 1 ? 2 : 1) : 3;
     if (!melhor || nota > melhor.nota) melhor = { rival: o, nota };
   }
-  return melhor && melhor.nota >= nivel.notaMinimaTatica ? melhor : null;
+  return melhor && melhor.nota >= notaMinima ? melhor : null;
 }
 
 /** Depois da jogada, o próprio robô continua com fuga? */
@@ -82,11 +82,12 @@ export function taticaChute(m, j, nivel) {
   for (const dir of NOMES_DIRECOES) {
     const { dc, dl } = DIRECOES[dir];
     const g = gotaEm(m, c + dc, l + dl);
-    if (!g || g.mov || g.pavio > 110 || g.passantes.length) continue;
+    if (!g || g.mov || g.pavio > 150 || g.passantes.length) continue;
     const parada = paradaDoChute(m, g, dir);
     if (parada.col === g.col && parada.lin === g.lin) continue;
     const hip = { col: parada.col, lin: parada.lin, pavio: Math.max(1, g.pavio - 8), alcance: g.alcance, penetrante: g.penetrante };
-    const alvo = rivalAcertado(m, j, hip, nivel);
+    // Chutar não gasta gota: basta o rival ficar na cruz de onde ela vai parar.
+    const alvo = rivalAcertado(m, j, hip, nivel, Math.max(1, nivel.notaMinimaTatica - 1));
     if (!alvo) continue;
     if (!seguroDepois(m, j, [], nivel.margem)) continue;
     return [entrada({ [dir]: true }), entrada({ [dir]: true })];

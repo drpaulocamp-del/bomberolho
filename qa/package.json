@@ -5,9 +5,12 @@
   "description": "Testes do Bomberolho: simulação (node --test, sem dependências) e navegador (Playwright).",
   "scripts": {
     "test": "node --test \"sim/*.test.mjs\"",
+    "test:regras": "node --test --test-skip-pattern=\"partida|robôs|robô|lote|IA|controlador|Fácil|Médio\" \"sim/*.test.mjs\"",
     "e2e": "node --test --test-concurrency=1 \"navegador/*.test.mjs\"",
     "capturas": "node navegador/capturas.mjs",
-    "todos": "npm test && npm run e2e"
+    "todos": "npm test && npm run e2e",
+    "lote": "node lote/simular.mjs",
+    "lote:rapido": "node lote/simular.mjs --escala 0.05 --json lote/rapido.json --md lote/rapido.md"
   },
   "devDependencies": {
     "playwright": "1.56.1"

@@ -27,8 +27,9 @@
           <button id="bt-recomecar" type="button" class="secundario">Recomeçar</button>
         </div>
       </div>
+      <div id="barra" class="barra" aria-live="off"></div>
       <ul id="placar" class="placar" aria-label="Competidores"></ul>
-      <p class="dica"><kbd>Setas</kbd> ou <kbd>WASD</kbd> andam · <kbd>Espaço</kbd> solta a gota · <kbd>P</kbd> pausa</p>
+      <p class="dica"><kbd>Setas</kbd> ou <kbd>WASD</kbd> andam · <kbd>Espaço</kbd> solta a gota (com a Pinça, segure e solte para jogar) · <kbd>Shift</kbd> ou <kbd>E</kbd> usa o bichinho · <kbd>P</kbd> pausa</p>
     </header>
     <main id="palco" class="palco">
       <canvas id="arena" role="img" aria-label="Arena do Bomberolho"></canvas>
@@ -40,6 +41,7 @@
         <div class="cartao-aviso" role="dialog" aria-live="polite">
           <h2></h2>
           <p></p>
+          <ul class="placar-trofeus" hidden></ul>
           <button type="button"></button>
         </div>
       </div>

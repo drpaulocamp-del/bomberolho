@@ -11,6 +11,9 @@ import { velocidadeDe } from './jogadores.js';
 import { tentarChutar } from './chute.js';
 
 export function livrePara(m, col, lin, j) {
+  // Além da borda só se chega por um túnel: a casa seguinte é a do lado oposto.
+  if (col < 0) col = m.colunas - 1;
+  else if (col >= m.colunas) col = 0;
   const t = m.grade[lin * m.colunas + col];
   if (t !== VAZIO && t !== TUNEL) return false;
   const g = gotaEm(m, col, lin);

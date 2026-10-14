@@ -55,7 +55,7 @@ test('centenas de partidas de robôs: sem erro, sem NaN, com blocos abertos e it
 });
 
 test('controlador: entrada fixada pelo gancho tem prioridade e pode ser liberada', () => {
-  const jogo = new Jogo().iniciar({ semente: 3 });
+  const jogo = new Jogo().iniciar({ semente: 3, contagem: false }); // parte 2: sem o "3, 2, 1" para medir o passo
   jogo.substitutas[1] = { cima: false, baixo: true, esq: false, dir: false, bomba: false };
   jogo.passos(10);
   assert.equal(jogo.mundo.jogadores[1].y, 1500 + 10 * 55);

@@ -48,15 +48,22 @@ test('densidade de blocos entre 75% e 80% das casas livres fora dos cantos', () 
   }
 });
 
-test('itens escondidos: ~32% dos blocos, mistura fixa, só debaixo de blocos', () => {
+// Parte 2: a mistura passou a incluir os itens avançados (tabela de cada arena);
+// Frasquinho e Lupa continuam os mais frequentes, como o dono pediu.
+test('itens escondidos: ~1/3 dos blocos, mistura fixa da arena, só debaixo de blocos', () => {
   for (const s of SEMENTES.slice(0, 50)) {
     const m = criarMundo({ semente: s });
     const blocos = m.grade.filter((t) => t === K.BLOCO).length;
     const ocultos = m.ocultos.map((t, i) => [t, i]).filter(([t]) => t);
     assert.equal(ocultos.length, Math.round(blocos * ARENAS.jardim.taxaItens));
+    assert.ok(ocultos.length / blocos >= 0.3 && ocultos.length / blocos <= 0.36);
     for (const [, i] of ocultos) assert.equal(m.grade[i], K.BLOCO);
     const conta = (tipo) => ocultos.filter(([t]) => t === tipo).length;
-    assert.deepEqual([conta('gota'), conta('alcance'), conta('velocidade')], [10, 10, 5]);
+    const esperado = distribuirItens(ARENAS.jardim.pesosItens, ocultos.length);
+    for (const tipo of Object.keys(ARENAS.jardim.pesosItens)) assert.equal(conta(tipo), esperado.filter((t) => t === tipo).length, tipo);
+    const mais = Math.max(...Object.keys(ARENAS.jardim.pesosItens).map(conta));
+    assert.equal(conta('gota'), mais, 'Frasquinho entre os mais frequentes');
+    assert.equal(conta('alcance'), mais, 'Lupa entre os mais frequentes');
     assert.ok(m.itens.every((t) => t === null), 'nenhum item exposto na largada');
   }
 });

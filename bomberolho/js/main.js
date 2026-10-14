@@ -13,7 +13,7 @@ const canvas = document.getElementById('arena');
 const palco = document.getElementById('palco');
 const jogo = new Jogo();
 const renderizador = new Renderizador(canvas);
-const placar = new Placar(document.getElementById('placar'));
+const placar = new Placar(document.getElementById('placar'), document.getElementById('barra'));
 const botaoPausa = document.getElementById('bt-pausa');
 
 jogo.demo = parametros.demo;
@@ -29,6 +29,7 @@ function reiniciar(opcoes = {}) {
     personagem: parametros.personagem ?? 'iris',
     arena: parametros.arena,
     dificuldade: parametros.dificuldade,
+    rodadas: parametros.rodadas,
     ...opcoes,
     semente: opcoes.semente ?? sementeNova(),
   });
@@ -39,7 +40,7 @@ function reiniciar(opcoes = {}) {
 }
 
 function pausar(estado) {
-  if (jogo.tela === 'resultado') return;
+  if (jogo.tela === 'resultado' || jogo.tela === 'intervalo') return;
   jogo.pausado = estado === undefined ? !jogo.pausado : !!estado;
   botaoPausa.textContent = jogo.pausado ? 'Continuar' : 'Pausar';
   botaoPausa.setAttribute('aria-pressed', String(jogo.pausado));
@@ -51,13 +52,21 @@ const teclado = criarTeclado(window, {
   confirmar: () => {
     if (jogo.tela === 'resultado') reiniciar();
     else if (jogo.tela === 'pausado') pausar(false);
+    else if (jogo.tela === 'intervalo') proximaRodada();
   },
 });
 jogo.entradaHumana = () => teclado.ler();
 
+function proximaRodada() {
+  jogo.pularIntervalo();
+  teclado.limpar();
+  redesenhar();
+}
+
 const avisos = new Avisos(document.getElementById('aviso'), {
   continuar: () => pausar(false),
   recomecar: () => reiniciar(),
+  pular: () => proximaRodada(),
 });
 document.getElementById('bt-recomecar').addEventListener('click', (e) => { e.currentTarget.blur(); reiniciar(); });
 document.getElementById('bt-faixa').addEventListener('click', () => reiniciar());
@@ -89,12 +98,21 @@ new ResizeObserver(() => { ajustarTamanho(); redesenhar(); }).observe(palco);
 const medidor = { quadros: 0, desde: performance.now(), fps: 0 };
 let ultimo = performance.now();
 let relogioAnimacao = 0;
+let ultimoMundo = null;
+let bancada = null;
 
 function redesenhar(dtSeg = 0) {
   renderizador.reagir(jogo.consumirEventos());
+  if (jogo.mundo !== ultimoMundo) {
+    // Rodada nova (outra arena sorteada pela semente): refaz o placar e as peças.
+    ultimoMundo = jogo.mundo;
+    placar.montar(jogo.mundo);
+    ajustarTamanho();
+  }
   renderizador.desenhar(jogo.mundo, jogo.anteriores, jogo.fracao(), relogioAnimacao, dtSeg);
-  placar.atualizar(jogo.mundo);
+  placar.atualizar(jogo);
   avisos.atualizar(jogo);
+  bancada?.atualizar();
 }
 
 function quadro(agora) {
@@ -118,10 +136,17 @@ reiniciar();
 // Passos do gancho também envelhecem as partículas (senão elas se acumulam na tela).
 instalarGancho({
   jogo, reiniciar, pausar, fps: () => medidor.fps,
+  ajusteMudou: () => bancada?.sincronizar(),
   redesenhar: (ticks) => {
     const dtSeg = Math.min(ticks / 60, 1);
     relogioAnimacao += dtSeg;
     redesenhar(dtSeg);
   },
 });
+// Bancada de ajuste: só com ?ajuste=1 (fora disso o módulo nem é baixado).
+if (parametros.ajuste) {
+  import('./ui/bancada.js').then(({ Bancada }) => {
+    bancada = new Bancada(document.getElementById('app'), jogo, { aoFechar: () => teclado.limpar() });
+  });
+}
 requestAnimationFrame(quadro);

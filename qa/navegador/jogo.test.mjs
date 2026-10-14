@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 import { TELAS, subirServidor, abrirNavegador, novaPagina, esperarJogo } from './apoio.mjs';
 import { criarMundo, passo } from '../../bomberolho/js/sim/mundo.js';
 import { gradeEmTexto, impressaoDigital } from '../../bomberolho/js/sim/retrato.js';
+import { AJUSTE_PADRAO } from '../../bomberolho/js/sim/ajustes.js';
 
 let servidor;
 let navegador;
@@ -94,7 +95,7 @@ test('input + step movem o humano, soltam gota e o respingo segue as regras', as
   const { pagina, contexto } = await abrir();
   const r = await pagina.evaluate(() => {
     const b = window.__bomberolho;
-    b.start({ semente: 7 });
+    b.start({ semente: 7, contagem: false }); // parte 2: sem o "3, 2, 1"
     b.setTimeScale(0);
     for (const id of [1, 2, 3]) b.input(id, {}); // rivais parados
     // A jogada clássica de largada: gota na ponta do "L", abrigo na outra ponta.
@@ -126,7 +127,7 @@ test('teclado: setas e WASD andam, espaço solta gota, nenhuma tecla rola a pág
     window.__teclasBarradas = [];
     window.addEventListener('keydown', (e) => window.__teclasBarradas.push([e.code, e.defaultPrevented]));
     const b = window.__bomberolho;
-    b.start({ semente: 7 });
+    b.start({ semente: 7, contagem: false });
     for (const id of [1, 2, 3]) b.input(id, {});
   });
   const x0 = await pagina.evaluate(() => window.__bomberolho.state.jogadores[0].y);
@@ -175,7 +176,7 @@ test('parâmetros de URL: ?semente=, ?dificuldade=, ?arena= e ?demo=1', async ()
   assert.equal(s0.arena, 'jardim');
   assert.equal(s0.demo, true);
   assert.deepEqual(s0.grade, gradeEmTexto(criarMundo({ semente: 555 })), 'mesma arena que no Node');
-  await pagina.waitForTimeout(1500);
+  await pagina.waitForTimeout(4500); // parte 2: passa a contagem de 3 s
   const s1 = await pagina.evaluate(() => window.__bomberolho.state);
   const mexeu = s1.jogadores[0].x !== s0.jogadores[0].x || s1.jogadores[0].y !== s0.jogadores[0].y || s1.gotas.length > 0;
   assert.ok(mexeu, 'no modo demo o humano anda sozinho');
@@ -186,7 +187,7 @@ test('navegador e Node simulam igual: mesma semente + mesmas entradas = mesmo ha
   const { pagina, contexto } = await abrir();
   const roteiro = [];
   const nomes = ['cima', 'baixo', 'esq', 'dir'];
-  for (let k = 0; k < 120; k++) {
+  for (let k = 0; k < 36; k++) { // 360 ticks: dentro da primeira rodada (parte 2 tem rodadas)
     roteiro.push([0, 1, 2, 3].map((id) => {
       const ent = { cima: false, baixo: false, esq: false, dir: false, bomba: (k + id) % 17 === 0 };
       ent[nomes[(k * 7 + id * 3) % 4]] = true;
@@ -195,7 +196,7 @@ test('navegador e Node simulam igual: mesma semente + mesmas entradas = mesmo ha
   }
   const noNavegador = await pagina.evaluate((r) => {
     const b = window.__bomberolho;
-    b.start({ semente: 31337 });
+    b.start({ semente: 31337, contagem: false });
     b.setTimeScale(0);
     for (const ents of r) {
       ents.forEach((ent, id) => b.input(id, ent));
@@ -203,7 +204,7 @@ test('navegador e Node simulam igual: mesma semente + mesmas entradas = mesmo ha
     }
     return b.hash();
   }, roteiro);
-  const m = criarMundo({ semente: 31337 });
+  const m = criarMundo({ semente: 31337, duracao: AJUSTE_PADRAO.duracaoRodada }); // parte 2: com relógio
   for (const ents of roteiro) for (let k = 0; k < 10; k++) passo(m, ents);
   assert.equal(noNavegador, impressaoDigital(m));
   await contexto.close();
@@ -219,7 +220,7 @@ test('fim de rodada mostra o resultado e Enter começa outra', async () => {
   const s = await pagina.evaluate(() => window.__bomberolho.state);
   if (s.tela === 'resultado') {
     const titulo = await pagina.textContent('#aviso h2');
-    assert.match(titulo, /venceu|Empate/);
+    assert.match(titulo, /taça|empatada/); // parte 2: fim de partida (melhor de N)
     await pagina.keyboard.press('Enter');
     const novo = await pagina.evaluate(() => window.__bomberolho.state);
     assert.equal(novo.tela, 'jogando');

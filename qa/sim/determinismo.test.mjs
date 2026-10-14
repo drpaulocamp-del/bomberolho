@@ -96,3 +96,20 @@ test('o retrato é uma cópia: mexer nele não altera o mundo', () => {
   r.grade[1] = 'xxx';
   assert.equal(impressaoDigital(m), h);
 });
+
+test('parte 2: partida completa (rodadas, aperto, itens avançados, bichinhos, IA) reprodutível — mundo, robôs e placar', () => {
+  const jogar = () => {
+    const jogo = new Jogo();
+    jogo.demo = true;
+    jogo.iniciar({ semente: 515, dificuldade: 'dificil', arena: 'vale', rodadas: 2 });
+    const marcos = [];
+    for (let k = 0; k < 30; k++) {
+      jogo.passos(400);
+      marcos.push(jogo.impressaoCompleta());
+    }
+    return marcos;
+  };
+  const a = jogar();
+  assert.deepEqual(a, jogar());
+  assert.equal(new Set(a).size, a.length, 'o estado muda ao longo da partida');
+});

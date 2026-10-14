@@ -12,8 +12,8 @@ export const AJUSTE_PADRAO = Object.freeze({
   janelaVirada: 220, // com duas teclas, quanto (un) dá para "voltar" e pegar a esquina que passou
   velocidadeChute: 130, // un/tick da gota chutada (≈ 7,8 casas/s)
   duracaoRodada: 7200, // 2:00
-  inicioAperto: 2700, // o aperto final começa com 0:45 no relógio
-  contagem: 210, // "3, 2, 1" (1 s cada) e mais meio segundo de "já!" antes de soltar
+  inicioAperto: 3600, // o aperto final começa com 1:00 no relógio
+  contagem: 180, // "3, 2, 1" (1 s cada); o "já!" aparece quando todos são soltos
   distanciaPinca: 3, // casas do arremesso
   vooPorCasa: 7, // ticks de voo por casa arremessada
   invulneravel: 66, // ≈ 1,1 s piscando depois de perder o bichinho

@@ -62,6 +62,7 @@ export function criarMundo(op = {}) {
     tick: 0,
     fase: contagem > 0 ? 'contagem' : 'jogando', // → 'encerrando' (última queda) → 'fim'
     contagem,
+    inicioJogo: contagem, // tick em que todos são soltos ("já!")
     tempoRestante: op.duracao ?? null,
     tempoEsgotado: false,
     aperto: criarAperto(),
@@ -260,7 +261,10 @@ function encharcar(m, j, letal) {
     desmontar(m, j);
     return;
   }
-  eliminar(m, j, donoDoRespingoEm(m, col, lin), 'respingo');
+  const vindos = respingosEm(m, col, lin);
+  // Para as estatísticas: molhou-se só com a própria gota, sem cadeia vinda de outro?
+  const sozinho = vindos.every((r) => r.dono === j.id && (r.disparadoPor === null || r.disparadoPor === j.id));
+  eliminar(m, j, donoDoRespingoEm(m, col, lin), sozinho ? 'propria' : 'respingo');
 }
 
 /** Tira o jogador da rodada ("vai descansar"); a gota que segurava cai ali. */
