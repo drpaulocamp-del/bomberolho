@@ -73,10 +73,13 @@ export function alcanceDaGota(m, g, ocupadas) {
  * penetrante} ("e se eu soltar aqui?"). Sem extras, o resultado é guardado
  * por tick e repartido entre os robôs.
  */
-export function analisar(m, extras = []) {
+export function analisar(m, extras = [], op = {}) {
+  // Reação: gotas alheias soltas há menos de `op.reacao` ticks ainda não foram notadas.
+  const reacao = op.reacao || 0;
+  const chave = reacao ? `${reacao}:${op.quem}` : '';
   if (!extras.length) {
     const c = cache.get(m);
-    if (c && c.tick === m.tick) return c.analise;
+    if (c && c.tick === m.tick && c.porChave[chave]) return c.porChave[chave];
   }
   const n = m.grade.length;
   const janelas = new Array(n); // undefined ou [ini, fim, ini, fim, ...]
@@ -92,7 +95,8 @@ export function analisar(m, extras = []) {
     }
     for (const i of casas) marcar(i, 0, r.t);
   }
-  const gotas = [...m.gotas.map((g) => gotaLida(m, g)), ...extras];
+  const vistas = reacao ? m.gotas.filter((g) => g.dono === op.quem || g.pavioTotal - g.pavio >= reacao) : m.gotas;
+  const gotas = [...vistas.map((g) => gotaLida(m, g)), ...extras];
   const ocupadas = new Set(gotas.map((g) => g.lin * m.colunas + g.col));
   const tempo = gotas.map((g) => g.pavio);
   const casas = gotas.map((g) => alcanceDaGota(m, g, ocupadas));
@@ -125,7 +129,14 @@ export function analisar(m, extras = []) {
     for (let k = 0; k < j.length; k += 2) if (j[k] < primeiro[i]) primeiro[i] = j[k];
   }
   const analise = { janelas, primeiro, gotas, tempo, ocupadas };
-  if (!extras.length) cache.set(m, { tick: m.tick, analise });
+  if (!extras.length) {
+    let c = cache.get(m);
+    if (!c || c.tick !== m.tick) {
+      c = { tick: m.tick, porChave: {} };
+      cache.set(m, c);
+    }
+    c.porChave[chave] = analise;
+  }
   return analise;
 }
 

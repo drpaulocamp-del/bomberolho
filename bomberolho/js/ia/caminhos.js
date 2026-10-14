@@ -86,7 +86,7 @@ export function buscarSeguro(m, j, an, ocupada) {
  * passos de uma casa (ficar parado conta como passo). Cada casa precisa estar
  * seca enquanto ele a ocupa (com `margem` ticks de folga). Devolve o caminho
  * até a casa mais próxima que fica seca para sempre, ou, se não houver, até a
- * que aguenta mais tempo. `origemBloqueada`: há gota na casa de partida (ele
+ * que aguenta mais tempo. `alvo`: refúgio preferido (mantido se ainda servir). `origemBloqueada`: há gota na casa de partida (ele
  * pode ficar nela, mas não voltar a ela depois de sair).
  */
 export function planejarFuga(m, j, an, ocupada, op = {}) {
@@ -100,6 +100,7 @@ export function planejarFuga(m, j, an, ocupada, op = {}) {
   const metade = Math.ceil(T / 2);
   let melhorFallback = { k: 0, casa: origem };
   const escolher = op.escolher || ((lista) => lista[0]);
+  let primeira = null;
   for (let k = 1; k <= camadas; k++) {
     const ini = k * T - metade - margem;
     const fim = k * T + metade + margem;
@@ -120,11 +121,18 @@ export function planejarFuga(m, j, an, ocupada, op = {}) {
     atual = proxima;
     melhorFallback = { k, casa: proxima[0] };
     const seguras = proxima.filter((c) => secaDesde(an, c, Math.max(0, ini)));
-    if (seguras.length) {
+    // Refúgio já escolhido antes: mantém enquanto der (trocar de ideia a cada
+    // tick entre dois refúgios parecidos deixaria o robô indo e voltando).
+    if (op.alvo !== undefined && op.alvo !== null && seguras.includes(op.alvo)) {
+      return { ok: true, passos: k, destino: op.alvo, caminho: refazer(pais, op.alvo, origem), seguras };
+    }
+    if (seguras.length && !primeira) {
       const destino = escolher(seguras);
-      return { ok: true, passos: k, destino, caminho: refazer(pais, destino, origem), seguras };
+      primeira = { ok: true, passos: k, destino, caminho: refazer(pais, destino, origem), seguras };
+      if (op.alvo === undefined || op.alvo === null) return primeira;
     }
   }
+  if (primeira) return primeira;
   const { casa } = melhorFallback;
   return { ok: false, passos: melhorFallback.k, destino: casa, caminho: refazer(pais.slice(0, melhorFallback.k), casa, origem), seguras: [] };
 }

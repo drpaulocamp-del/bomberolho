@@ -141,6 +141,9 @@ export function usarPoder(m, j, entrada) {
     return true;
   }
   if (!borda || j.recarga > 0 || j.segurando !== null) return false;
+  // Uma seta apertada junto com o botão escolhe a direção do poder.
+  const { h, v } = eixosDaEntrada(entrada);
+  if ((h !== 0) !== (v !== 0)) j.dir = h > 0 ? 'dir' : h < 0 ? 'esq' : v > 0 ? 'baixo' : 'cima';
   if (tipo === 'saltinho') {
     const alvo = destinoDoSalto(m, j);
     if (!alvo) return false;
