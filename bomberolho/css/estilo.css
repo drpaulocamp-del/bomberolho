@@ -58,8 +58,10 @@ body {
   border: 1px solid var(--borda-vidro);
   border-radius: var(--raio);
   box-shadow: var(--sombra);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  backdrop-filter: blur(18px) saturate(1.4);
+  /* Sem backdrop-filter aqui: atrás do painel só há o degradê parado do fundo
+     (o desfoque não aparecia), e qualquer animação dentro dele (o relógio
+     pulsando no aperto final) obrigava a refazer o desfoque a cada quadro —
+     no aperto, o desktop caía de 60 para ~40 qps. */
 }
 
 .topo { display: flex; flex-direction: column; gap: 12px; }
@@ -84,8 +86,10 @@ button {
 }
 button:hover { background: var(--azul-escuro); }
 button:active { transform: scale(0.97); }
-button:focus-visible { outline: 3px solid rgba(0, 113, 227, 0.45); outline-offset: 2px; }
-button.secundario { color: var(--azul); background: rgba(0, 113, 227, 0.1); }
+/* Foco do teclado bem visível (contraste ≥ 3:1 sobre o fundo claro e sobre o vidro). */
+button:focus-visible { outline: 3px solid #0B57C2; outline-offset: 3px; }
+button.secundario { color: var(--azul-escuro); background: rgba(0, 113, 227, 0.1); }
+button:disabled, button:disabled:hover { cursor: default; color: #6B7080; background: rgba(0, 0, 0, 0.08); transform: none; }
 button.secundario:hover { background: rgba(0, 113, 227, 0.18); }
 
 .placar {
@@ -267,10 +271,10 @@ kbd {
 }
 .barra span { display: inline-flex; align-items: center; gap: 5px; }
 .barra svg { width: 17px; height: 17px; }
-.barra .rodada { padding: 3px 10px; border-radius: 999px; background: rgba(0, 113, 227, 0.1); color: var(--azul); }
+.barra .rodada { padding: 3px 10px; border-radius: 999px; background: rgba(0, 113, 227, 0.1); color: var(--azul-escuro); }
 .barra .tempo { color: var(--texto); font-size: 1.15rem; }
-.barra .meta { margin-left: auto; color: #B07D00; }
-.barra.apertando .tempo { color: #D23B30; animation: pulsar 0.9s ease-in-out infinite; }
+.barra .meta { margin-left: auto; color: #8A6200; }
+.barra.apertando .tempo { color: #B8302A; animation: pulsar 0.9s ease-in-out infinite; }
 @keyframes pulsar { 50% { transform: scale(1.08); } }
 
 .trofeus { display: inline-flex; gap: 1px; margin-left: 6px; vertical-align: -2px; }
@@ -279,7 +283,7 @@ kbd {
 .trofeus svg { width: 14px; height: 14px; }
 .poderes .selo { padding: 0 2px; }
 .poderes .selo svg { width: 16px; height: 16px; }
-.poderes .cisco { font-size: 0.72rem; font-weight: 800; color: #fff; background: #E2574C; border-radius: 999px; padding: 0 6px; }
+.poderes .cisco { font-size: 0.72rem; font-weight: 800; color: #fff; background: #C0392B; border-radius: 999px; padding: 0 6px; }
 
 .placar-trofeus { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 4px; text-align: left; }
 .placar-trofeus[hidden] { display: none; }
@@ -318,20 +322,21 @@ kbd {
 button svg { width: 20px; height: 20px; fill: currentColor; flex: none; }
 button.icone-rotulo { display: inline-flex; align-items: center; gap: 6px; padding: 0 16px 0 13px; }
 button.so-icone { display: inline-flex; align-items: center; justify-content: center; width: 44px; padding: 0; flex: none; }
-button.pausado { background: #1FAA59; }
-button.pausado:hover { background: #178A48; }
+button.pausado { background: #147A3F; }
+button.pausado:hover { background: #0F6532; }
 .bt-som.mudo { color: #8A8F9C; background: rgba(0, 0, 0, 0.06); }
 
 .app[data-modo="menu"] .painel { visibility: hidden; }
 .app[data-modo="menu"] #arena { filter: saturate(0.9); }
 
 .aviso { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
-.cartao-aviso { width: min(380px, 100%); max-width: 380px; max-height: 100%; overflow: auto; padding: 18px 22px 20px; }
+.cartao-aviso { width: min(380px, 100%); max-width: 380px; max-height: 100%; overflow: auto; padding: 18px 22px 20px; touch-action: pan-y; }
 .aviso-arte { display: block; width: 100%; height: 108px; margin: -4px 0 4px; }
 .aviso-arte[hidden] { display: none; }
 .acoes { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .acoes button:first-child { min-height: 52px; padding: 0 26px; font-size: 1.08rem; flex: 1 1 100%; max-width: 280px; }
 .acoes button.secundario { flex: 1 1 0; max-width: 136px; }
+.acoes button[data-acao="lados"] { flex: 1 1 100%; max-width: 280px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 
 .curiosidade {
   display: flex;
@@ -345,7 +350,7 @@ button.pausado:hover { background: #178A48; }
 }
 .curiosidade[hidden] { display: none; }
 .curiosidade canvas { width: 54px; height: 54px; flex: none; }
-.curiosidade strong { display: block; font-size: 0.78rem; color: var(--azul); text-transform: uppercase; letter-spacing: 0.04em; }
+.curiosidade strong { display: block; font-size: 0.78rem; color: var(--azul-escuro); text-transform: uppercase; letter-spacing: 0.04em; }
 .curiosidade p { margin: 2px 0 0; font-size: 0.92rem; line-height: 1.35; color: var(--texto); }
 
 @media (orientation: portrait) and (max-width: 430px) {
@@ -381,4 +386,17 @@ button.pausado:hover { background: #178A48; }
   .cartao-aviso .aviso-texto { margin-bottom: 10px; font-size: 0.92rem; }
   .acoes button:first-child { min-height: 48px; }
   .curiosidade { margin-top: 10px; }
+}
+/* Deitado e estreito (640×360): painel fino — botões só com ícone, barra compacta. */
+@media (orientation: landscape) and (max-width: 720px) {
+  .botoes { gap: 4px; }
+  .botoes button.icone-rotulo { width: 44px; padding: 0; justify-content: center; flex: none; }
+  button.icone-rotulo span { display: none; }
+  .barra { gap: 4px; font-size: 0.74rem; flex-wrap: nowrap; }
+  .barra .rodada { padding: 2px 6px; white-space: nowrap; }
+  .barra .tempo { font-size: 0.9rem; }
+  .barra svg { width: 14px; height: 14px; }
+  .nome { font-size: 0.8rem; }
+  .nome em { display: none; }
+  .cartao { gap: 4px; }
 }

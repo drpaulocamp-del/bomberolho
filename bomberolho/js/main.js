@@ -6,8 +6,10 @@
 import { Jogo } from './jogo.js';
 import { lerParametros, pedeJogoDireto } from './parametros.js';
 import { Renderizador } from './render/renderizador.js';
+import { criarDensidade } from './render/densidade.js';
 import { criarTeclado } from './input/teclado.js';
-import { Placar } from './ui/hud.js';
+import { criarToque } from './input/toque.js';
+import { Placar, ICONE_BICHINHO } from './ui/hud.js';
 import { Avisos } from './ui/avisos.js';
 import { Menu } from './ui/menu.js';
 import { criarPreferencias } from './ui/preferencias.js';
@@ -15,6 +17,7 @@ import { criarSorteioDeCuriosidades } from './dados/curiosidades.js';
 import { ORDEM_PERSONAGENS } from './dados/personagens.js';
 import { ORDEM_ARENAS } from './sim/arenas.js';
 import { Som } from './audio/som.js';
+import { NOMES_BICHINHOS } from './sim/bichinhos.js';
 import { instalarGancho } from './gancho.js';
 
 const parametros = lerParametros(location.search);
@@ -28,6 +31,7 @@ const sortear = criarSorteioDeCuriosidades();
 const movimentoReduzido = window.matchMedia('(prefers-reduced-motion: reduce)');
 const jogo = new Jogo();
 const renderizador = new Renderizador(canvas);
+const densidade = criarDensidade(window.devicePixelRatio, parametros.densidade);
 const placar = new Placar(document.getElementById('placar'), document.getElementById('barra'));
 
 jogo.demo = parametros.demo;
@@ -55,7 +59,7 @@ function reiniciar(opcoes = {}) {
 }
 
 function aoTrocarPartida() {
-  teclado.limpar();
+  limparEntradas();
   som.pausarMusica(false);
   avisos.perguntarSaida(false);
   placar.montar(jogo.mundo);
@@ -117,6 +121,9 @@ const ICONE_PAUSAR = '<rect x="5" y="4" width="3.4" height="12" rx="1.4"/><rect 
 const ICONE_CONTINUAR = '<path d="M6.5 3.8v12.4c0 .8.9 1.3 1.6.9l9.6-6.2a1 1 0 0 0 0-1.8L8.1 2.9c-.7-.4-1.6.1-1.6.9z"/>';
 
 function atualizarBotaoPausa() {
+  // Rodada ou partida encerrada: não há o que pausar (o cartão já está na tela).
+  const fora = jogo.tela === 'resultado' || jogo.tela === 'intervalo';
+  botaoPausa.disabled = fora;
   const rotulo = jogo.pausado ? 'Continuar' : 'Pausar';
   botaoPausa.querySelector('span').textContent = rotulo;
   botaoPausa.querySelector('svg').innerHTML = jogo.pausado ? ICONE_CONTINUAR : ICONE_PAUSAR;
@@ -131,7 +138,7 @@ function pausar(estado) {
   if (!jogo.pausado) avisos.perguntarSaida(false);
   atualizarBotaoPausa();
   som.pausarMusica(jogo.pausado);
-  teclado.limpar();
+  limparEntradas();
   redesenhar(); // o cartão aparece/some já, sem esperar o próximo quadro
 }
 
@@ -156,11 +163,87 @@ const teclado = criarTeclado(window, {
     else if (jogo.tela === 'intervalo') proximaRodada();
   },
 });
-jogo.entradaHumana = () => teclado.ler();
+
+// ── Toque: alavanca flutuante + gota + bichinho ─────────────
+
+const camadaToque = document.getElementById('toque');
+const botaoGota = document.getElementById('bt-gota');
+const botaoAcao = document.getElementById('bt-acao');
+// Controles de toque aparecem em aparelho de toque (ponteiro principal "grosso")
+// ou no primeiro toque de dedo; ?toque=1 / ?toque=0 forçam (testes).
+let usaToque = parametros.toque ?? window.matchMedia('(pointer: coarse)').matches;
+const toque = criarToque(document, {
+  alavanca: camadaToque.querySelector('.alavanca'),
+  pino: camadaToque.querySelector('.pino'),
+  gota: botaoGota,
+  acao: botaoAcao,
+  ativo: () => usaToque && !vitrine && !jogo.demo && jogo.tela === 'jogando',
+  canhoto: () => prefs.dados.canhoto,
+  aceitaMouse: parametros.toque === true,
+  aoPrimeiroToque: () => {
+    if (parametros.toque === false || usaToque) return;
+    usaToque = true;
+    mostrarModoDeToque();
+  },
+});
+
+function mostrarModoDeToque() {
+  document.body.dataset.toque = usaToque ? 'sim' : 'nao';
+  document.body.dataset.lado = prefs.dados.canhoto ? 'canhoto' : 'destro';
+  menu.definirToque(usaToque);
+  toque.repousar();
+}
+
+/** Troca a gota de mão (canhotos); lembrado no aparelho. */
+function trocarLados() {
+  prefs.mudar({ canhoto: !prefs.dados.canhoto });
+  mostrarModoDeToque();
+  return prefs.dados.canhoto;
+}
+
+let chaveToque = '';
+/** Mostra/esconde os controles e mantém o botão do bichinho e a conta de gotas em dia. */
+function atualizarToque() {
+  const humano = jogo.mundo?.jogadores[0];
+  const visivel = usaToque && !vitrine && !jogo.demo && (jogo.tela === 'jogando' || jogo.tela === 'pausado') && !!humano?.vivo;
+  const montaria = visivel ? humano.montaria?.tipo ?? null : null;
+  const livres = visivel ? Math.max(0, humano.gotas - jogo.mundo.gotas.filter((g) => g.dono === 0).length) : 0;
+  const chave = `${visivel}|${montaria}|${livres}|${visivel && humano.recarga > 0}|${visivel && humano.escudo}`;
+  if (chave === chaveToque) return;
+  chaveToque = chave;
+  camadaToque.hidden = !visivel;
+  botaoAcao.hidden = !montaria;
+  if (montaria) {
+    if (botaoAcao.dataset.bichinho !== montaria) {
+      botaoAcao.innerHTML = ICONE_BICHINHO[montaria];
+      botaoAcao.dataset.bichinho = montaria;
+      botaoAcao.setAttribute('aria-label', `Poder do ${NOMES_BICHINHOS[montaria]}`);
+    }
+    botaoAcao.classList.toggle('recarga', humano.recarga > 0);
+    botaoAcao.classList.toggle('ligado', !!humano.escudo);
+  }
+  botaoGota.querySelector('.conta').textContent = visivel ? String(livres) : '';
+  botaoGota.classList.toggle('vazia', visivel && livres === 0);
+}
+
+jogo.entradaHumana = () => juntarEntradas(teclado.ler(), toque.ler());
+
+/** Solta tudo o que estiver apertado (teclas e dedos): pausa, troca de tela, foco perdido. */
+function limparEntradas() {
+  teclado.limpar();
+  toque.limpar();
+}
+
+function juntarEntradas(a, b) {
+  return {
+    cima: a.cima || b.cima, baixo: a.baixo || b.baixo, esq: a.esq || b.esq, dir: a.dir || b.dir,
+    bomba: a.bomba || b.bomba, acao: a.acao || b.acao,
+  };
+}
 
 function proximaRodada() {
   jogo.pularIntervalo();
-  teclado.limpar();
+  limparEntradas();
   redesenhar();
 }
 
@@ -169,14 +252,17 @@ const avisos = new Avisos(document.getElementById('aviso'), {
   recomecar: () => reiniciar(),
   pular: () => proximaRodada(),
   menu: () => abrirMenu(),
-}, { sortear, reduzido: () => movimentoReduzido.matches });
+  lados: () => trocarLados(),
+}, { sortear, reduzido: () => movimentoReduzido.matches, toque: () => usaToque });
 
 const menu = new Menu(document.getElementById('menu'), {
   prefs, som, sortear,
   aoJogar: jogar,
   aoMudarEtapa: (etapa) => { if (vitrine) jogo.menu = etapa; },
   reduzido: () => movimentoReduzido.matches,
+  trocarLados,
 });
+mostrarModoDeToque();
 
 document.getElementById('bt-faixa').addEventListener('click', () => reiniciar());
 document.getElementById('bt-sair').addEventListener('click', (e) => { e.currentTarget.blur(); som.tocar('clique'); pedirSaida(); });
@@ -217,11 +303,24 @@ window.addEventListener('keydown', destravarSom, true);
 // Aba escondida (a criança foi chamada para a consulta): pausa sozinho.
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && jogo.tela === 'jogando') pausar(true);
+  if (document.hidden) limparEntradas();
   som.segundoPlano(document.hidden);
 });
+// Perdeu o foco (notificação puxada, outra janela, chamada): nada fica
+// "apertado" e a partida pausa — a criança volta e escolhe continuar.
+window.addEventListener('blur', () => {
+  limparEntradas();
+  if (jogo.tela === 'jogando' && !vitrine) pausar(true);
+});
 
-// Sem menu de contexto nem seleção acidental (público infantil, celular).
+// Sem menu de contexto nem seleção acidental (público infantil, celular). O
+// zoom de pinça e de dois toques já é barrado pelo `touch-action: none` do CSS;
+// o Safari do iPhone ignora isso no gesto de pinça, então os seus eventos
+// próprios de gesto também são cancelados.
 window.addEventListener('contextmenu', (e) => e.preventDefault());
+for (const tipo of ['gesturestart', 'gesturechange', 'dblclick']) {
+  document.addEventListener(tipo, (e) => e.preventDefault(), { passive: false });
+}
 
 renderizador.definirMovimentoReduzido(movimentoReduzido.matches);
 movimentoReduzido.addEventListener('change', (e) => renderizador.definirMovimentoReduzido(e.matches));
@@ -231,9 +330,10 @@ function ajustarTamanho() {
   const estilo = getComputedStyle(palco);
   const largura = palco.clientWidth - parseFloat(estilo.paddingLeft) - parseFloat(estilo.paddingRight);
   const altura = palco.clientHeight - parseFloat(estilo.paddingTop) - parseFloat(estilo.paddingBottom);
-  // Densidade limitada a 2: nítido em qualquer celular e bem mais leve que 3.
-  // Atrás do menu (vitrine, embaçada pelo vidro) basta densidade 1.
-  renderizador.ajustar(largura, altura, vitrine ? 1 : Math.min(window.devicePixelRatio || 1, 2), jogo.mundo);
+  // Densidade até 2 (nítido em qualquer celular e bem mais leve que 3), descendo
+  // sozinha se o aparelho não der conta (render/densidade.js). Atrás do menu
+  // (vitrine, embaçada pelo vidro) basta densidade 1.
+  renderizador.ajustar(largura, altura, vitrine ? 1 : densidade.valor, jogo.mundo);
 }
 new ResizeObserver(() => { ajustarTamanho(); redesenhar(); }).observe(palco);
 
@@ -242,6 +342,7 @@ const medidor = { quadros: 0, desde: performance.now(), fps: 0 };
 let ultimo = performance.now();
 let relogioAnimacao = 0;
 let ultimoMundo = null;
+let ultimaTela = null;
 let bancada = null;
 let vitrineDaVez = false;
 let dtVitrine = 0;
@@ -275,9 +376,14 @@ function redesenhar(dtSeg = 0) {
     if (!vitrine) som.musica(jogo.mundo.arena);
   }
   if (!vitrine) som.intensa(jogo.mundo.aperto.ativo);
+  if (jogo.tela !== ultimaTela) {
+    ultimaTela = jogo.tela;
+    atualizarBotaoPausa();
+  }
   renderizador.desenhar(jogo.mundo, jogo.anteriores, jogo.fracao(), relogioAnimacao, dtSeg);
   placar.atualizar(jogo);
   avisos.atualizar(jogo, dtSeg);
+  atualizarToque();
   bancada?.atualizar();
 }
 
@@ -303,7 +409,12 @@ function quadro(agora) {
   const vezes = vitrineLenta ? 4 : 2;
   contaVitrine = (contaVitrine + 1) % vezes;
   vitrineDaVez = contaVitrine === 0;
-  if (!vitrine) redesenhar(dtSeg);
+  if (!vitrine) {
+    if (jogo.tela === 'jogando' && !document.hidden) {
+      if (densidade.registrar(dt, agora)) ajustarTamanho();
+    } else densidade.esquecer();
+    redesenhar(dtSeg);
+  }
   else if (vitrineParada) { /* quadro congelado */ }
   else if (vitrineDaVez) { redesenhar(dtSeg + dtVitrine); dtVitrine = 0; vitrineDesenhada = true; } else dtVitrine += dtSeg;
 
@@ -323,7 +434,7 @@ else abrirMenu();
 instalarGancho({
   jogo, reiniciar, pausar, fps: () => medidor.fps,
   menu: (etapa) => abrirMenu(etapa),
-  extras: () => ({ mudo: prefs.dados.mudo, audio: som.ctx ? som.ctx.state : 'inativo', placarLocal: prefs.dados.placar }),
+  extras: () => ({ densidade: densidade.valor, mudo: prefs.dados.mudo, audio: som.ctx ? som.ctx.state : 'inativo', placarLocal: prefs.dados.placar }),
   ajusteMudou: () => bancada?.sincronizar(),
   redesenhar: (ticks) => {
     const dtSeg = Math.min(ticks / 60, 1);
@@ -334,7 +445,7 @@ instalarGancho({
 // Bancada de ajuste: só com ?ajuste=1 (fora disso o módulo nem é baixado).
 if (parametros.ajuste) {
   import('./ui/bancada.js').then(({ Bancada }) => {
-    bancada = new Bancada(document.getElementById('app'), jogo, { aoFechar: () => teclado.limpar() });
+    bancada = new Bancada(document.getElementById('app'), jogo, { aoFechar: () => limparEntradas() });
   });
 }
 requestAnimationFrame(quadro);

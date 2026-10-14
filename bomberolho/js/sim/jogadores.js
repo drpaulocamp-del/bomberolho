@@ -24,6 +24,7 @@ export function criarJogador(id, personagem, col, lin) {
     disparada: null, // { dir, resta } — arrancada da Disparada em andamento
     escudo: false, // carapaça do Cascudo fechada (protege a frente)
     recarga: 0, // ticks até poder usar o poder do bichinho de novo
+    carapaca: 0, // ticks seguidos de carapaça do Cascudo fechada
     dir: 'baixo', // para onde está olhando
     eixosAntes: { h: 0, v: 0 }, // direções do tick anterior (para "rolar" as teclas)
     virando: null, // direção da esquina que está pegando com a janela de virada

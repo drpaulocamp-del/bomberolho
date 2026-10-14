@@ -8,7 +8,7 @@
 // justo). Quem estiver nela quando a peça cai vai descansar (mesmo montado);
 // gota e item embaixo somem.
 
-import { CASA, MEIA_CASA, PILAR, MURO, SOBRA_APERTO, ANEIS_APERTO } from './constantes.js';
+import { CASA, MEIA_CASA, PILAR, MURO, SOBRA_APERTO, SOBRA_APERTO_SUAVE, ANEIS_APERTO } from './constantes.js';
 import { colDe, linDe, sobrepoe } from './jogadores.js';
 
 /** Canto (0–3, na ordem das largadas) onde a espiral começa: derivado da semente. */
@@ -69,8 +69,9 @@ export function sequenciaDoAperto(m, canto = cantoInicialDoAperto(m.semente)) {
   return seq;
 }
 
-export function criarAperto() {
-  return { ativo: false, indice: 0, ritmo: 0, proximoEm: null, seq: null };
+/** `suave` (nível Fácil): as mesmas peças, no mesmo começo, caindo mais devagar. */
+export function criarAperto(suave = false) {
+  return { ativo: false, indice: 0, ritmo: 0, proximoEm: null, seq: null, suave };
 }
 
 /** Um tick do aperto (chamado só com o relógio correndo). */
@@ -80,7 +81,8 @@ export function avancarAperto(m, eliminar) {
     if (m.tempoRestante > m.ajuste.inicioAperto) return;
     a.ativo = true;
     a.seq = sequenciaDoAperto(m);
-    a.ritmo = Math.max(6, Math.floor((m.ajuste.inicioAperto - SOBRA_APERTO) / Math.max(1, a.seq.length)));
+    const sobra = a.suave ? SOBRA_APERTO_SUAVE : SOBRA_APERTO;
+    a.ritmo = Math.max(6, Math.floor((m.ajuste.inicioAperto - sobra) / Math.max(1, a.seq.length)));
     a.proximoEm = m.tick + a.ritmo;
     m.eventos.push({ tipo: 'aperto' });
     return;

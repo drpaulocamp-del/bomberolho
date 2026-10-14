@@ -16,7 +16,7 @@ export const ICONES = {
   relogio: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="9" r="5.6" fill="#fff" stroke="currentColor" stroke-width="1.6"/><path d="M8 5.8V9l2.2 1.4M6.5 1.8h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
 };
 
-const ICONE_BICHINHO = {
+export const ICONE_BICHINHO = {
   saltinho: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 11a5.5 5.5 0 0 1 11 0z" fill="#2FB777" stroke="#1F8A5C" stroke-width="1.2"/><path d="M4 6.2 3 5M8 5.5V4M12 6.2l1-1.2" stroke="#1F8A5C" stroke-width="1.2" stroke-linecap="round"/><path d="M3 11l-1 2.5M13 11l1 2.5" stroke="#1F8A5C" stroke-width="1.4" stroke-linecap="round"/></svg>',
   cascudo: '<svg viewBox="0 0 16 16" aria-hidden="true"><ellipse cx="8" cy="9" rx="6.5" ry="3.6" fill="#9FDCF8" stroke="#2C7FB8" stroke-width="1.4"/><path d="M4.5 7.6c1-1 2.6-1.4 4-1.2" stroke="#fff" stroke-width="1.1" fill="none" stroke-linecap="round"/></svg>',
   disparada: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.5 8c-2.5-3-7-3-10-0 3 3 7.5 3 10 0z" fill="#F7962F" stroke="#B4560F" stroke-width="1.1"/><path d="M1 6.5h3M.8 9.5h3" stroke="#FFB067" stroke-width="1.2" stroke-linecap="round"/><circle cx="6.5" cy="11.6" r="1.3" fill="#3B2A1E"/><circle cx="10.5" cy="11.6" r="1.3" fill="#3B2A1E"/></svg>',

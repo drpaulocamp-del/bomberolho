@@ -23,10 +23,12 @@ const S = 60; // ticks por segundo
 export const NIVEIS = Object.freeze({
   // Fácil: anda, abre blocos, pega tudo (até Cisco), demora a notar gotas
   // alheias, enxerga pouco à frente na fuga, só ataca depois de 20 s e quase
-  // nunca persegue. Às vezes se atrapalha sozinho.
+  // nunca persegue. Às vezes se atrapalha sozinho. Parte 4: poupa a criança —
+  // não solta gota cuja cruz pegue a casa dela (ou uma vizinha) nem a escolhe
+  // como alvo; briga com os outros robôs (perfil "criança", lote/crianca.mjs).
   facil: Object.freeze({
     margem: 0, reacao: 30, alcanceVisto: 2, semCadeia: true, camadas: 6, calma: 20 * S, perseguir: 0.05, perseguirFinal: 0.2, atacar: 0.3, atacaNaFuga: 0, atacaNoFim: false, armadilha: false, emboscada: 0, erro: 0.1,
-    usaTatica: 0.12, usaPoder: 0.35, evitaCisco: false, duasSaidas: false, pensar: 12, notaMinimaTatica: 3, pausaEntreGotas: 70,
+    usaTatica: 0.12, usaPoder: 0.35, evitaCisco: false, duasSaidas: false, pensar: 12, notaMinimaTatica: 3, pausaEntreGotas: 70, poupaHumano: true,
   }),
   // Médio: foge bem, ataca quem está na mira e encurrala de vez em quando.
   // (Rodada 2: menos vontade de atacar — o salto do Fácil para o Médio era
@@ -44,9 +46,10 @@ export const NIVEIS = Object.freeze({
 });
 
 /** `dificuldade`: 'facil' | 'medio' | 'dificil' ou um objeto de nível (simulações). */
-export function criarRobo(id, dificuldade, semente) {
+export function criarRobo(id, dificuldade, semente, humano = 0) {
   return {
     id,
+    humano, // quem o nível Fácil poupa (poupaHumano)
     nivel: typeof dificuldade === 'object' && dificuldade ? dificuldade : NIVEIS[dificuldade] || NIVEIS.facil,
     rng: criarAleatorio((semente ^ Math.imul(id + 1, 0x9e3779b1)) >>> 0),
     alvo: null, // casa para onde está indo
@@ -80,6 +83,10 @@ export function decidir(r, m) {
   if (j.disparada) {
     // Segura a arrancada até sair do perigo.
     return an.primeiro[aqui] === SEGURO ? VAZIA : T.entrada({ [j.disparada.dir]: true, acao: true });
+  }
+  if (j.escudo && an.primeiro[aqui] !== SEGURO) {
+    // Carapaça fechada e o perigo ainda vem: segura até passar (ou cansar).
+    return T.entrada({ [j.dir]: true, acao: true });
   }
   if (j.segurando !== null) return VAZIA; // soltar o botão arremessa
   const ocupada = casasComGota(m, j);
@@ -279,11 +286,21 @@ function podeSoltar(r, m, j) {
     const cruz = alcanceDaGota(m, hip, an.ocupadas);
     if (m.jogadores.some((o) => o.vivo && o !== j && cruz.includes(casaDe(m, o)))) return false;
   }
+  if (n.poupaHumano && cruzPegaHumano(r, m, hip, an)) return false;
   const ocupada = casasComGota(m, j, [hip]);
   const plano = planejarFuga(m, j, an, ocupada, { margem: margemParaSoltar(m, n), camadas: n.camadas, origemBloqueada: true });
   if (!plano.ok) return false;
   if (n.duasSaidas && (cauteloso(m, n) || !faseFinal(m)) && rivalPerto(m, j, 5) && plano.seguras.length < 2) return false;
   return true;
+}
+
+/** A cruz da gota hipotética passa a até `poupaRaio` casas do humano poupado? */
+function cruzPegaHumano(r, m, hip, an) {
+  const h = m.jogadores[r.humano];
+  if (!h || !h.vivo || h.id === r.id) return false;
+  const casa = casaDe(m, h);
+  const raio = r.nivel.poupaRaio ?? 1;
+  return alcanceDaGota(m, hip, an.ocupadas).some((i) => distancia(m, i, casa) <= raio);
 }
 
 /** Aperto final avançado ou só dois de pé: os robôs ficam mais ousados. */
@@ -329,7 +346,7 @@ function rivalPerto(m, j, d) {
 function querAtacarDaqui(r, m, j, chegouNoPonto = false, notaMinima = 1) {
   const n = r.nivel;
   if (gotasAtivasDe(m, j.id) >= j.gotas) return false;
-  const nota = notaDoAtaque(m, j, casaDe(m, j), n.armadilha);
+  const nota = notaDoAtaque(m, j, casaDe(m, j), n.armadilha, n.poupaHumano ? r.humano : -1);
   if (nota < notaMinima || nota === 0) return false;
   let chance = nota === 3 ? n.atacar : nota === 2 ? n.atacar * 0.8 : n.atacar * (chegouNoPonto ? 0.6 : 0.3);
   if (faseFinal(m)) chance = Math.min(1, chance * 1.6); // arena encolhendo: hora de arriscar
@@ -342,10 +359,10 @@ function querAtacarDaqui(r, m, j, chegouNoPonto = false, notaMinima = 1) {
  * Com `armadilha`, conta também quem não está na cruz mas fica encurralado
  * (cadeias e corredores fechados).
  */
-function notaDoAtaque(m, j, i, armadilha) {
+function notaDoAtaque(m, j, i, armadilha, poupado = -1) {
   const falso = { ...j, x: (i % m.colunas) * CASA + MEIA_CASA, y: Math.floor(i / m.colunas) * CASA + MEIA_CASA };
   const hip = gotaHipotetica(m, falso);
-  const perto = m.jogadores.filter((o) => o.vivo && o !== j && distancia(m, casaDe(m, o), i) <= hip.alcance + 2);
+  const perto = m.jogadores.filter((o) => o.vivo && o !== j && o.id !== poupado && distancia(m, casaDe(m, o), i) <= hip.alcance + 2);
   if (!perto.length) return 0;
   const an = analisar(m, [hip]);
   const cruz = alcanceDaGota(m, hip, an.ocupadas);
@@ -487,7 +504,7 @@ function escolherAlvo(r, m, j, an, ocupada, podeAtacar) {
     if (e) considerar(e.i, 30 + e.valor, 'ataque');
   }
   if (podeAtacar && proximo(r.rng) < vontadeDePerseguir(m, n)) {
-    const rival = rivalMaisProximo(m, j);
+    const rival = rivalMaisProximo(m, j, n.poupaHumano ? r.humano : -1);
     if (rival) {
       const ir = casaDe(m, rival);
       for (const i of busca.fila) {
@@ -518,11 +535,11 @@ function vontadeDePerseguir(m, n) {
   return n.perseguir + (n.perseguirFinal - n.perseguir) * fim;
 }
 
-function rivalMaisProximo(m, j) {
+function rivalMaisProximo(m, j, poupado = -1) {
   let melhor = null;
   let melhorD = Infinity;
   for (const o of m.jogadores) {
-    if (o.id === j.id || !o.vivo) continue;
+    if (o.id === j.id || !o.vivo || o.id === poupado) continue;
     const d = Math.abs(o.x - j.x) + Math.abs(o.y - j.y);
     if (d < melhorD) { melhorD = d; melhor = o; }
   }

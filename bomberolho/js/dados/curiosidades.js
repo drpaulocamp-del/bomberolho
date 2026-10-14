@@ -1,6 +1,9 @@
 // Curiosidades sobre os olhos: verdadeiras, simples e sem promessa médica.
-// Cada uma é "contada" por um personagem ligado ao assunto. A justificativa de
-// cada fato está no relatório da parte 3 (reports/parte-3-rodada-1.md).
+// Cada uma é "contada" por um personagem ligado ao assunto (a Lente, que já
+// conta do nervo óptico, conta também do ponto cego, que fica onde ele sai do
+// olho; a Mácula, que vê os detalhes, conta dos bebês, cuja visão de detalhe
+// amadurece nos primeiros meses). A justificativa de cada fato está no
+// relatório da parte 3 (reports/parte-3-rodada-1.md).
 
 export const CURIOSIDADES = Object.freeze([
   { quem: 'pupilo', texto: 'No escuro, a pupila fica maior para deixar entrar mais luz.' },
@@ -20,13 +23,13 @@ export const CURIOSIDADES = Object.freeze([
   { quem: 'retina', texto: 'Os bastonetes da retina ajudam a enxergar no escuro.' },
   { quem: 'retina', texto: 'A imagem chega de cabeça para baixo na retina. O cérebro desvira!' },
   { quem: 'macula', texto: 'A mácula é um pedacinho da retina que vê os detalhes.' },
-  { quem: 'macula', texto: 'Todo olho tem um ponto cego. O cérebro completa o buraco.' },
+  { quem: 'lente', texto: 'Todo olho tem um ponto cego. O cérebro completa o buraco.' },
   { quem: 'lente', texto: 'O nervo óptico leva as imagens do olho até o cérebro.' },
   { quem: 'lente', texto: 'Com os dois olhos juntos, dá para saber se algo está perto ou longe.' },
-  { quem: 'lente', texto: 'As sobrancelhas ajudam a desviar o suor dos olhos.' },
-  { quem: 'iris', texto: 'Os bebês nascem enxergando pouco e aprendem a ver aos pouquinhos.' },
+  { quem: 'cilio', texto: 'As sobrancelhas ajudam a desviar o suor dos olhos.' },
+  { quem: 'macula', texto: 'Os bebês nascem enxergando pouco e aprendem a ver aos pouquinhos.' },
   { quem: 'pupilo', texto: 'Nunca olhe direto para o Sol: a luz dele é forte demais.' },
-  { quem: 'macula', texto: 'Lágrimas aparecem quando choramos e também quando rimos muito.' },
+  { quem: 'cornea', texto: 'Lágrimas aparecem quando choramos e também quando rimos muito.' },
 ]);
 
 /** Sorteio sem repetir as últimas (rodízio embaralhado). Usa Math.random: é só enfeite. */

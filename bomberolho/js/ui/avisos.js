@@ -8,13 +8,14 @@ import { desenharPersonagem, desenharPersonagemRapido, encaixarPersonagem } from
 import { ICONES } from './hud.js';
 
 const TAU = Math.PI * 2;
+const ICONE_LADOS = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 7h12M12.5 3.8 15.7 7l-3.2 3.2M16.5 13h-12M7.5 9.8 4.3 13l3.2 3.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CONFETE = ['#FF6F61', '#FFC93C', '#2FBF71', '#3FA9F5', '#8B5CF6', '#EC4899'];
 
 export class Avisos {
   /**
    * @param {HTMLElement} elemento #aviso
-   * @param {object} acoes { continuar, recomecar, pular, menu }
-   * @param {object} op { sortear (curiosidade), reduzido() }
+   * @param {object} acoes { continuar, recomecar, pular, menu, lados }
+   * @param {object} op { sortear (curiosidade), reduzido(), toque() }
    */
   constructor(elemento, acoes, op) {
     this.el = elemento;
@@ -81,8 +82,10 @@ export class Avisos {
       this.mostrar('Sair da partida?', 'A partida para aqui. Você pode jogar outra depois!',
         [['Continuar jogando', 'continuar'], ['Sair', 'menu']], null, { tipo: 'sono', ids: [0] }, jogo);
     } else if (chave === 'pausa') {
-      this.mostrar('Pausado', 'Respire fundo e pisque os olhos. Quando quiser, é só continuar!',
-        [['Continuar', 'continuar'], ['Recomeçar', 'recomecar'], ['Menu', 'menu']], null, { tipo: 'sono', ids: [0] }, jogo);
+      const botoes = [['Continuar', 'continuar'], ['Recomeçar', 'recomecar'], ['Menu', 'menu']];
+      // No toque, dá para trocar a gota de mão (canhotos) sem sair da partida.
+      if (this.op.toque?.()) botoes.push(['Trocar lados', 'lados']);
+      this.mostrar('Pausado', 'Respire fundo e pisque os olhos. Quando quiser, é só continuar!', botoes, null, { tipo: 'sono', ids: [0] }, jogo);
     } else if (jogo.tela === 'intervalo') {
       const v = m.vencedor;
       const titulo = m.fase !== 'fim' ? 'Fim da rodada!' : v === null ? 'Empate!' : voce(v) ? 'Você ganhou a rodada!' : `${nome(v)} ganhou a rodada!`;
@@ -121,6 +124,7 @@ export class Avisos {
       bt.type = 'button';
       bt.dataset.acao = acao;
       bt.textContent = rotulo;
+      if (acao === 'lados') bt.insertAdjacentHTML('afterbegin', ICONE_LADOS);
       if (k > 0) bt.className = 'secundario';
       return bt;
     }));

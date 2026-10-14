@@ -45,6 +45,9 @@ export class Jogo {
       rodadas: op.rodadas ?? anterior.rodadas ?? 2,
       contagem: op.contagem ?? true,
       niveis: op.niveis ?? null, // nível por competidor (simulações em lote); null = todos na dificuldade
+      // Quem os robôs do Fácil poupam: a criança (no lote, o canto do perfil-proxy;
+      // -1 = ninguém, como na vitrine do menu e no modo demo).
+      humano: op.humano ?? (this.demo ? -1 : HUMANO),
     };
     this.partida = criarPartida(this.opcoes.rodadas, 4);
     this.opcoes.rodadas = this.partida.alvo;
@@ -67,9 +70,10 @@ export class Jogo {
       ajuste: this.ajuste,
       contagem: contagem ? this.ajuste.contagem : 0,
       duracao: this.ajuste.duracaoRodada,
+      apertoSuave: dificuldade === 'facil',
     });
     const niveis = this.opcoes.niveis;
-    this.robos = this.mundo.jogadores.map((j) => criarRobo(j.id, niveis?.[j.id] ?? dificuldade, s));
+    this.robos = this.mundo.jogadores.map((j) => criarRobo(j.id, niveis?.[j.id] ?? dificuldade, s, this.opcoes.humano));
     this.intervalo = 0;
     this.registrada = false;
     this.eventos.push({ tipo: 'rodada', rodada: this.partida.rodada });

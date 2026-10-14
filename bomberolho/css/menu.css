@@ -17,6 +17,9 @@
     rgba(245, 245, 247, 0.8);
 }
 .menu[hidden], .menu .tela[hidden], .menu .ajuda[hidden] { display: none; }
+/* O corpo da página barra rolagem e zoom do toque; quem pode rolar (se faltar
+   altura) é só o próprio menu ou cartão. */
+.menu, .cartao-ajuda { touch-action: pan-y; }
 
 .tela {
   display: flex;
@@ -163,6 +166,10 @@
 .passos-ajuda li { display: flex; align-items: center; gap: 12px; padding: 4px 10px 4px 4px; border-radius: 14px; background: rgba(0, 113, 227, 0.06); font-weight: 600; line-height: 1.25; }
 .passos-ajuda canvas { width: 54px; height: 54px; flex: none; }
 .cartao-ajuda button { min-height: 52px; padding: 0 34px; font-size: 1.1rem; }
+/* Opção de canhoto (só no toque): alterna; ligada fica azul cheia. */
+.cartao-ajuda .bt-lados { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 auto 10px; min-height: 48px; padding: 0 20px; font-size: 1rem; }
+.cartao-ajuda .bt-lados[hidden] { display: none; }
+.cartao-ajuda .bt-lados[aria-pressed="true"] { color: #fff; background: var(--azul); }
 
 /* ── Celular em pé ── */
 @media (orientation: portrait) {
@@ -234,8 +241,13 @@
   .pilula { min-height: 48px; padding: 4px 10px; font-size: 0.9rem; }
   .pilula small { display: none; }
   .passos-ajuda canvas { width: 40px; height: 40px; }
-  .passos-ajuda { gap: 3px; }
+  .cartao-ajuda { width: min(780px, 100%); padding: 10px 14px 12px; }
+  .passos-ajuda { grid-template-columns: 1fr 1fr; gap: 4px 6px; margin-bottom: 8px; }
+  .passos-ajuda li { font-size: 0.86rem; padding: 2px 8px 2px 2px; }
   .cartao-ajuda h2 { font-size: 1.2rem; margin-bottom: 4px; }
+  .cartao-ajuda .bt-lados, .cartao-ajuda button { min-height: 44px; }
+  .cartao-ajuda .rodape-ajuda { display: flex; justify-content: center; gap: 10px; }
+  .cartao-ajuda .rodape-ajuda .bt-lados { margin: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

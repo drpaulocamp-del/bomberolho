@@ -11,6 +11,7 @@ import { obterTema } from '../render/temas.js';
 import { desenharPersonagem, desenharPersonagemRapido, encaixarPersonagem } from '../render/personagens.js';
 import { desenharLogo } from '../render/logo.js';
 import { desenharGota, desenharItem, desenharRespingos } from '../render/efeitos.js';
+import { desenharBichinho, ALTURA_MONTADO } from '../render/bichinhos.js';
 import { ICONES } from './hud.js';
 
 const DESCRICAO_ARENA = {
@@ -28,11 +29,14 @@ const DIFICULDADES = [
   { id: 'dificil', nome: 'Difícil', dica: 'Desafio!', gotas: 3 },
 ];
 
+// Como jogar: o texto dos dois primeiros passos depende do controle (teclado
+// ou toque); o lado da alavanca acompanha a opção de canhoto.
 const AJUDA = [
-  { arte: 'andar', texto: 'Ande com as setas (ou W A S D).' },
-  { arte: 'gota', texto: 'Aperte Espaço para soltar uma gotinha.' },
+  { arte: 'andar', texto: 'Ande com as setas ou WASD.', toque: (canhoto) => `Arraste o dedo na metade ${canhoto ? 'direita' : 'esquerda'} da tela para andar.` },
+  { arte: 'gota', texto: 'Aperte Espaço para soltar uma gotinha.', toque: () => 'Toque no botão azul para soltar uma gotinha.' },
   { arte: 'respingo', texto: 'Ela estoura em cruz. Saia da frente!' },
   { arte: 'item', texto: 'O respingo abre os blocos. Pegue os prêmios!' },
+  { arte: 'bichinho', texto: 'Num bichinho? Shift usa o poder dele.', toque: () => 'Num bichinho? O botão branco usa o poder dele.' },
   { arte: 'taca', texto: 'Quem ficar sequinho por último ganha um troféu.' },
 ];
 
@@ -124,6 +128,11 @@ export class Menu {
     else if (acao === 'comecar') this.comecar();
     else if (acao === 'ajuda') this.abrirAjuda(true);
     else if (acao === 'fechar-ajuda') this.abrirAjuda(false);
+    else if (acao === 'lados') {
+      this.op.trocarLados?.();
+      this.montarAjuda();
+      this.desenharAjuda();
+    }
   }
 
   /** Setas andam entre as opções de um grupo; Esc volta. */
@@ -156,7 +165,7 @@ export class Menu {
     caixa.hidden = !abrir;
     if (abrir) {
       this.desenharAjuda();
-      caixa.querySelector('button').focus({ preventScroll: true });
+      caixa.querySelector('[data-acao="fechar-ajuda"]').focus({ preventScroll: true });
     } else {
       this.raiz.querySelector('.bt-ajuda').focus({ preventScroll: true });
     }
@@ -243,9 +252,24 @@ export class Menu {
     this.atualizarSelecao();
   }
 
+  /** Liga os textos e a opção de canhoto do "Como jogar" para quem joga no toque. */
+  definirToque(toque) {
+    this.toque = !!toque;
+    this.montarAjuda();
+    if (!this.raiz.querySelector('.ajuda').hidden) this.desenharAjuda();
+  }
+
   montarAjuda() {
+    const canhoto = this.op.prefs.dados.canhoto;
     const lista = this.raiz.querySelector('.passos-ajuda');
-    lista.innerHTML = AJUDA.map((a) => `<li><canvas data-arte="${a.arte}" aria-hidden="true"></canvas><span>${a.texto}</span></li>`).join('');
+    lista.innerHTML = AJUDA.map((a) => {
+      const texto = this.toque && a.toque ? a.toque(canhoto) : a.texto;
+      return `<li><canvas data-arte="${a.arte}" aria-hidden="true"></canvas><span>${texto}</span></li>`;
+    }).join('');
+    lista.dataset.modo = this.toque ? 'toque' : 'teclado';
+    const lados = this.raiz.querySelector('.bt-lados');
+    lados.hidden = !this.toque;
+    lados.setAttribute('aria-pressed', String(canhoto));
   }
 
   atualizarSelecao() {
@@ -434,11 +458,21 @@ export class Menu {
       const y = h / 2;
       switch (c.dataset.arte) {
         case 'andar':
+          if (this.toque) {
+            alavanquinha(ctx, x, y, s);
+            break;
+          }
           desenharPersonagem(ctx, PERSONAGENS[this.escolha.personagem], { x, y: y + s * 0.05, s: s * 0.8, dir: 'dir', andando: true, fase: 0.4 });
           setinhas(ctx, x, y, s);
           break;
         case 'gota':
-          desenharGota(ctx, x, y - s * 0.12, s * 0.95, { pavio: 120, pavioTotal: 165 }, 0);
+          if (this.toque) botaozinho(ctx, x, y, s * 0.4, true);
+          else desenharGota(ctx, x, y - s * 0.12, s * 0.95, { pavio: 120, pavioTotal: 165 }, 0);
+          break;
+        case 'bichinho':
+          desenharBichinho(ctx, 'saltinho', { x, y: y + s * 0.12, s: s * 0.62, fase: 0, alfa: 1, noAr: false, sentido: 1, correndo: false });
+          desenharPersonagem(ctx, PERSONAGENS[this.escolha.personagem], { x, y: y + s * 0.12 - s * 0.62 * ALTURA_MONTADO, s: s * 0.5, dir: 'baixo', fase: 0.2, expressao: 'alegre' });
+          if (this.toque) botaozinho(ctx, x + s * 0.36, y + s * 0.3, s * 0.12, false);
           break;
         case 'respingo':
           ctx.save();
@@ -455,6 +489,62 @@ export class Menu {
       }
     }
   }
+}
+
+/** Alavanca em miniatura (Como jogar, no toque): aro, pino puxado para a direita e a seta. */
+function alavanquinha(ctx, x, y, s) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.strokeStyle = 'rgba(0, 113, 227, 0.7)';
+  ctx.lineWidth = s * 0.04;
+  ctx.beginPath();
+  ctx.arc(x, y, s * 0.42, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  const g = ctx.createRadialGradient(x + s * 0.06, y - s * 0.06, s * 0.02, x + s * 0.1, y, s * 0.18);
+  g.addColorStop(0, '#7FCBFF');
+  g.addColorStop(1, '#0071E3');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(x + s * 0.1, y, s * 0.17, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#0071E3';
+  ctx.lineWidth = s * 0.06;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x + s * 0.31, y - s * 0.09);
+  ctx.lineTo(x + s * 0.39, y);
+  ctx.lineTo(x + s * 0.31, y + s * 0.09);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Botão de toque em miniatura: azul com gota (gota = true) ou branco com contorno azul. */
+function botaozinho(ctx, x, y, r, gota) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  if (gota) {
+    const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.4, r * 0.1, x, y, r);
+    g.addColorStop(0, '#78CCFF');
+    g.addColorStop(1, '#0071E3');
+    ctx.fillStyle = g;
+  } else ctx.fillStyle = '#FFFFFF';
+  ctx.fill();
+  ctx.lineWidth = r * 0.14;
+  ctx.strokeStyle = gota ? '#FFFFFF' : '#0071E3';
+  ctx.stroke();
+  if (gota) {
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(x, y - r * 0.62);
+    ctx.bezierCurveTo(x + r * 0.2, y - r * 0.28, x + r * 0.46, y - r * 0.02, x + r * 0.46, y + r * 0.2);
+    ctx.arc(x, y + r * 0.2, r * 0.46, 0, Math.PI);
+    ctx.bezierCurveTo(x - r * 0.46, y - r * 0.02, x - r * 0.2, y - r * 0.28, x, y - r * 0.62);
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
 function setinhas(ctx, x, y, s) {

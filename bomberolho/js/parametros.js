@@ -1,7 +1,7 @@
 // Leitura dos parâmetros de URL (?arena=, ?dificuldade=, ?semente=, ?demo=1,
-// ?personagem=, ?escala=, ?rodadas=, ?ajuste=1). Função pura: recebe a query
-// string, devolve opções já validadas — valores desconhecidos caem no padrão
-// em silêncio.
+// ?personagem=, ?escala=, ?rodadas=, ?ajuste=1, ?densidade=, ?toque=). Função
+// pura: recebe a query string, devolve opções já validadas — valores
+// desconhecidos caem no padrão em silêncio.
 
 import { ARENAS, ARENA_PADRAO } from './sim/arenas.js';
 import { sementeDeTexto } from './sim/aleatorio.js';
@@ -23,7 +23,12 @@ export function lerParametros(busca) {
   const rodadasNum = Number(q.get('rodadas'));
   const rodadas = [1, 2, 3].includes(rodadasNum) ? rodadasNum : 2;
   const ajuste = sim(q.get('ajuste'));
-  return { arena, dificuldade, semente, demo, personagem, escala, rodadas, ajuste };
+  const densidadeNum = Number(q.get('densidade'));
+  const densidade = q.has('densidade') && Number.isFinite(densidadeNum) && densidadeNum >= 1 && densidadeNum <= 3 ? densidadeNum : null;
+  // ?toque=1 mostra os controles de toque mesmo sem tela de toque (teste no
+  // computador, com o mouse); ?toque=0 esconde. Sem o parâmetro, decide o aparelho.
+  const toque = q.has('toque') ? sim(q.get('toque')) : null;
+  return { arena, dificuldade, semente, demo, personagem, escala, rodadas, ajuste, densidade, toque };
 }
 
 const CHAVES_DE_JOGO = ['semente', 'arena', 'dificuldade', 'demo', 'personagem', 'rodadas', 'escala', 'ajuste'];

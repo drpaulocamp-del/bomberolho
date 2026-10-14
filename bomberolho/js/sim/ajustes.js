@@ -19,6 +19,8 @@ export const AJUSTE_PADRAO = Object.freeze({
   invulneravel: 66, // ≈ 1,1 s piscando depois de perder o bichinho
   duracaoCisco: 600, // 10 s de azar
   velocidadeDisparada: 150, // un/tick da arrancada do bichinho Disparada
+  duracaoCarapaca: 90, // 1,5 s no máximo de carapaça do Cascudo fechada
+  recargaCarapaca: 150, // 2,5 s de "cansaço" depois que a carapaça abre
   forcaCorrente: 20, // un/tick que a correnteza do Lago Lacrimal empurra
   bonusLente: 2, // alcance extra da gota solta sobre uma lente do Consultório
 });
@@ -39,6 +41,7 @@ export const FAIXAS_AJUSTE = Object.freeze([
   { chave: 'distanciaPinca', rotulo: 'Distância da Pinça', min: 2, max: 6, passo: 1, unidade: 'casas', escala: 1 },
   { chave: 'invulneravel', rotulo: 'Pisca-pisca ao perder o bichinho', min: 30, max: 150, passo: 6, unidade: 's', escala: 1 / 60 },
   { chave: 'velocidadeDisparada', rotulo: 'Arrancada da Disparada', min: 100, max: 250, passo: 5, unidade: 'casas/s', escala: 60 / 1000 },
+  { chave: 'duracaoCarapaca', rotulo: 'Carapaça do Cascudo (máximo fechada)', min: 30, max: 240, passo: 6, unidade: 's', escala: 1 / 60 },
   { chave: 'duracaoCisco', rotulo: 'Duração do Cisco', min: 180, max: 900, passo: 30, unidade: 's', escala: 1 / 60 },
 ]);
 

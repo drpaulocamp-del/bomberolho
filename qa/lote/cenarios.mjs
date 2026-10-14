@@ -54,6 +54,12 @@ export function montarPartidas(escala = 1) {
       partidas.push({ cenario: `${perfil}×${nivel}`, proxy: canto, arena: ORDEM_ARENAS[k % ORDEM_ARENAS.length], niveis, semente: semente++, rodadas: 2 });
     }
   }
+  // B2) Perfil "criança" escrito fora da IA do jogo (lote/crianca.mjs) contra o
+  // Fácil (a dificuldade da partida é 'facil': vale o aperto do Fácil).
+  for (let k = 0; k < q(300); k++) {
+    const canto = k % 4;
+    partidas.push({ cenario: 'criança×facil', proxy: canto, crianca: canto, dificuldade: 'facil', arena: ORDEM_ARENAS[k % ORDEM_ARENAS.length], niveis: ['facil', 'facil', 'facil', 'facil'].map((n, i) => (i === canto ? 'crianca' : n)), semente: semente++, rodadas: 2 });
+  }
   // C) Níveis misturados: um de cada (e um Fácil a mais), girando os cantos.
   for (let k = 0; k < q(480); k++) {
     const base = ['dificil', 'medio', 'facil', 'facil'];

@@ -30,6 +30,7 @@ export const VELOCIDADE_PASSO = AJUSTE_PADRAO.velocidadePasso;
 
 export const ATRASO_FIM = 90; // 1,5 s entre a última queda e o resultado
 export const SOBRA_APERTO = 1200; // o aperto termina 20 s antes do fim do relógio (miolo 5×3 no fim)
+export const SOBRA_APERTO_SUAVE = 600; // no Fácil, o aperto se espalha até 10 s do fim: peças caem ~25% mais devagar
 export const ANEIS_APERTO = 4; // anéis que caem, de fora para dentro (depois fecham as pontas do miolo 5×3)
 export const DISTANCIA_SALTO = 2; // casas do pulo do Saltinho
 export const DURACAO_SALTO = 20; // ticks no ar

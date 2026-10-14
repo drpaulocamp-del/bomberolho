@@ -2,6 +2,8 @@
 // (ou E/K) para o poder do bichinho. Usa `code` (posição física da tecla),
 // então WASD funciona em qualquer layout. Nenhuma tecla do jogo rola a página.
 
+import { criarBotoes } from './botoes.js';
+
 const DIRECAO_POR_TECLA = {
   ArrowUp: 'cima', KeyW: 'cima',
   ArrowDown: 'baixo', KeyS: 'baixo',
@@ -16,8 +18,7 @@ export function criarTeclado(alvo, acoes = {}) {
   // Toques rápidos (apertar e soltar entre dois ticks) não se perdem: ficam
   // guardados até o próximo ler().
   const tocadas = new Set();
-  const pendente = { bomba: false, acao: false };
-  const ultima = { bomba: false, acao: false };
+  const botoes = criarBotoes();
 
   function aoApertar(e) {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -35,8 +36,7 @@ export function criarTeclado(alvo, acoes = {}) {
       tocadas.add(dir);
       e.preventDefault();
     } else if (botao) {
-      if (!e.repeat) pendente[botao] = true;
-      apertadas.add(botao);
+      botoes.apertar(botao, e.repeat);
       e.preventDefault();
     } else if ((e.code === 'KeyP' || e.code === 'Escape') && !e.repeat) {
       acoes.pausar?.();
@@ -50,27 +50,15 @@ export function criarTeclado(alvo, acoes = {}) {
   function aoSoltar(e) {
     const dir = DIRECAO_POR_TECLA[e.code];
     if (dir) apertadas.delete(dir);
-    else if (TECLAS_GOTA.has(e.code)) apertadas.delete('bomba');
-    else if (TECLAS_ACAO.has(e.code)) apertadas.delete('acao');
+    else if (TECLAS_GOTA.has(e.code)) botoes.soltar('bomba');
+    else if (TECLAS_ACAO.has(e.code)) botoes.soltar('acao');
   }
 
   // Ao perder o foco as teclas "presas" são soltas (senão o boneco anda sozinho).
   function limpar() {
     apertadas.clear();
     tocadas.clear();
-    pendente.bomba = false;
-    pendente.acao = false;
-  }
-
-  /** Botão com borda: um toque rápido vira "apertado" por um tick. */
-  function botao(nome) {
-    let v = pendente[nome] || apertadas.has(nome);
-    // A simulação age na borda (solto → apertado); se o botão continuou
-    // "apertado" desde o tick anterior, entrega um tick solto antes.
-    if (pendente[nome] && ultima[nome]) v = false;
-    else pendente[nome] = false;
-    ultima[nome] = v;
-    return v;
+    botoes.limpar();
   }
 
   alvo.addEventListener('keydown', aoApertar);
@@ -85,8 +73,8 @@ export function criarTeclado(alvo, acoes = {}) {
         baixo: apertadas.has('baixo') || tocadas.has('baixo'),
         esq: apertadas.has('esq') || tocadas.has('esq'),
         dir: apertadas.has('dir') || tocadas.has('dir'),
-        bomba: botao('bomba'),
-        acao: botao('acao'),
+        bomba: botoes.ler('bomba'),
+        acao: botoes.ler('acao'),
       };
       tocadas.clear();
       return e;

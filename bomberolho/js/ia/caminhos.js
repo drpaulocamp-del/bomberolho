@@ -5,8 +5,24 @@ import { CASA, VAZIO, TUNEL, DIRECOES, NOMES_DIRECOES } from '../sim/constantes.
 import { colDe, linDe, velocidadeDe } from '../sim/jogadores.js';
 import { secaDurante, secaDesde, SEGURO } from './perigo.js';
 
-/** Vizinhos de uma casa: [[índice, direção], ...]; pelos túneis, a casa do lado oposto. */
+const tabelas = new WeakMap(); // mundo → { semente, lista } (vizinhança pronta; só leitura)
+
+/**
+ * Vizinhos de uma casa: [[índice, direção], ...]; pelos túneis, a casa do lado
+ * oposto. A tabela é montada uma vez por mundo (a moldura e os túneis não
+ * mudam): a busca chama isto milhares de vezes por segundo e, antes, cada
+ * chamada criava listas novas. Quem chama só lê a lista.
+ */
 export function vizinhos(m, i) {
+  let t = tabelas.get(m);
+  if (!t || t.semente !== m.semente) {
+    t = { semente: m.semente, lista: Array.from({ length: m.grade.length }, (_, k) => montarVizinhos(m, k)) };
+    tabelas.set(m, t);
+  }
+  return t.lista[i];
+}
+
+function montarVizinhos(m, i) {
   const c = i % m.colunas;
   const l = Math.floor(i / m.colunas);
   const lista = [];
@@ -23,9 +39,9 @@ export function vizinhos(m, i) {
     if (ll < 0 || ll >= m.linhas || cc < 0 || cc >= m.colunas) continue;
     // Boca de túnel: portal sem largura, leva direto à casa do lado oposto.
     if (m.grade[ll * m.colunas + cc] === TUNEL) cc = cc === 0 ? m.colunas - 2 : 1;
-    lista.push([ll * m.colunas + cc, nome]);
+    lista.push(Object.freeze([ll * m.colunas + cc, nome]));
   }
-  return lista;
+  return Object.freeze(lista);
 }
 
 /** Casas com gota no chão (corpo dela) — obstáculos para quem não é passante. */
@@ -65,7 +81,9 @@ export function buscar(m, j, ocupada, pode = () => true, origem = casaDe(m, j)) 
   const fila = [origem];
   for (let k = 0; k < fila.length; k++) {
     const i = fila[k];
-    for (const [v] of vizinhos(m, i)) {
+    const viz = vizinhos(m, i);
+    for (let b = 0; b < viz.length; b++) {
+      const v = viz[b][0];
       if (dist[v] !== -1 || !passavel(m, v, ocupada) || !pode(v, dist[i] + 1)) continue;
       dist[v] = dist[i] + 1;
       pai[v] = i;
@@ -134,52 +152,65 @@ export function planejarFuga(m, j, an, ocupada, op = {}) {
   return melhor || melhorFalha || { ok: false, passos: 0, destino: origem, caminho: [origem], seguras: [] };
 }
 
+// Memória reaproveitada pelo planejador (roda milhares de vezes por segundo
+// no Difícil; criar arrays novos a cada camada pesava no celular simples).
+let PAIS = new Int16Array(0); // camada k, casa c → casa anterior + 1 (0 = não alcançada)
+let MARCA = new Int32Array(0); // casa → número da última camada que a alcançou
+let selo = 0;
+
 function camadasDeFuga(m, an, ocupada, op, origem, primeira, t1, T, margem) {
   const camadas = op.camadas ?? 16;
   const n = m.grade.length;
   const metade = Math.ceil(T / 2);
   const escolher = op.escolher || ((lista) => lista[0]);
-  const pais = [];
+  if (PAIS.length < (camadas + 1) * n) PAIS = new Int16Array((camadas + 1) * n);
+  if (MARCA.length < n) { MARCA = new Int32Array(n); selo = 0; }
+  if (selo > 2e9) { MARCA.fill(0); selo = 0; }
   let atual = [origem];
   let fallback = { k: 0, casa: origem };
+  let feitas = 0; // camadas guardadas em PAIS
   for (let k = 1; k <= camadas; k++) {
     const t = t1 + (k - 1) * T;
     const ini = Math.max(0, t - metade - margem);
     const fim = t + metade + margem;
-    const pai = new Int16Array(n).fill(-1);
+    const base = (k - 1) * n;
+    const marca = ++selo;
     const proxima = [];
+    const chegar = (v, de) => { MARCA[v] = marca; PAIS[base + v] = de + 1; proxima.push(v); };
     if (k === 1) {
-      if (secaDurante(an, primeira, ini, fim)) { pai[primeira] = origem; proxima.push(primeira); }
+      if (secaDurante(an, primeira, ini, fim)) chegar(primeira, origem);
     } else {
-      for (const c of atual) {
-        if (pai[c] === -1 && secaDurante(an, c, ini, fim)) { pai[c] = c; proxima.push(c); }
-        for (const [v] of vizinhos(m, c)) {
-          if (pai[v] !== -1 || !passavel(m, v, ocupada)) continue;
+      for (let a = 0; a < atual.length; a++) {
+        const c = atual[a];
+        if (MARCA[c] !== marca && secaDurante(an, c, ini, fim)) chegar(c, c);
+        const viz = vizinhos(m, c);
+        for (let b = 0; b < viz.length; b++) {
+          const v = viz[b][0];
+          if (MARCA[v] === marca || !passavel(m, v, ocupada)) continue;
           if (v === origem && op.origemBloqueada) continue;
           if (!secaDurante(an, v, ini, fim)) continue;
-          pai[v] = c;
-          proxima.push(v);
+          chegar(v, c);
         }
       }
     }
     if (!proxima.length) break;
-    pais.push(pai);
+    feitas = k;
     atual = proxima;
     fallback = { k, casa: proxima[0] };
     const seguras = proxima.filter((c) => secaDesde(an, c, ini));
     if (seguras.length) {
       const destino = op.alvo !== undefined && seguras.includes(op.alvo) ? op.alvo : escolher(seguras);
-      return { ok: true, passos: k, destino, caminho: refazer(pais, destino, origem), seguras };
+      return { ok: true, passos: k, destino, caminho: refazer(n, k, destino, origem), seguras };
     }
   }
-  return { ok: false, passos: fallback.k, destino: fallback.casa, caminho: refazer(pais.slice(0, fallback.k), fallback.casa, origem), seguras: [] };
+  return { ok: false, passos: fallback.k, destino: fallback.casa, caminho: refazer(n, Math.min(feitas, fallback.k), fallback.casa, origem), seguras: [] };
 }
 
-function refazer(pais, destino, origem) {
+function refazer(n, camadas, destino, origem) {
   const caminho = [destino];
   let c = destino;
-  for (let k = pais.length - 1; k >= 0; k--) {
-    c = pais[k][c];
+  for (let k = camadas - 1; k >= 0; k--) {
+    c = PAIS[k * n + c] - 1;
     caminho.push(c);
   }
   caminho.reverse();

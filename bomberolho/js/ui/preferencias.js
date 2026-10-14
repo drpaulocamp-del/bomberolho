@@ -1,4 +1,4 @@
-// Preferências e placar local, guardados só neste aparelho (localStorage).
+// Preferências (som, lado dos controles de toque, última escolha) e placar local, guardados só neste aparelho (localStorage).
 // Nada sai daqui: sem rede, sem identificação. Tudo dentro de try/catch —
 // em janela anônima ou com o armazenamento bloqueado, o jogo segue sem lembrar.
 
@@ -10,6 +10,7 @@ const DIFICULDADES = ['facil', 'medio', 'dificil'];
 
 const PADRAO = Object.freeze({
   mudo: false,
+  canhoto: false, // controles de toque invertidos (gota na mão esquerda)
   personagem: 'iris',
   arena: 'jardim',
   dificuldade: 'facil',
@@ -37,6 +38,7 @@ function limpar(b) {
   }
   return {
     mudo: b.mudo === true,
+    canhoto: b.canhoto === true,
     personagem: PERSONAGENS[b.personagem] ? b.personagem : PADRAO.personagem,
     arena: ARENAS[b.arena] || b.arena === 'surpresa' ? b.arena : PADRAO.arena,
     dificuldade: DIFICULDADES.includes(b.dificuldade) ? b.dificuldade : PADRAO.dificuldade,

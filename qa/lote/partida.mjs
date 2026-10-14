@@ -5,6 +5,7 @@
 import { Jogo } from '../../bomberolho/js/jogo.js';
 import { limiteDeRodadas } from '../../bomberolho/js/sim/partida.js';
 import { nivelPorNome, LIMITE_TICKS_RODADA } from './cenarios.mjs';
+import { criarCrianca, decidirCrianca } from './crianca.mjs';
 
 const EVENTOS_DE_PODER = ['chute', 'levantou', 'arremesso', 'salto', 'disparada', 'defendeu', 'perdeuBichinho', 'montou', 'espirro', 'cisco'];
 
@@ -12,7 +13,19 @@ export function jogarPartida(spec) {
   const jogo = new Jogo();
   jogo.demo = true;
   const niveis = spec.niveis.map(nivelPorNome);
-  jogo.iniciar({ semente: spec.semente, arena: spec.arena, dificuldade: 'facil', niveis, rodadas: spec.rodadas, contagem: true });
+  // A dificuldade da partida decide o aperto (suave no Fácil): só Fácil (e
+  // proxies contra o Fácil) jogam com ele; o resto, com o aperto normal.
+  const soFacil = spec.niveis.every((n) => ['facil', 'novato', 'crianca'].includes(n));
+  jogo.iniciar({
+    semente: spec.semente, arena: spec.arena, dificuldade: spec.dificuldade ?? (soFacil ? 'facil' : 'medio'), niveis,
+    rodadas: spec.rodadas, contagem: true, humano: spec.proxy ?? -1,
+  });
+  if (spec.crianca !== undefined) {
+    // Perfil "criança" escrito fora da IA (lote/crianca.mjs) no lugar do robô daquele canto.
+    const cr = criarCrianca(spec.crianca, spec.semente);
+    const original = jogo.entradaDe.bind(jogo);
+    jogo.entradaDe = (id) => (id === spec.crianca ? decidirCrianca(cr, jogo.mundo) : original(id));
+  }
   const r = {
     cenario: spec.cenario, semente: spec.semente, arena: spec.arena, niveis: spec.niveis, proxy: spec.proxy ?? null,
     rodadas: [], campeao: null, problemas: [],

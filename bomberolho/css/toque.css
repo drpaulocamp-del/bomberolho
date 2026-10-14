@@ -1,0 +1,157 @@
+/* Controles de toque (celular e tablet): alavanca flutuante, botão grande de
+   gota e botão do bichinho. Só aparecem com body[data-toque="sim"]; o lado
+   da gota troca com body[data-lado="canhoto"]. Alvos bem maiores que 56 px. */
+
+:root {
+  --gota-toque: 88px; /* botão da gota */
+  --acao-toque: 64px; /* botão do bichinho */
+  --alavanca: 112px; /* base da alavanca */
+  --reserva-toque: 116px; /* faixa da tela guardada para os controles */
+  --margem-toque: 16px;
+}
+
+.toque[hidden], .bt-toque[hidden] { display: none; }
+
+/* ── Espaço reservado: a arena nunca fica embaixo dos botões ── */
+@media (orientation: portrait) {
+  body[data-toque="sim"] .app { padding-bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--reserva-toque)); }
+}
+@media (orientation: landscape) {
+  body[data-toque="sim"] .app { padding-right: calc(max(12px, env(safe-area-inset-right)) + var(--reserva-toque)); grid-template-columns: minmax(150px, min(240px, 26vw)) 1fr; }
+  /* Canhoto deitado: gota à esquerda, arena no meio, placar à direita (a alavanca nasce sobre ele). */
+  body[data-toque="sim"][data-lado="canhoto"] .app {
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: calc(max(12px, env(safe-area-inset-left)) + var(--reserva-toque));
+    grid-template-columns: 1fr minmax(150px, min(240px, 26vw));
+  }
+  body[data-toque="sim"][data-lado="canhoto"] .painel { order: 2; }
+}
+body[data-toque="sim"] .dica { display: none; }
+
+/* ── Alavanca ── */
+.alavanca {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 4;
+  width: var(--alavanca);
+  height: var(--alavanca);
+  pointer-events: none;
+}
+.alavanca.repouso {
+  top: auto;
+  left: calc(var(--margem-toque) + env(safe-area-inset-left));
+  bottom: calc(var(--margem-toque) + env(safe-area-inset-bottom));
+  opacity: 0.6;
+}
+body[data-lado="canhoto"] .alavanca.repouso { left: auto; right: calc(var(--margem-toque) + env(safe-area-inset-right)); }
+.alavanca-base { display: block; width: 100%; height: 100%; overflow: visible; }
+.alavanca .aro { fill: rgba(255, 255, 255, 0.55); stroke: rgba(0, 113, 227, 0.55); stroke-width: 3; }
+.alavanca.ativa .aro { fill: rgba(255, 255, 255, 0.72); stroke: rgba(0, 113, 227, 0.8); }
+.alavanca .seta { fill: none; stroke: rgba(0, 113, 227, 0.55); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.alavanca[data-dir="cima"] .seta-cima,
+.alavanca[data-dir="baixo"] .seta-baixo,
+.alavanca[data-dir="esq"] .seta-esq,
+.alavanca[data-dir="dir"] .seta-dir { stroke: #0071E3; stroke-width: 7; }
+.pino {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 54px;
+  height: 54px;
+  margin: -27px 0 0 -27px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #7FCBFF, #0071E3 70%);
+  box-shadow: 0 6px 14px rgba(0, 60, 140, 0.35), inset 0 -3px 0 rgba(0, 0, 0, 0.15);
+}
+.alavanca.repouso .pino { opacity: 0.75; }
+
+/* ── Botões ── */
+.bt-toque {
+  position: fixed;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform 0.06s, filter 0.06s;
+}
+.bt-toque:active { transform: none; }
+.bt-gota {
+  right: calc(var(--margem-toque) + env(safe-area-inset-right));
+  bottom: calc(var(--margem-toque) + env(safe-area-inset-bottom));
+  width: var(--gota-toque);
+  height: var(--gota-toque);
+  background: radial-gradient(circle at 36% 30%, #78CCFF, #0071E3 72%);
+  box-shadow: 0 10px 22px rgba(0, 90, 200, 0.4), inset 0 -5px 0 rgba(0, 0, 0, 0.16);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+}
+.bt-gota:hover { background: radial-gradient(circle at 36% 30%, #78CCFF, #0071E3 72%); }
+.bt-gota svg { width: 48px; height: 48px; }
+.bt-gota .conta {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 28px;
+  color: #0B4A99;
+  background: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(0, 40, 100, 0.25);
+}
+.bt-gota .conta:empty { display: none; }
+.bt-gota.vazia { filter: saturate(0.45) brightness(1.05); }
+.bt-toque.apertado { transform: scale(0.9); filter: brightness(1.12); }
+
+.bt-acao {
+  right: calc(var(--margem-toque) + var(--gota-toque) + 14px + env(safe-area-inset-right));
+  bottom: calc(var(--margem-toque) + 30px + env(safe-area-inset-bottom));
+  width: var(--acao-toque);
+  height: var(--acao-toque);
+  color: var(--azul);
+  background: #FFFFFF;
+  border: 3px solid var(--azul);
+  box-shadow: 0 8px 18px rgba(0, 60, 140, 0.25);
+}
+.bt-acao:hover { background: #FFFFFF; }
+.bt-acao svg { width: 40px; height: 40px; }
+.bt-acao.recarga { opacity: 0.55; }
+.bt-acao.ligado { background: #DDF1FF; }
+
+@media (orientation: landscape) {
+  /* Deitado, a alavanca em repouso fica sobre o placar: só um contorno leve. */
+  .alavanca.repouso { opacity: 0.4; }
+  /* Deitado: o botão do bichinho fica em cima do da gota (a coluna é estreita). */
+  .bt-acao {
+    right: calc(var(--margem-toque) + (var(--gota-toque) - var(--acao-toque)) / 2 + env(safe-area-inset-right));
+    bottom: calc(var(--margem-toque) + var(--gota-toque) + 16px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Canhoto: os botões vão para a esquerda. */
+body[data-lado="canhoto"] .bt-gota { right: auto; left: calc(var(--margem-toque) + env(safe-area-inset-left)); }
+body[data-lado="canhoto"] .bt-acao { right: auto; left: calc(var(--margem-toque) + var(--gota-toque) + 14px + env(safe-area-inset-left)); }
+body[data-lado="canhoto"] .bt-gota .conta { right: auto; left: -2px; }
+@media (orientation: landscape) {
+  body[data-lado="canhoto"] .bt-acao { left: calc(var(--margem-toque) + (var(--gota-toque) - var(--acao-toque)) / 2 + env(safe-area-inset-left)); }
+}
+
+/* Telas pequenas em pé (360×640): controles um pouco menores, ainda ≥ 56 px. */
+@media (orientation: portrait) and (max-height: 700px) {
+  :root { --gota-toque: 80px; --acao-toque: 60px; --alavanca: 104px; --reserva-toque: 104px; --margem-toque: 12px; }
+}
+@media (orientation: landscape) and (max-height: 420px) {
+  :root { --gota-toque: 80px; --acao-toque: 60px; --alavanca: 104px; --reserva-toque: 108px; --margem-toque: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bt-toque { transition: none; }
+}

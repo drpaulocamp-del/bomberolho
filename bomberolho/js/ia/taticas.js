@@ -255,7 +255,9 @@ export function ladoUnicoDaAmeaca(m, j, an) {
   const lados = new Set();
   an.gotas.forEach((g, k) => {
     const cruz = alcanceDaGota(m, g, an.ocupadas);
-    if (!cruz.includes(aqui) || an.tempo[k] > 90) return;
+    // Só fecha quando o estouro está perto: a carapaça cansa (duracaoCarapaca)
+    // e precisa durar até o respingo acabar.
+    if (!cruz.includes(aqui) || an.tempo[k] > m.ajuste.duracaoCarapaca - m.ajuste.duracaoRespingo - 8) return;
     if (g.col === c && g.lin === l) lados.add('centro');
     else if (g.lin === l) lados.add(g.col > c ? 'dir' : 'esq');
     else lados.add(g.lin > l ? 'baixo' : 'cima');

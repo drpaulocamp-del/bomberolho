@@ -111,6 +111,37 @@ test('Cascudo: carapaça fechada (botão segurado) barra o respingo que vem da f
   assert.ok(m.respingos.length === 0);
 });
 
+test('Cascudo: segurar o botão não vira imunidade — fecha no máximo 1,5 s e depois descansa', () => {
+  const m = montado('cascudo', '#########', '#1.....2#', '#########');
+  const j = m.jogadores[0];
+  passo(m, [e('dir', 'acao')]);
+  assert.equal(j.escudo, true);
+  avancar(m, m.ajuste.duracaoCarapaca, [e('acao')]);
+  assert.equal(j.escudo, false, 'cansou: abriu sozinha mesmo com o botão apertado');
+  assert.ok(j.recarga > 0);
+  avancar(m, 10, [e('acao')]);
+  assert.equal(j.escudo, false, 'segurando, não fecha de novo');
+  passo(m, []);
+  passo(m, [e('acao')]);
+  assert.equal(j.escudo, false, 'nem apertando de novo antes do descanso acabar');
+  avancar(m, m.ajuste.recargaCarapaca, []);
+  passo(m, [e('acao')]);
+  assert.equal(j.escudo, true, 'descansado, fecha outra vez');
+});
+
+test('Cascudo num beco, botão segurado: defende uma gota, mas não duas seguidas', () => {
+  const m = montado('cascudo', '#########', '#1.....2#', '#########');
+  const j = m.jogadores[0];
+  const segurar = [e('dir', 'acao')];
+  gotaDe(m, 1, 3, 1, 20);
+  avancar(m, 60, segurar);
+  assert.equal(j.montaria?.tipo, 'cascudo', 'a primeira foi defendida');
+  // Outra gota do rival logo depois (como no beco do parecer): já sem carapaça.
+  gotaDe(m, 1, 3, 1, 50);
+  avancar(m, 60, segurar);
+  assert.equal(j.montaria, null, 'a segunda o pegou: perdeu o bichinho');
+});
+
 test('Cascudo: costas e lados continuam vulneráveis', () => {
   const m = montado('cascudo', '#########', '#1.....2#', '#########');
   const j = m.jogadores[0];

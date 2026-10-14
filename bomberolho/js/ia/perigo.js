@@ -136,7 +136,7 @@ export function analisar(m, extras = [], op = {}) {
     }
   }
 
-  const primeiro = new Array(n).fill(SEGURO);
+  const primeiro = new Float64Array(n).fill(SEGURO);
   for (let i = 0; i < n; i++) {
     const j = janelas[i];
     if (!j) continue;

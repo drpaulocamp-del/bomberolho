@@ -4,9 +4,12 @@
 // Cada um tem um poder no segundo botão (`acao`):
 //  - Saltinho: pula 2 casas para a frente, por cima do que houver no meio
 //    (bloco, pilar, gota, jogador), se a casa de pouso estiver livre;
-//  - Cascudo: enquanto o botão estiver apertado, fecha a carapaça virada para
-//    a frente: fica parado (pode girar) e o respingo que vem DA FRENTE não o
-//    molha; costas e lados continuam vulneráveis;
+//  - Cascudo: apertar fecha a carapaça virada para a frente e ela fica fechada
+//    enquanto o botão estiver apertado, por no máximo `duracaoCarapaca`: fica
+//    parado (pode girar) e o respingo que vem DA FRENTE não o molha; costas e
+//    lados continuam vulneráveis. Quando abre (soltou ou cansou), descansa por
+//    `recargaCarapaca` — num beco, segurar o botão não vira imunidade: ele
+//    defende uma gota, não duas seguidas;
 //  - Disparada: apertar dá uma arrancada em linha reta enquanto o botão estiver
 //    apertado (até 6 casas), parando no primeiro obstáculo.
 
@@ -34,6 +37,7 @@ export function montar(m, j) {
   const trocou = j.montaria !== null;
   j.montaria = { tipo };
   j.escudo = false;
+  j.carapaca = 0;
   j.disparada = null;
   m.eventos.push({ tipo: 'montou', jogador: j.id, bichinho: tipo, trocou });
 }
@@ -131,8 +135,21 @@ export function usarPoder(m, j, entrada) {
     return true;
   }
   const tipo = j.montaria?.tipo;
-  j.escudo = tipo === 'cascudo' && acao;
+  if (tipo === 'cascudo') {
+    // Fecha na borda do botão (com o bichinho descansado); fica fechada enquanto
+    // segura, até cansar. Ao abrir, começa o descanso.
+    if (j.escudo && (!acao || j.carapaca >= m.ajuste.duracaoCarapaca)) {
+      j.escudo = false;
+      j.carapaca = 0;
+      j.recarga = m.ajuste.recargaCarapaca;
+      m.eventos.push({ tipo: 'carapacaAbriu', jogador: j.id });
+    } else if (!j.escudo && borda && j.recarga === 0 && j.segurando === null) {
+      j.escudo = true;
+      j.carapaca = 0;
+    }
+  } else j.escudo = false;
   if (j.escudo) {
+    j.carapaca++;
     // Carapaça fechada: não anda, mas gira para escolher o lado protegido.
     const { h, v } = eixosDaEntrada(entrada);
     if (h !== 0 && v === 0) j.dir = h > 0 ? 'dir' : 'esq';

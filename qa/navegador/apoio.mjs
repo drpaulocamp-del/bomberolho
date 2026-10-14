@@ -70,3 +70,19 @@ export async function novaPagina(navegador, tela, extras = {}) {
 export async function esperarJogo(pagina) {
   await pagina.waitForFunction(() => window.__bomberolho && window.__bomberolho.state.tela !== 'carregando');
 }
+
+/**
+ * Dedos na tela por CDP (eventos de toque de verdade: o navegador gera
+ * pointerdown/move/up com pointerType "touch"). `pontos` = [[x, y], ...] em
+ * px CSS, um por dedo, na ordem dos ids; 'touchEnd' com a lista dos dedos que
+ * continuam na tela (vazia = todos saíram).
+ */
+export async function dedo(cdp, tipo, pontos = []) {
+  await cdp.send('Input.dispatchTouchEvent', {
+    type: tipo,
+    touchPoints: pontos.map((p, k) => {
+      const [x, y, id = k] = p;
+      return { x, y, id, radiusX: 8, radiusY: 8, force: 1 };
+    }),
+  });
+}

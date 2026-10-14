@@ -8,7 +8,7 @@ const CAMPOS_ENTRADA = ['cima', 'baixo', 'esq', 'dir', 'bomba', 'acao'];
 
 export function instalarGancho(app) {
   const api = {
-    versao: '3.0.0-parte3',
+    versao: '4.0.0-parte4',
 
     /** Retrato do jogo (cópia: mexer nele não muda nada). */
     get state() {

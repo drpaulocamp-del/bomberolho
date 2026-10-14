@@ -65,7 +65,7 @@ export function criarMundo(op = {}) {
     inicioJogo: contagem, // tick em que todos são soltos ("já!")
     tempoRestante: op.duracao ?? null,
     tempoEsgotado: false,
-    aperto: criarAperto(),
+    aperto: criarAperto(!!op.apertoSuave),
     fimEm: null,
     vencedor: null, // id, ou null em empate
     grade,
