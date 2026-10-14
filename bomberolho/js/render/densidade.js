@@ -1,14 +1,15 @@
 // Densidade de pixels adaptativa do canvas da arena. Começa nítida (até 2×) e,
 // se o aparelho não der conta (quadro médio acima de ~22 ms, isto é, abaixo de
-// ~45 qps, por 2 s seguidos de partida), desce um degrau: 2 → 1,5 → 1,25 → 1.
+// ~45 qps, por 0,8 s seguidos de partida), desce: 2 → 1,5 → 1,25 → 1 (pulando
+// degraus se o quadro estiver muito lento).
 // Menos pixels por quadro é o que mais alivia um celular simples; a diferença
 // de nitidez entre 2× e 1,5× numa tela pequena quase não se vê. Só desce
 // (subir e descer em seguida faria a imagem "pulsar"); recarregar recomeça.
 
 const DEGRAUS = [2, 1.5, 1.25, 1];
 const LIMITE_MS = 22; // quadro médio acima disto (abaixo de ~45 qps) = lento
-const JANELA_MS = 2000; // tempo lento seguido antes de descer
-const FOLGA_MS = 1500; // depois de mudar, espera o quadro novo se acomodar
+const JANELA_MS = 800; // tempo lento seguido antes de descer
+const FOLGA_MS = 400; // depois de mudar, espera o quadro novo se acomodar
 
 /**
  * @param {number} maxima densidade do aparelho (devicePixelRatio)
@@ -41,7 +42,10 @@ export function criarDensidade(maxima, fixa = null) {
       }
       lentoDesde ??= agora;
       if (agora - lentoDesde < JANELA_MS) return false;
-      nivel++;
+      // Desce de uma vez até o degrau que deve caber no quadro (o custo do
+      // desenho cresce com o quadrado da densidade): menos trocas = menos tropeços.
+      const alvo = degraus[nivel] * Math.sqrt(18 / media);
+      do nivel++; while (nivel < degraus.length - 1 && degraus[nivel] > alvo);
       lentoDesde = null;
       media = 16.7;
       folgaAte = agora + FOLGA_MS;

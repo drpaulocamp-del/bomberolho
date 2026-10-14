@@ -102,7 +102,7 @@ test('Voltar e Esc sempre levam para trás; nada de beco sem saída', async () =
   assert.equal((await estado(pagina)).menu, 'inicio');
   await pagina.click('.bt-ajuda');
   assert.equal(await pagina.isVisible('.ajuda'), true);
-  assert.equal(await pagina.locator('.passos-ajuda li').count(), 5);
+  assert.equal(await pagina.locator('.passos-ajuda li').count(), 6); // parte 4: + o passo do bichinho
   await pagina.keyboard.press('Escape');
   assert.equal(await pagina.isVisible('.ajuda'), false);
   await contexto.close();

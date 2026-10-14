@@ -47,20 +47,24 @@ test('botões com borda: toque rápido vale um tick; segurado entrega um tick so
   assert.equal(b.ler('bomba'), false);
 });
 
-test('densidade adaptativa: só desce com quadros lentos por 2 s seguidos, um degrau por vez, e nunca sobe', async () => {
+test('densidade adaptativa: só desce com quadros lentos por 0,8 s seguidos, até o degrau que cabe, e nunca sobe', async () => {
   const { criarDensidade } = await import('../../bomberolho/js/render/densidade.js');
   const d = criarDensidade(3);
   let t = 0;
   const quadros = (ms, n) => { let mudou = 0; for (let k = 0; k < n; k++) { t += ms; if (d.registrar(ms, t)) mudou++; } return mudou; };
   assert.equal(d.valor, 2, 'teto 2 mesmo em tela 3×');
   assert.equal(quadros(16.7, 600), 0, 'fluido: fica');
-  assert.equal(quadros(40, 30), 0, '1,2 s lento ainda não basta');
-  assert.equal(quadros(40, 60), 1);
-  assert.equal(d.valor, 1.5);
+  assert.equal(quadros(26, 22), 0, '0,6 s lento ainda não basta');
+  assert.equal(quadros(26, 30), 1);
+  assert.equal(d.valor, 1.5, 'um pouco lento: um degrau');
   quadros(16.7, 1000);
   assert.equal(d.valor, 1.5, 'não sobe de volta (a imagem não "pulsa")');
   quadros(45, 400);
   assert.equal(d.valor, 1, 'chega ao piso');
+  const e = criarDensidade(2);
+  t = 0;
+  for (let k = 0; k < 60; k++) { t += 50; e.registrar(50, t); }
+  assert.equal(e.valor, 1, 'muito lento (20 qps): pula direto para 1');
   assert.equal(criarDensidade(1).valor, 1);
   assert.equal(criarDensidade(3, 1.25).valor, 1.25, 'fixada pela URL');
 });

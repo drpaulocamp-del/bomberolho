@@ -209,7 +209,8 @@ test('navegador e Node simulam igual: mesma semente + mesmas entradas = mesmo ha
     }
     return b.hash();
   }, roteiro);
-  const m = criarMundo({ semente: 31337, duracao: AJUSTE_PADRAO.duracaoRodada }); // parte 2: com relógio
+  // Parte 2: com relógio; parte 4: a partida padrão é Fácil, com o aperto suave.
+  const m = criarMundo({ semente: 31337, duracao: AJUSTE_PADRAO.duracaoRodada, apertoSuave: true });
   for (const ents of roteiro) for (let k = 0; k < 10; k++) passo(m, ents);
   assert.equal(noNavegador, impressaoDigital(m));
   await contexto.close();
