@@ -1,0 +1,33 @@
+ok 1 - carrega limpo em desktop (1280×720): sem erro, aviso ou 404, arena inteira visível
+ok 2 - carrega limpo em retrato (390×844): sem erro, aviso ou 404, arena inteira visível
+ok 3 - carrega limpo em paisagem (844×390): sem erro, aviso ou 404, arena inteira visível
+ok 4 - carrega limpo em pequeno (360×640): sem erro, aviso ou 404, arena inteira visível
+ok 5 - favicon e todos os módulos respondem 200
+ok 6 - gancho __bomberolho expõe state, start, setTimeScale, input, step e demo
+ok 7 - input + step movem o humano, soltam gota e o respingo segue as regras
+ok 8 - teclado: setas e WASD andam, espaço solta gota, nenhuma tecla rola a página
+ok 9 - P pausa e Enter retoma; o botão Pausar também
+ok 10 - parâmetros de URL: ?semente=, ?dificuldade=, ?arena= e ?demo=1
+ok 11 - navegador e Node simulam igual: mesma semente + mesmas entradas = mesmo hash
+ok 12 - fim de rodada mostra o resultado e Enter começa outra
+ok 13 - desempenho: mantém perto de 60 quadros por segundo em partida
+ok 14 - contagem "3, 2, 1" trava todos; o relógio do placar começa em 2:00 e desce depois do "já"
+ok 15 - fim de rodada: placar entre rodadas com troféus, Enter pula para a próxima, e a taça no fim
+ok 16 - teclado: Shift usa o bichinho (Saltinho pula), e o gancho aceita o campo acao
+ok 17 - teclado: com a Pinça, Espaço solta a gota, segurar levanta e soltar arremessa
+ok 18 - sem ?ajuste=1 a bancada não existe nem é baixada
+ok 19 - bancada ?ajuste=1 em desktop: muda na hora, restaura, copia, fecha com um toque e não cobre a arena
+ok 20 - bancada ?ajuste=1 em retrato: muda na hora, restaura, copia, fecha com um toque e não cobre a arena
+ok 21 - bancada ?ajuste=1 em paisagem: muda na hora, restaura, copia, fecha com um toque e não cobre a arena
+ok 22 - arena jardim: carrega limpa em 360×640 e roda uma partida inteira sem erro
+ok 23 - arena lago: carrega limpa em 360×640 e roda uma partida inteira sem erro
+ok 24 - arena caverna: carrega limpa em 360×640 e roda uma partida inteira sem erro
+ok 25 - arena vale: carrega limpa em 360×640 e roda uma partida inteira sem erro
+ok 26 - arena consultorio: carrega limpa em 360×640 e roda uma partida inteira sem erro
+# tests 26
+# pass 26
+# fail 0
+
+real	0m41.675s
+user	0m9.364s
+sys	0m3.034s

@@ -1,0 +1,29 @@
+  ---
+  duration_ms: 35.985893
+  type: 'test'
+  ...
+# Subtest: centenas de partidas de robôs: sem erro, sem NaN, com blocos abertos e itens pegos
+ok 163 - centenas de partidas de robôs: sem erro, sem NaN, com blocos abertos e itens pegos
+  ---
+  duration_ms: 13684.678786
+  type: 'test'
+  ...
+# Subtest: controlador: entrada fixada pelo gancho tem prioridade e pode ser liberada
+ok 164 - controlador: entrada fixada pelo gancho tem prioridade e pode ser liberada
+  ---
+  duration_ms: 3.40355
+  type: 'test'
+  ...
+1..164
+# tests 164
+# suites 0
+# pass 164
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 26849.195205
+
+real	0m27.140s
+user	1m8.965s
+sys	0m7.592s
