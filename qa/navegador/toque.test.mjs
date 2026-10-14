@@ -100,6 +100,59 @@ test('toque: zona morta, diagonal com histerese e a alavanca nasce onde o polega
   await contexto.close();
 });
 
+test('toque: polegar parado perto das bordas não anda sozinho; empurrão curto a partir do contorno anda', async () => {
+  for (const tela of [TELAS.retrato, TELAS.paisagem, TELAS.pequeno]) {
+    const { pagina, cdp, contexto, problemas } = await partida(tela);
+    const dirAlavanca = () => pagina.evaluate(() => document.querySelector('.alavanca').dataset.dir);
+    const ini = (await estado(pagina)).jogadores[0];
+    // Polegar a 6 px da borda de baixo (e da esquerda), parado, só com o tremor de 1 px.
+    for (const [x, y] of [[Math.round(tela.width * 0.25), tela.height - 6], [6, Math.round(tela.height * 0.6)], [6, tela.height - 6]]) {
+      await dedo(cdp, 'touchStart', [[x, y]]);
+      await dedo(cdp, 'touchMove', [[x + 1, y - 1]]);
+      assert.equal(await dirAlavanca(), '', `${tela.width}×${tela.height}: dedo parado em (${x}, ${y}) não manda andar`);
+      const j = await passos(pagina, 24);
+      assert.deepEqual([j.x, j.y], [ini.x, ini.y], `${tela.width}×${tela.height}: não andou sozinho`);
+      // O desenho continua inteiro dentro da tela.
+      const r = await pagina.evaluate(() => { const b = document.querySelector('.alavanca').getBoundingClientRect(); return [b.left, b.top, b.right, b.bottom]; });
+      assert.ok(r[0] >= 0 && r[1] >= 0 && r[2] <= tela.width && r[3] <= tela.height, `alavanca dentro da tela: ${r}`);
+      await dedo(cdp, 'touchEnd', []);
+    }
+    // Encostar na parte esquerda do contorno em repouso e empurrar 30 px para a direita: anda.
+    const c = await pagina.evaluate(() => { const b = document.querySelector('.alavanca').getBoundingClientRect(); return [b.left + 22, b.top + b.height / 2]; });
+    await dedo(cdp, 'touchStart', [c]);
+    await dedo(cdp, 'touchMove', [[c[0] + 30, c[1]]]);
+    assert.equal(await dirAlavanca(), 'dir', `${tela.width}×${tela.height}: empurrão de 30 px a partir do contorno`);
+    const j = await passos(pagina, 20);
+    assert.ok(j.x > ini.x + 0.5, `${tela.width}×${tela.height}: andou para a direita (${j.x})`);
+    await dedo(cdp, 'touchEnd', []);
+    assert.deepEqual(problemas, []);
+    await contexto.close();
+  }
+});
+
+test('toque: com o polegar já inclinado (base vindo atrás), escorregar 20 px para o lado vira na hora', async () => {
+  const { pagina, cdp, contexto, problemas } = await partida();
+  const dirAlavanca = () => pagina.evaluate(() => document.querySelector('.alavanca').dataset.dir);
+  const [x0, y0] = [120, 600];
+  await dedo(cdp, 'touchStart', [[x0, y0]]);
+  await dedo(cdp, 'touchMove', [[x0, y0 + 70]]); // além do raio
+  assert.equal(await dirAlavanca(), 'baixo');
+  await pagina.waitForTimeout(260); // polegar parado um instante
+  await dedo(cdp, 'touchMove', [[x0 + 20, y0 + 70]]);
+  assert.equal(await dirAlavanca(), 'dir', 'escorregão lateral vira');
+  await dedo(cdp, 'touchMove', [[x0 + 22, y0 + 72]]); // tremor depois da virada: continua
+  assert.equal(await dirAlavanca(), 'dir');
+  await pagina.waitForTimeout(260);
+  await dedo(cdp, 'touchMove', [[x0 + 22, y0 + 50]]); // escorrega para cima: vira de novo
+  assert.equal(await dirAlavanca(), 'cima');
+  await pagina.waitForTimeout(260);
+  await dedo(cdp, 'touchMove', [[x0 + 24, y0 + 40]]); // continua para cima (no próprio eixo): sem virada
+  assert.equal(await dirAlavanca(), 'cima');
+  await dedo(cdp, 'touchEnd', []);
+  assert.deepEqual(problemas, []);
+  await contexto.close();
+});
+
 test('toque: botão de gota solta a gota; o do bichinho só aparece montado; alvos ≥ 56 px', async () => {
   const { pagina, cdp, contexto, problemas } = await partida();
   const caixa = (sel) => pagina.evaluate((s) => {

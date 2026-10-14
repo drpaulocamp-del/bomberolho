@@ -1,5 +1,6 @@
-// Capturas da Parte 4 (celular e acabamento) nas 4 telas, com toque nas de
-// celular: menu, "Como jogar", partida com a alavanca em repouso e em uso,
+// Capturas da Parte 4 (celular e acabamento) em 11 telas — as 4 do plano,
+// celulares deitados comuns, tablets e desktop com toque —, com toque em todas
+// menos a de desktop: menu, "Como jogar", partida com a alavanca em repouso e em uso,
 // montado (botão do bichinho), pausa, canhoto, retrato girado e resultado.
 // Uso: node qa/navegador/capturas-p4.mjs → qa/capturas/p4/
 // Termina com a lista de problemas de console/rede (deve ser vazia).
@@ -15,7 +16,19 @@ const servidor = await subirServidor();
 const navegador = await abrirNavegador();
 const problemas = [];
 try {
-  for (const [nome, tela] of Object.entries({ ...TELAS, 'paisagem-pequena': { width: 640, height: 360 } })) {
+  const telas = {
+    ...TELAS,
+    'paisagem-pequena': { width: 640, height: 360 },
+    'paisagem-740': { width: 740, height: 360 },
+    'paisagem-915': { width: 915, height: 412 },
+    'tablet-retrato': { width: 768, height: 1024 },
+    'tablet-paisagem': { width: 1024, height: 768 },
+    'tablet-1280': { width: 1280, height: 800 },
+    'pequeno-412': { width: 412, height: 915 },
+  };
+  const so = process.argv[2]; // opcional: só as telas cujo nome contém este texto
+  for (const [nome, tela] of Object.entries(telas)) {
+    if (so && !nome.includes(so)) continue;
     const toque = nome !== 'desktop';
     const { pagina, contexto, problemas: p } = await novaPagina(navegador, tela, { dpr: 2, contexto: { hasTouch: toque, isMobile: toque } });
     const cdp = await contexto.newCDPSession(pagina);

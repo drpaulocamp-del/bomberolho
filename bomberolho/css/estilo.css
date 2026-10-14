@@ -41,7 +41,7 @@ body {
   display: grid;
   height: 100vh;
   height: 100dvh;
-  grid-template-columns: minmax(230px, 300px) 1fr;
+  grid-template-columns: minmax(230px, 312px) 1fr;
   gap: 12px;
   padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
 }
@@ -392,6 +392,31 @@ button.pausado:hover { background: #0F6532; }
   .botoes { gap: 4px; }
   .botoes button.icone-rotulo { width: 44px; padding: 0; justify-content: center; flex: none; }
   button.icone-rotulo span { display: none; }
+  .barra { gap: 4px; font-size: 0.74rem; flex-wrap: nowrap; }
+  .barra .rodada { padding: 2px 6px; white-space: nowrap; }
+  .barra .tempo { font-size: 0.9rem; }
+  .barra svg { width: 14px; height: 14px; }
+  .nome { font-size: 0.8rem; }
+  .nome em { display: none; }
+  .cartao { gap: 4px; }
+}
+
+/* ── Parte 4: o painel se adapta à própria largura (não à da tela) ──
+   A coluna do painel muda com a orientação, o toque (que reserva uma faixa
+   para os botões) e a largura da tela; faixas de @media não acompanham todas
+   as combinações (740×360 e tablets deitados cortavam o botão de som). Com a
+   consulta pelo tamanho do próprio painel, nenhum botão do topo é cortado em
+   tela nenhuma: sem espaço para "Continuar" + "Sair" + som com rótulo, os
+   três ficam só com ícone, lado a lado e do mesmo tamanho. */
+.painel { container: painel / inline-size; }
+@container painel (max-width: 279px) {
+  .botoes { gap: 6px; }
+  .botoes button.icone-rotulo,
+  .botoes button.so-icone { flex: 1 1 0; width: auto; min-width: 44px; padding: 0; gap: 0; justify-content: center; }
+  .botoes button.icone-rotulo span { display: none; }
+}
+/* Painel bem fino (celular deitado com toque): a barra cabe numa linha só. */
+@container painel (max-width: 200px) {
   .barra { gap: 4px; font-size: 0.74rem; flex-wrap: nowrap; }
   .barra .rodada { padding: 2px 6px; white-space: nowrap; }
   .barra .tempo { font-size: 0.9rem; }

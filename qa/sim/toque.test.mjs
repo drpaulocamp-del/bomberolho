@@ -4,7 +4,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { direcaoDaAlavanca, ZONA_MORTA } from '../../bomberolho/js/input/toque.js';
+import { direcaoDaAlavanca, viradaPeloMovimento, ZONA_MORTA, VIRADA } from '../../bomberolho/js/input/toque.js';
 import { criarBotoes } from '../../bomberolho/js/input/botoes.js';
 
 test('alavanca: zona morta no centro; fora dela, 4 direções', () => {
@@ -29,6 +29,17 @@ test('alavanca: voltar para o centro precisa de menos que a zona morta (sem pisc
   assert.equal(direcaoDaAlavanca(quase, 0, null), null);
   assert.equal(direcaoDaAlavanca(quase, 0, 'dir'), 'dir');
   assert.equal(direcaoDaAlavanca(ZONA_MORTA * 0.5, 0, 'dir'), null);
+});
+
+test('alavanca já inclinada: escorregão lateral recente vira; tremor, diagonal e volta no eixo não', () => {
+  assert.equal(viradaPeloMovimento('baixo', VIRADA + 4, 0), 'dir');
+  assert.equal(viradaPeloMovimento('baixo', -(VIRADA + 4), 2), 'esq');
+  assert.equal(viradaPeloMovimento('dir', 1, -(VIRADA + 1)), 'cima');
+  assert.equal(viradaPeloMovimento('esq', -3, VIRADA), 'baixo');
+  assert.equal(viradaPeloMovimento('baixo', 3, 0), null, 'tremor');
+  assert.equal(viradaPeloMovimento('baixo', 20, 20), null, 'diagonal: fica no eixo');
+  assert.equal(viradaPeloMovimento('baixo', 0, -40), null, 'voltar no próprio eixo é parar, não virar');
+  assert.equal(viradaPeloMovimento(null, 40, 0), null, 'parada: a direção vem da posição');
 });
 
 test('botões com borda: toque rápido vale um tick; segurado entrega um tick solto antes de reapertar', () => {
