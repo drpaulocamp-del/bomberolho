@@ -84,6 +84,11 @@ Ideias de jogabilidade pedidas pelo dono. Mecânicas do gênero, implementadas d
   - Pelo menos esses 3; distinguíveis por forma (daltônicos), não só cor.
 - Regras de jogo coerentes: limites máximos por atributo continuam; respingo destrói itens/estojos expostos; tudo determinístico e com testes; a IA (Médio/Difícil) usa Pinça, Penetrante e os bichinhos de forma competente, e no Fácil de forma tímida; frequências equilibradas e medidas na simulação em lote; parâmetros dos novos itens também ajustáveis na bancada (3.7).
 
+### 3.9 Aceites do dono após a parte 4, rodada 1 (não rediscutir)
+- **Dificuldade Fácil:** o dono testou o resultado medido (perfil "criança" escrito fora da IA leva a taça em ≈ 15% das partidas no Fácil, com ≈ 30% de rodadas empatadas no tempo) e **aceita o Fácil como está**. Não é bloqueador nem motivo de desconto; ajustes futuros só se não piorarem esses números.
+- **IA dos robôs (Médio/Difícil):** o dono aceita o comportamento atual (auto-eliminação do Difícil ≈ igual à do Médio, ≈ 5–6% por rodada); a escada de dificuldade aprovada na parte 2 basta. Não é bloqueador nem motivo de desconto.
+- **Celular:** medição em celular **emulado** (Playwright com toque emulado e CPU desacelerada) é **suficiente** para o dono; a ausência de teste em aparelho físico não é bloqueador nem motivo de desconto, desde que relatada com honestidade.
+
 ## 4. Partes
 
 | # | Parte | Entrega |
