@@ -1,0 +1,25 @@
+// Verificador P4R2: como o CDP solta UM dedo entre vários (para não medir errado o toque múltiplo).
+import { subirServidor, abrirNavegador, novaPagina, esperarJogo, dedo } from '../../navegador/apoio.mjs';
+const servidor = await subirServidor();
+const nav = await abrirNavegador();
+const p = await novaPagina(nav, { width: 390, height: 844 }, { dpr: 2, contexto: { hasTouch: true, isMobile: true } });
+const cdp = await p.contexto.newCDPSession(p.pagina);
+await p.pagina.goto(servidor.url + '?semente=112');
+await esperarJogo(p.pagina);
+await p.pagina.evaluate(() => { window.__log = []; for (const t of ['pointerdown', 'pointerup', 'pointercancel']) document.addEventListener(t, (e) => window.__log.push(`${t}:${e.pointerId}`), true); });
+const log = async (rot) => console.log(rot, await p.pagina.evaluate(() => window.__log.splice(0).join(' ')));
+await dedo(cdp, 'touchStart', [[100, 700, 0]]);
+await dedo(cdp, 'touchStart', [[100, 700, 0], [300, 700, 1]]);
+await log('2 dedos:');
+await dedo(cdp, 'touchEnd', [[100, 700, 0]]);
+await log('touchEnd com [dedo0]:');
+await dedo(cdp, 'touchEnd', []);
+await log('touchEnd vazio:');
+await dedo(cdp, 'touchStart', [[100, 700, 0]]);
+await dedo(cdp, 'touchStart', [[100, 700, 0], [300, 700, 1]]);
+await log('2 dedos:');
+await dedo(cdp, 'touchMove', [[100, 700, 0]]);
+await log('touchMove só com [dedo0]:');
+await dedo(cdp, 'touchEnd', []);
+await log('touchEnd vazio:');
+await nav.close(); await servidor.fechar();
