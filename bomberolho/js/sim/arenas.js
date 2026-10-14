@@ -4,8 +4,9 @@
 // Elementos (simples e justos, sempre visíveis no chão):
 //  - Lago Lacrimal: correnteza em anel (sentido horário) que empurra devagar
 //    quem está alinhado à faixa de água; a água não tem blocos.
-//  - Caverna da Pupila: dois túneis na moldura (linhas 3 e 9): quem entra de
-//    um lado sai do outro. Respingo e gota chutada não atravessam.
+//  - Caverna da Pupila: dois túneis na moldura (linhas 5 e 7, longe dos
+//    cantos de largada): quem entra de um lado sai do outro, sem nunca parar
+//    na moldura. Respingo e gota chutada não atravessam.
 //  - Consultório das Lentes: cinco lentes no chão; a gota solta sobre uma
 //    lente ganha +2 de alcance (para todos, inclusive os robôs).
 //  - Vale da Retina: sem mecânica nova, mas com layout próprio: clareira
@@ -24,7 +25,7 @@ function anelDaCorrenteza() {
   return piso;
 }
 
-const LINHAS_TUNEL = Object.freeze([3, LINHAS - 4]);
+const LINHAS_TUNEL = Object.freeze([5, LINHAS - 6]);
 
 export const ARENAS = Object.freeze({
   jardim: Object.freeze({

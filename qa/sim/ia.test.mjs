@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { mapa, passo, centro, posicionar } from './ajuda.mjs';
 import { soltarGota } from '../../bomberolho/js/sim/gotas.js';
-import { analisar, secaDurante, secaDesde, SEGURO, SEMPRE } from '../../bomberolho/js/ia/perigo.js';
+import { analisar, alcanceDaGota, secaDurante, secaDesde, SEGURO, SEMPRE } from '../../bomberolho/js/ia/perigo.js';
 import { planejarFuga, casasComGota, vizinhos } from '../../bomberolho/js/ia/caminhos.js';
 import { criarRobo, decidir, NIVEIS } from '../../bomberolho/js/ia/robo.js';
 import { Jogo } from '../../bomberolho/js/jogo.js';
@@ -76,8 +76,10 @@ test('fuga planejada respeita o tempo: não passa por casa que vai estar molhada
 test('vizinhança dos robôs atravessa os túneis da Caverna', () => {
   const j = new Jogo().iniciar({ semente: 3, arena: 'caverna', contagem: false });
   const m = j.mundo;
-  const tunelEsq = 3 * 15;
-  assert.ok(vizinhos(m, tunelEsq).some(([v, d]) => v === 3 * 15 + 14 && d === 'esq'));
+  // A boca é um portal sem largura: da casa (1,5), à esquerda vem (13,5).
+  assert.ok(vizinhos(m, 5 * 15 + 1).some(([v, d]) => v === 5 * 15 + 13 && d === 'esq'));
+  assert.ok(vizinhos(m, 5 * 15 + 13).some(([v, d]) => v === 5 * 15 + 1 && d === 'dir'));
+  assert.ok(!vizinhos(m, 3 * 15 + 1).some(([v]) => v % 15 === 13), 'linha 3 não tem túnel');
 });
 
 test('robô foge da própria gota em todos os níveis', () => {
@@ -141,4 +143,96 @@ test('Médio e Difícil usam as táticas (Pinça, chute, emboscada) e os bichinh
   }
   assert.ok(taticas > 20, `ataques e táticas: ${taticas}`);
   assert.ok(poderes > 0, `poderes e itens avançados usados: ${poderes}`);
+});
+
+test('"solta e chuta": com Chute-Pisca, o Difícil chuta a gota colada contra o rival (M3), e só se continuar a salvo', () => {
+  // Robô em (2,1), gota dele em (3,1) com pavio andando; rival lá no fim do corredor.
+  const m = mapa('###########', '#1.......2#', '#.#.#.#.#.#', '#.........#', '###########');
+  const [j, rival] = m.jogadores;
+  j.chute = true;
+  j.alcance = 2;
+  posicionar(m, 0, centro(3), centro(1));
+  const g = soltarGota(m, j);
+  g.pavio = 120;
+  posicionar(m, 0, centro(2), centro(1));
+  g.passantes = [];
+  m.tick = 600; // já passou a "calma" do Difícil
+  const r = criarRobo(0, 'dificil', 1);
+  let chutou = false;
+  for (let t = 0; t < 4 && !chutou; t++) {
+    passo(m, [decidir(r, m), {}]);
+    chutou = m.eventos.some((ev) => ev.tipo === 'chute' && ev.jogador === 0);
+  }
+  assert.ok(chutou, 'chutou a gota para a direita');
+  assert.equal(r.contas.chutes, 1);
+  for (let t = 0; t < 200; t++) passo(m, [decidir(r, m), {}]);
+  assert.equal(j.vivo, true, 'quem chutou ficou a salvo');
+  assert.equal(rival.vivo, false, 'o rival parado no fim do corredor foi molhado');
+});
+
+test('chute não atravessa respingo: gota chutada para dentro de um respingo estouraria colada em quem chutou', () => {
+  const m = mapa('###########', '#1.......2#', '#.#.#.#.#.#', '#.........#', '###########');
+  const [j] = m.jogadores;
+  j.chute = true;
+  posicionar(m, 0, centro(3), centro(1));
+  const g = soltarGota(m, j);
+  g.pavio = 120;
+  posicionar(m, 0, centro(2), centro(1));
+  g.passantes = [];
+  // Um respingo de outra gota cruzando o corredor em (5,1).
+  m.tick = 600;
+  m.respingos.push({ id: 99, col: 5, lin: 3, dono: 1, disparadoPor: null, t: 30, bracos: { cima: 2, baixo: 0, esq: 0, dir: 0 } });
+  const r = criarRobo(0, 'dificil', 1);
+  passo(m, [decidir(r, m), {}]);
+  assert.ok(!m.eventos.some((ev) => ev.tipo === 'chute'), 'não chutou para dentro do respingo');
+});
+
+test('antes da "calma" do nível, nenhum robô solta gota cuja cruz pegue um rival — nem para abrir bloco', () => {
+  // O bloco mais perto do robô (2,3) abre com uma gota em (1,3), cuja cruz
+  // pegaria o humano parado no canto (1,1). Ele tem de abrir outro.
+  for (const nivel of Object.keys(NIVEIS)) {
+    const m = mapa('#######', '#1....#', '#.#.#.#', '#2BBBB#', '#######');
+    const r = criarRobo(1, nivel, 3);
+    m.tempoRestante = m.ajuste.duracaoRodada; // relógio no começo: dentro da calma de todos
+    let gotas = 0;
+    for (let t = 0; t < 150; t++) {
+      passo(m, [{}, decidir(r, m)]);
+      for (const ev of m.eventos) {
+        if (ev.tipo !== 'gota') continue;
+        gotas++;
+        const g = m.gotas.find((o) => o.col === ev.col && o.lin === ev.lin);
+        const cruz = alcanceDaGota(m, g, new Set());
+        assert.ok(!cruz.includes(1 * 7 + 1), `${nivel}: gota em (${ev.col},${ev.lin}) pegaria o humano`);
+      }
+    }
+    assert.ok(gotas > 0, `${nivel}: abriu bloco por outro lado`);
+    assert.equal(m.jogadores[0].vivo, true, nivel);
+  }
+});
+
+test('nota de ataque: rival que não corre perigo nenhum não conta como "encurralado" (bug da armadilha)', async () => {
+  const { apertoDaFuga } = await import('../../bomberolho/js/ia/caminhos.js');
+  const m = mapa('#########', '#1......#', '#.#.#.#.#', '#......2#', '#########');
+  const rival = m.jogadores[1];
+  const an = analisar(m, [{ col: 1, lin: 1, pavio: 160, alcance: 2 }]);
+  assert.equal(an.primeiro[3 * 9 + 7], SEGURO);
+  assert.equal(apertoDaFuga(m, rival, an, casasComGota(m, rival), false), 0);
+  // Na cruz, num corredor aberto: foge com folga (1), não "apertado" (2).
+  posicionar(m, 1, centro(3), centro(1));
+  const an2 = analisar(m, [{ col: 1, lin: 1, pavio: 160, alcance: 3 }]);
+  assert.equal(apertoDaFuga(m, rival, an2, casasComGota(m, rival), true), 1);
+});
+
+test('Saltinho da IA nunca pula para um buraco sem saída (ficaria preso sem o bichinho)', async () => {
+  const { fugaComBichinho } = await import('../../bomberolho/js/ia/taticas.js');
+  const montar = (linha2) => {
+    const m = mapa('#######', '#1B.B.#', linha2, '#B....#', '#######');
+    const j = m.jogadores[0];
+    j.montaria = { tipo: 'saltinho' };
+    return { m, j, an: analisar(m, [{ col: 1, lin: 1, pavio: 60, alcance: 1 }]) };
+  };
+  const preso = montar('#.#B#.#'); // (3,1) cercado: bloco à esquerda, à direita e embaixo
+  assert.equal(fugaComBichinho(preso.m, preso.j, preso.an, 0), null);
+  const livre = montar('#.#.#.#'); // agora (3,1) tem saída por baixo
+  assert.deepEqual(fugaComBichinho(livre.m, livre.j, livre.an, 0)?.[0]?.dir, true);
 });

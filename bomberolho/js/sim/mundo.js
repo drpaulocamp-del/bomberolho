@@ -107,7 +107,7 @@ export function passo(m, entradas = []) {
     }
   }
 
-  const vivos = m.jogadores.filter((j) => j.vivo);
+  const vivos = emRodizio(m, m.jogadores.filter((j) => j.vivo));
   for (const j of vivos) passarEfeitos(m, j);
   for (const j of vivos) {
     if (!j.vivo) continue; // esmagado pelo aperto neste tick
@@ -160,6 +160,17 @@ export function passo(m, entradas = []) {
   return m;
 }
 
+/**
+ * Ordem de processamento dos jogadores neste tick, girando a cada tick: com a
+ * ordem fixa por id, o jogador 0 sempre andava, soltava gota e pegava o item
+ * disputado primeiro (desempate sistemático a favor de um canto).
+ */
+function emRodizio(m, lista) {
+  if (lista.length < 2) return lista;
+  const k = m.tick % lista.length;
+  return k ? [...lista.slice(k), ...lista.slice(0, k)] : lista;
+}
+
 /** "3, 2, 1, já!": ninguém se mexe; o botão segurado não vira gota na largada. */
 function contar(m, entradas) {
   for (const j of m.jogadores) {
@@ -177,6 +188,7 @@ function contar(m, entradas) {
 
 function passarEfeitos(m, j) {
   if (j.invulneravel > 0) j.invulneravel--;
+  if (j.imuneCisco > 0) j.imuneCisco--;
   if (j.cisco) {
     j.cisco.restante--;
     if (j.cisco.restante <= 0) {
@@ -226,16 +238,25 @@ function largarNaMao(m, g) {
   j.segurando = null;
 }
 
-/** Cisco pega: encostar (corpo com corpo) em quem está com Cisco passa o azar adiante. */
+/**
+ * Cisco passa: encostar (corpo com corpo) em quem não tem Cisco ENTREGA o azar
+ * (com o tempo que falta) — quem tinha fica livre e, por um instante, não o
+ * pega de volta. Assim o azar troca de dono em vez de se espalhar pelos quatro.
+ */
+const IMUNE_APOS_PASSAR = 60;
 function espalharCisco(m) {
-  const vivos = m.jogadores.filter((j) => j.vivo && !j.salto);
+  const vivos = emRodizio(m, m.jogadores.filter((j) => j.vivo && !j.salto));
   for (const a of vivos) {
     if (!a.cisco) continue;
     for (const b of vivos) {
-      if (b === a || b.cisco) continue;
+      if (b === a || b.cisco || b.imuneCisco > 0) continue;
       if (Math.abs(a.x - b.x) < CASA * 0.7 && Math.abs(a.y - b.y) < CASA * 0.7) {
         b.cisco = { ...a.cisco };
+        a.cisco = null;
+        a.imuneCisco = IMUNE_APOS_PASSAR;
         m.eventos.push({ tipo: 'cisco', jogador: b.id, de: a.id });
+        m.eventos.push({ tipo: 'fimCisco', jogador: a.id });
+        break;
       }
     }
   }
@@ -264,11 +285,26 @@ function encharcar(m, j, letal) {
   const vindos = respingosEm(m, col, lin);
   // Para as estatísticas: molhou-se só com a própria gota, sem cadeia vinda de outro?
   const sozinho = vindos.every((r) => r.dono === j.id && (r.disparadoPor === null || r.disparadoPor === j.id));
-  eliminar(m, j, donoDoRespingoEm(m, col, lin), sozinho ? 'propria' : 'respingo');
+  eliminar(m, j, donoDoRespingoEm(m, col, lin), sozinho ? 'propria' : 'respingo', sozinho && encurralado(m, j, col, lin));
+}
+
+/**
+ * Só para as estatísticas: a saída estava fechada por um rival (casa vizinha
+ * com gota dele ou molhada por respingo dele)? Distingue "errou sozinho" de
+ * "foi encurralado e a própria gota fechou o cerco".
+ */
+function encurralado(m, j, col, lin) {
+  for (const [dc, dl] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    const c = col + dc;
+    const l = lin + dl;
+    if (m.gotas.some((g) => g.estado === 'chao' && g.dono !== j.id && g.col === c && g.lin === l)) return true;
+    if (respingosEm(m, c, l).some((r) => r.dono !== j.id || (r.disparadoPor !== null && r.disparadoPor !== j.id))) return true;
+  }
+  return false;
 }
 
 /** Tira o jogador da rodada ("vai descansar"); a gota que segurava cai ali. */
-function eliminar(m, j, por, motivo) {
+function eliminar(m, j, por, motivo, cercado = false) {
   j.vivo = false;
   j.andando = false;
   j.salto = null;
@@ -287,7 +323,7 @@ function eliminar(m, j, por, motivo) {
       if (m.grade[g.lin * m.colunas + g.col] !== VAZIO) m.gotas = m.gotas.filter((o) => o !== g);
     }
   }
-  m.eventos.push({ tipo: 'encharcado', jogador: j.id, por, motivo });
+  m.eventos.push({ tipo: 'encharcado', jogador: j.id, por, motivo, ...(cercado ? { encurralado: true } : {}) });
 }
 
 function donoDoRespingoEm(m, col, lin) {

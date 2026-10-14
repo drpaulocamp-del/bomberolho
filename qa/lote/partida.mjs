@@ -14,7 +14,7 @@ export function jogarPartida(spec) {
   const niveis = spec.niveis.map(nivelPorNome);
   jogo.iniciar({ semente: spec.semente, arena: spec.arena, dificuldade: 'facil', niveis, rodadas: spec.rodadas, contagem: true });
   const r = {
-    cenario: spec.cenario, arena: spec.arena, niveis: spec.niveis, proxy: spec.proxy ?? null,
+    cenario: spec.cenario, semente: spec.semente, arena: spec.arena, niveis: spec.niveis, proxy: spec.proxy ?? null,
     rodadas: [], campeao: null, problemas: [],
     itens: spec.niveis.map(() => ({})), poderes: spec.niveis.map(() => ({})),
     paradoMax: spec.niveis.map(() => 0), contas: [],
@@ -47,7 +47,7 @@ export function jogarPartida(spec) {
       antes[j.id] = [j.x, j.y];
     }
     for (const e of jogo.consumirEventos()) {
-      if (e.tipo === 'encharcado') rodada.quedas.push({ jogador: e.jogador, por: e.por, motivo: e.motivo, tick: m.tick, cisco: m.jogadores[e.jogador].cisco?.tipo ?? null, restante: m.tempoRestante });
+      if (e.tipo === 'encharcado') rodada.quedas.push({ jogador: e.jogador, por: e.por, motivo: e.motivo, encurralado: !!e.encurralado, tick: m.tick, cisco: m.jogadores[e.jogador].cisco?.tipo ?? null, restante: m.tempoRestante });
       else if (e.tipo === 'item') r.itens[e.jogador][e.item] = (r.itens[e.jogador][e.item] || 0) + 1;
       else if (EVENTOS_DE_PODER.includes(e.tipo) && e.jogador !== undefined) r.poderes[e.jogador][e.tipo] = (r.poderes[e.jogador][e.tipo] || 0) + 1;
       else if (e.tipo === 'respingo' && e.penetrante) r.poderes[e.dono].penetrante = (r.poderes[e.dono].penetrante || 0) + 1;

@@ -16,6 +16,7 @@ export function criarJogador(id, personagem, col, lin) {
     pinca: false, // Pinça: levanta e arremessa gotas
     penetrante: false, // Colírio Penetrante: respingo atravessa blocos
     cisco: null, // { tipo, restante } — azar passageiro
+    imuneCisco: 0, // ticks em que não pega de volta o Cisco que acabou de passar
     montaria: null, // { tipo } — bichinho do Estojo Surpresa (vida extra)
     invulneravel: 0, // ticks piscando depois de perder o bichinho
     segurando: null, // id da gota levantada com a Pinça

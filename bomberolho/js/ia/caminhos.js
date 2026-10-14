@@ -5,18 +5,24 @@ import { CASA, VAZIO, TUNEL, DIRECOES, NOMES_DIRECOES } from '../sim/constantes.
 import { colDe, linDe, velocidadeDe } from '../sim/jogadores.js';
 import { secaDurante, secaDesde, SEGURO } from './perigo.js';
 
-/** Vizinhos de uma casa: [[índice, direção], ...], com a volta pelos túneis. */
+/** Vizinhos de uma casa: [[índice, direção], ...]; pelos túneis, a casa do lado oposto. */
 export function vizinhos(m, i) {
   const c = i % m.colunas;
   const l = Math.floor(i / m.colunas);
   const lista = [];
-  for (const nome of NOMES_DIRECOES) {
+  // A ordem das direções muda de rodada para rodada (pela semente): com ordem
+  // fixa (cima, baixo, esq, dir), os empates da busca sempre preferiam os
+  // mesmos lados, e isso favorecia uns cantos de largada mais que outros.
+  // Dentro da rodada ela não muda (mudar a cada tick fazia o robô hesitar).
+  const giro = (m.semente >>> 7) & 3;
+  for (let k = 0; k < 4; k++) {
+    const nome = NOMES_DIRECOES[(k + giro) & 3];
     const { dc, dl } = DIRECOES[nome];
     let cc = c + dc;
     const ll = l + dl;
-    if (cc < 0) cc = m.colunas - 1; // só acontece saindo de um túnel
-    else if (cc >= m.colunas) cc = 0;
-    if (ll < 0 || ll >= m.linhas) continue;
+    if (ll < 0 || ll >= m.linhas || cc < 0 || cc >= m.colunas) continue;
+    // Boca de túnel: portal sem largura, leva direto à casa do lado oposto.
+    if (m.grade[ll * m.colunas + cc] === TUNEL) cc = cc === 0 ? m.colunas - 2 : 1;
     lista.push([ll * m.colunas + cc, nome]);
   }
   return lista;
@@ -36,7 +42,7 @@ export function casasComGota(m, j, extras = []) {
 
 export function passavel(m, i, ocupada) {
   const t = m.grade[i];
-  return (t === VAZIO || t === TUNEL) && !ocupada[i];
+  return t === VAZIO && !ocupada[i];
 }
 
 export function casaDe(m, j) {
@@ -179,6 +185,19 @@ function refazer(pais, destino, origem) {
   caminho.reverse();
   if (caminho[0] !== origem) caminho.unshift(origem);
   return caminho;
+}
+
+/**
+ * Quão encurralado um rival fica: 3 = sem fuga, 2 = só foge sem folga nenhuma
+ * (precisa acertar o tempo), 1 = na cruz mas foge com folga, 0 = nada.
+ * (Contar "poucas casas seguras" enganava: a primeira camada segura da fuga
+ * quase sempre tem uma ou duas casas, mesmo com a arena toda aberta.)
+ */
+export function apertoDaFuga(m, o, an, ocupada, naCruz) {
+  const fuga = planejarFuga(m, o, an, ocupada, { margem: 0, camadas: 12 });
+  if (!fuga.ok) return 3;
+  if (!planejarFuga(m, o, an, ocupada, { margem: 14, camadas: 12 }).ok) return 2;
+  return naCruz ? 1 : 0;
 }
 
 /** Distância em casas (Manhattan) entre dois índices. */

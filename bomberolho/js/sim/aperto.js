@@ -1,7 +1,9 @@
 // Relógio da rodada e aperto final: com `inicioAperto` ticks no relógio,
 // peças sólidas caem uma a uma em espiral, de fora para dentro (sentido
-// horário a partir do canto de cima à esquerda), até sobrar o miolo: um "H"
-// de 7 casas em volta do centro.
+// horário), até sobrar o miolo: um "H" de 7 casas em volta do centro.
+// O canto onde a espiral começa é sorteado por rodada (pela semente): com o
+// começo fixo, o canto de largada 0 — o do humano — era sempre o primeiro a
+// ser espremido.
 // A próxima casa a cair fica marcada no chão durante todo o intervalo (aviso
 // justo). Quem estiver nela quando a peça cai vai descansar (mesmo montado);
 // gota e item embaixo somem.
@@ -9,23 +11,50 @@
 import { CASA, MEIA_CASA, PILAR, MURO, SOBRA_APERTO, ANEIS_APERTO } from './constantes.js';
 import { colDe, linDe, sobrepoe } from './jogadores.js';
 
-/** Ordem das casas que caem (pula pilares, que já são sólidos). */
-export function sequenciaDoAperto(m) {
+/** Canto (0–3, na ordem das largadas) onde a espiral começa: derivado da semente. */
+export function cantoInicialDoAperto(semente) {
+  return Math.imul((semente >>> 0) ^ 0x5bd1e995, 0x27d4eb2d) >>> 30;
+}
+
+/**
+ * Ordem das casas que caem (pula pilares, que já são sólidos). `canto` =
+ * largada onde a espiral começa (0 cima/esq, 1 cima/dir, 2 baixo/esq,
+ * 3 baixo/dir); sempre no sentido horário.
+ */
+export function sequenciaDoAperto(m, canto = cantoInicialDoAperto(m.semente)) {
   const seq = [];
   const add = (c, l) => {
     const i = l * m.colunas + c;
     if (m.grade[i] !== PILAR) seq.push(i);
   };
+  // Posição de cada canto no anel percorrido em sentido horário a partir de cima/esq.
+  const giro = [0, 1, 3, 2][canto] || 0;
   for (let k = 0; k < ANEIS_APERTO; k++) {
     const c0 = 1 + k;
     const c1 = m.colunas - 2 - k;
     const l0 = 1 + k;
     const l1 = m.linhas - 2 - k;
     if (c0 > c1 || l0 > l1) break;
-    for (let c = c0; c <= c1; c++) add(c, l0);
-    for (let l = l0 + 1; l <= l1; l++) add(c1, l);
-    if (l1 > l0) for (let c = c1 - 1; c >= c0; c--) add(c, l1);
-    if (c1 > c0) for (let l = l1 - 1; l > l0; l--) add(c0, l);
+    if (c0 === c1 || l0 === l1) {
+      // Anel degenerado (arena de teste estreita): uma fila só, a partir da ponta do canto.
+      const fila = [];
+      for (let l = l0; l <= l1; l++) for (let c = c0; c <= c1; c++) fila.push([c, l]);
+      const doFim = l0 === l1 ? canto % 2 === 1 : canto >= 2;
+      (doFim ? fila.reverse() : fila).forEach((p) => add(...p));
+      continue;
+    }
+    const anel = [];
+    const quinas = [];
+    quinas.push(anel.length);
+    for (let c = c0; c < c1; c++) anel.push([c, l0]);
+    quinas.push(anel.length);
+    for (let l = l0; l < l1; l++) anel.push([c1, l]);
+    quinas.push(anel.length);
+    for (let c = c1; c > c0; c--) anel.push([c, l1]);
+    quinas.push(anel.length);
+    for (let l = l1; l > l0; l--) anel.push([c0, l]);
+    const ini = quinas[giro];
+    for (let n = 0; n < anel.length; n++) add(...anel[(ini + n) % anel.length]);
   }
   // Por fim fecham-se as duas colunas das pontas do miolo, de cima para baixo,
   // alternando os lados: sobra um "H" de 7 casas em volta do centro.

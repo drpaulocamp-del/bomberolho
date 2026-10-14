@@ -42,7 +42,8 @@ test('criarAjuste aceita só chaves conhecidas e números; "Copiar ajuste" gera 
   const texto = textoDoAjuste(aj);
   assert.ok(texto.length < 400, 'texto curto');
   const lido = JSON.parse(texto).bomberolhoAjuste;
-  assert.equal(lido.pavio, 150);
+  assert.deepEqual(lido, { pavio: 150 }, 'copia só o que mudou (M8)');
+  assert.equal(textoDoAjuste(criarAjuste()), '{"bomberolhoAjuste":{}}');
   assert.deepEqual(criarAjuste(lido), aj);
 });
 

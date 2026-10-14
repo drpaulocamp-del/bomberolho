@@ -11,11 +11,14 @@ import { velocidadeDe } from './jogadores.js';
 import { tentarChutar } from './chute.js';
 
 export function livrePara(m, col, lin, j) {
-  // Além da borda só se chega por um túnel: a casa seguinte é a do lado oposto.
-  if (col < 0) col = m.colunas - 1;
-  else if (col >= m.colunas) col = 0;
+  // A boca do túnel é um portal sem largura: o que importa é a casa onde se
+  // reaparece, já dentro da arena do lado oposto (ver atravessarTunel).
+  if (col <= 0 || col >= m.colunas - 1) {
+    if (m.grade[lin * m.colunas + Math.max(0, Math.min(m.colunas - 1, col))] !== TUNEL) return false;
+    col = col <= 0 ? m.colunas - 2 : 1;
+  }
   const t = m.grade[lin * m.colunas + col];
-  if (t !== VAZIO && t !== TUNEL) return false;
+  if (t !== VAZIO) return false;
   const g = gotaEm(m, col, lin);
   return !g || g.passantes.includes(j.id);
 }
@@ -105,13 +108,16 @@ function aplicar(m, j, r, nome) {
 }
 
 /**
- * Túnel (Caverna da Pupila): quem passa do centro da casa-túnel de um lado
- * reaparece no túnel do lado oposto, continuando no mesmo sentido.
+ * Túnel (Caverna da Pupila): a boca na moldura não é lugar de parar. Assim que
+ * o centro do corpo entra nela, o jogador reaparece na casa do lado oposto, já
+ * dentro da arena, continuando no mesmo sentido — as colunas 1 e 13 ficam
+ * "vizinhas". Ninguém fica na moldura, então respingo e aperto final alcançam
+ * todo mundo (antes a boca era um esconderijo imune).
  */
 export function atravessarTunel(m, j, dx) {
-  const ultima = (m.colunas - 1) * CASA;
-  if (dx < 0 && j.x <= MEIA_CASA) j.x += ultima;
-  else if (dx > 0 && j.x >= ultima + MEIA_CASA) j.x -= ultima;
+  const salto = (m.colunas - 2) * CASA;
+  if (dx < 0 && j.x < CASA) j.x += salto;
+  else if (dx > 0 && j.x >= (m.colunas - 1) * CASA) j.x -= salto;
 }
 
 /**

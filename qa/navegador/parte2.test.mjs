@@ -156,7 +156,17 @@ for (const [nome, tela] of [['desktop', TELAS.desktop], ['retrato', TELAS.retrat
     assert.equal(await pagina.evaluate(() => window.__bomberolho.state.ajuste.velocidadeBase), 56, 'setas mexem no controle, não no boneco');
     await pagina.click('.bancada .copiar');
     const texto = await pagina.inputValue('.bancada .texto');
-    assert.equal(JSON.parse(texto).bomberolhoAjuste.pavio, 120);
+    assert.deepEqual(JSON.parse(texto).bomberolhoAjuste, { pavio: 120, velocidadeBase: 56 }, 'só o que mudou');
+    // Recolher: fica só o controle mexido por último, e a bancada encolhe.
+    const alturaAberta = (await pagina.locator('.bancada').boundingBox()).height;
+    await pagina.click('.bancada .recolher');
+    const visiveis = await pagina.locator('.bancada .controle:visible').count();
+    assert.equal(visiveis, 1, 'recolhida: um controle à vista');
+    assert.equal(await pagina.locator('.bancada .controle.ativo input').getAttribute('id'), 'ajuste-velocidadeBase');
+    const alturaRecolhida = (await pagina.locator('.bancada').boundingBox()).height;
+    assert.ok(alturaRecolhida < alturaAberta * 0.7, `encolheu de ${alturaAberta} para ${alturaRecolhida}px`);
+    await pagina.click('.bancada .recolher');
+    assert.ok(await pagina.locator('.bancada .controle:visible').count() >= 10);
     await pagina.click('.bancada .restaurar');
     assert.equal(await pagina.evaluate(() => window.__bomberolho.state.ajuste.pavio), 165);
     // Alvos de toque e cobertura da arena.

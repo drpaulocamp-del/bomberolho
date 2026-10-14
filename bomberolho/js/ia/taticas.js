@@ -10,7 +10,7 @@ import { gotaEm } from '../sim/gotas.js';
 import { colDe, linDe } from '../sim/jogadores.js';
 import { darVolta } from '../sim/pinca.js';
 import { analisar, alcanceDaGota, secaDesde, secaDurante, SEGURO } from './perigo.js';
-import { casaDe, casasComGota, planejarFuga } from './caminhos.js';
+import { casaDe, casasComGota, planejarFuga, apertoDaFuga } from './caminhos.js';
 
 export function entrada(extra = {}) {
   return { cima: false, baixo: false, esq: false, dir: false, bomba: false, acao: false, ...extra };
@@ -41,6 +41,24 @@ export function paradaDoChute(m, g, dir) {
   return { col: c, lin: l };
 }
 
+/**
+ * O caminho do deslize fica seco enquanto a gota passa? Gota chutada que
+ * cruza um respingo (ou uma casa que vai molhar nesse instante) estoura ali
+ * mesmo — muitas vezes colada em quem chutou.
+ */
+function deslizeSeco(m, an, g, parada, dir) {
+  const { dc, dl } = DIRECOES[dir];
+  const porCasa = CASA / m.ajuste.velocidadeChute;
+  let c = g.col;
+  let l = g.lin;
+  for (let k = 1; c !== parada.col || l !== parada.lin; k++) {
+    c += dc;
+    l += dl;
+    if (an.primeiro[l * m.colunas + c] <= Math.ceil(k * porCasa) + 8) return false;
+  }
+  return an.primeiro[g.lin * m.colunas + g.col] > 6; // e ela não estoura antes de sair
+}
+
 /** Onde uma gota arremessada de (c, l) para `dir` pousaria (quicando em casa ocupada). */
 export function pousoDoArremesso(m, c, l, dir) {
   const { dc, dl } = DIRECOES[dir];
@@ -60,8 +78,7 @@ function rivalAcertado(m, j, gotaHipotetica, nivel, notaMinima = nivel.notaMinim
   let melhor = null;
   for (const o of rivaisVivos(m, j)) {
     if (!cruz.includes(casaDe(m, o))) continue;
-    const fuga = planejarFuga(m, o, an, casasComGota(m, o), { margem: 0, camadas: 12 });
-    const nota = fuga.ok ? (fuga.seguras.length <= 1 ? 2 : 1) : 3;
+    const nota = apertoDaFuga(m, o, an, casasComGota(m, o), true);
     if (!melhor || nota > melhor.nota) melhor = { rival: o, nota };
   }
   return melhor && melhor.nota >= notaMinima ? melhor : null;
@@ -74,25 +91,64 @@ function seguroDepois(m, j, extras, margem) {
   return planejarFuga(m, j, an, casasComGota(m, j, extras), { margem }).ok;
 }
 
-/** Chute ofensivo: gota colada, rival na cruz de onde ela vai parar. */
+/**
+ * Chute ofensivo: gota colada (própria ou alheia), rival na cruz de onde ela
+ * vai parar. Vale também logo depois de soltar a própria gota e dar um passo
+ * para trás — o "solta e chuta" clássico. Só chuta se, com a gota já parada
+ * lá na frente, o próprio robô continuar com fuga.
+ */
 export function taticaChute(m, j, nivel) {
   if (!j.chute) return null;
   const c = colDe(j);
   const l = linDe(j);
+  const desvioX = Math.abs(j.x - (c * CASA + MEIA_CASA));
+  const desvioY = Math.abs(j.y - (l * CASA + MEIA_CASA));
   for (const dir of NOMES_DIRECOES) {
     const { dc, dl } = DIRECOES[dir];
+    if ((dc !== 0 ? desvioY : desvioX) > 150) continue; // de raspão não chuta
     const g = gotaEm(m, c + dc, l + dl);
-    if (!g || g.mov || g.pavio > 150 || g.passantes.length) continue;
+    if (!g || g.mov || g.estado !== 'chao' || g.pavio > 150 || g.pavio < 25 || g.passantes.length) continue;
     const parada = paradaDoChute(m, g, dir);
-    if (parada.col === g.col && parada.lin === g.lin) continue;
+    const casas = Math.abs(parada.col - g.col) + Math.abs(parada.lin - g.lin);
+    if (casas < 2) continue;
     const hip = { col: parada.col, lin: parada.lin, pavio: Math.max(1, g.pavio - 8), alcance: g.alcance, penetrante: g.penetrante };
     // Chutar não gasta gota: basta o rival ficar na cruz de onde ela vai parar.
-    const alvo = rivalAcertado(m, j, hip, nivel, Math.max(1, nivel.notaMinimaTatica - 1));
+    const sem = { ...m, gotas: m.gotas.filter((o) => o !== g) };
+    if (!deslizeSeco(m, analisar(sem), g, parada, dir)) continue;
+    const alvo = rivalAcertado(sem, j, hip, nivel, Math.max(1, nivel.notaMinimaTatica - 1));
     if (!alvo) continue;
-    if (!seguroDepois(m, j, [], nivel.margem)) continue;
+    if (!seguroDepois(sem, j, [hip], nivel.margem)) continue;
     return [entrada({ [dir]: true }), entrada({ [dir]: true })];
   }
   return null;
+}
+
+/**
+ * Onde se posicionar para um chute de ataque: casa colada a uma gota no chão,
+ * do lado oposto ao rival, de onde o chute a faria parar com o rival na cruz.
+ * Devolve {casa, dir} (a mais perto, até `maxDist` casas) ou null.
+ */
+export function pontoDeChute(m, j, busca, nivel, ticksPorCasa, maxDist = 5) {
+  if (!j.chute) return null;
+  let melhor = null;
+  for (const g of m.gotas) {
+    if (g.estado !== 'chao' || g.mov || g.pavio < 60) continue;
+    for (const dir of NOMES_DIRECOES) {
+      const { dc, dl } = DIRECOES[dir];
+      const casa = (g.lin - dl) * m.colunas + (g.col - dc);
+      const d = busca.dist[casa];
+      if (d < 0 || d > maxDist || (melhor && d >= melhor.d)) continue;
+      if (g.pavio < d * ticksPorCasa + 45) continue; // tem de dar tempo de chegar e chutar
+      const parada = paradaDoChute(m, g, dir);
+      if (Math.abs(parada.col - g.col) + Math.abs(parada.lin - g.lin) < 2) continue;
+      const hip = { col: parada.col, lin: parada.lin, pavio: g.pavio, alcance: g.alcance, penetrante: g.penetrante };
+      const sem = { ...m, gotas: m.gotas.filter((o) => o !== g) };
+      if (!deslizeSeco(m, analisar(sem), g, parada, dir)) continue;
+      if (!rivalAcertado(sem, j, hip, nivel, Math.max(1, nivel.notaMinimaTatica - 1))) continue;
+      melhor = { casa, dir, d, gota: g.id };
+    }
+  }
+  return melhor;
 }
 
 /** Pinça ofensiva: em cima (ou colado) de uma gota, arremessa onde há rival. */
@@ -147,6 +203,13 @@ function destinoDoPulo(m, j, dir) {
   if (col < 1 || lin < 1 || col > m.colunas - 2 || lin > m.linhas - 2) return null;
   if (!livreParaGota(m, col, lin, null)) return null;
   if (m.jogadores.some((o) => o.vivo && o !== j && Math.abs(o.x - (col * CASA + MEIA_CASA)) < CASA && Math.abs(o.y - (lin * CASA + MEIA_CASA)) < CASA)) return null;
+  // Nunca pular para um buraco sem saída (cercado de blocos): sem o bichinho,
+  // ficaria preso lá até alguém abrir — medido no lote como robô parado 16 s.
+  const temSaida = NOMES_DIRECOES.some((d) => {
+    const v = DIRECOES[d];
+    return livreParaGota(m, col + v.dc, lin + v.dl, null);
+  });
+  if (!temSaida) return null;
   return lin * m.colunas + col;
 }
 

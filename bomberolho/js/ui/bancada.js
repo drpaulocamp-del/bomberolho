@@ -3,7 +3,7 @@
 // padrão" e "Copiar ajuste" (um JSON curto para o dono colar ao orquestrador).
 // Só é carregada com ?ajuste=1 — fora disso nem o arquivo é baixado.
 
-import { AJUSTE_PADRAO, FAIXAS_AJUSTE } from '../sim/ajustes.js';
+import { AJUSTE_PADRAO, FAIXAS_AJUSTE, diferencasDoPadrao } from '../sim/ajustes.js';
 
 function formatar(faixa, valor) {
   const v = valor * faixa.escala;
@@ -11,11 +11,12 @@ function formatar(faixa, valor) {
   return `${v.toFixed(casas).replace('.', ',')} ${faixa.unidade}`;
 }
 
-/** Texto copiado: só os parâmetros ajustáveis, em JSON de uma linha. */
+/**
+ * Texto copiado: só o que mudou em relação ao padrão (curto para colar), em
+ * JSON de uma linha. `criarAjuste` completa o resto com o padrão.
+ */
 export function textoDoAjuste(ajuste) {
-  const valores = {};
-  for (const f of FAIXAS_AJUSTE) valores[f.chave] = ajuste[f.chave];
-  return JSON.stringify({ bomberolhoAjuste: valores });
+  return JSON.stringify({ bomberolhoAjuste: diferencasDoPadrao(ajuste) });
 }
 
 export class Bancada {
@@ -38,7 +39,9 @@ export class Bancada {
     this.el.className = 'bancada';
     this.el.setAttribute('aria-label', 'Bancada de ajuste do sentir');
     this.el.innerHTML = `
-      <header><h2>Bancada de ajuste</h2><button type="button" class="fechar" aria-label="Fechar a bancada">✕</button></header>
+      <header><h2>Bancada de ajuste</h2>
+        <button type="button" class="secundario recolher" aria-pressed="false" title="Mostrar só o controle que está mexendo">Recolher</button>
+        <button type="button" class="fechar" aria-label="Fechar a bancada">✕</button></header>
       <p class="nota">Mexa e sinta na hora. Quando gostar, toque em "Copiar ajuste" e mande o texto.</p>
       <div class="controles"></div>
       <div class="acoes">
@@ -50,6 +53,9 @@ export class Bancada {
     this.controles = this.el.querySelector('.controles');
     this.linhas = FAIXAS_AJUSTE.map((f) => this.criarControle(f));
     this.el.querySelector('.fechar').addEventListener('click', () => this.alternar(false));
+    this.botaoRecolher = this.el.querySelector('.recolher');
+    this.botaoRecolher.addEventListener('click', () => this.recolher());
+    this.marcarAtivo(this.linhas[0]);
     this.el.querySelector('.restaurar').addEventListener('click', () => this.restaurar());
     this.el.querySelector('.copiar').addEventListener('click', () => this.copiar());
     raiz.append(this.botaoAbrir, this.el);
@@ -64,13 +70,31 @@ export class Bancada {
       <input id="${id}" type="range" min="${f.min}" max="${f.max}" step="${f.passo}">`;
     const entrada = linha.querySelector('input');
     const saida = linha.querySelector('output');
+    const ref = { f, entrada, saida, linha };
+    entrada.addEventListener('focus', () => this.marcarAtivo(ref));
     entrada.addEventListener('input', () => {
+      this.marcarAtivo(ref);
       this.jogo.ajuste[f.chave] = Number(entrada.value);
       saida.textContent = formatar(f, Number(entrada.value));
       linha.classList.toggle('mudado', Number(entrada.value) !== AJUSTE_PADRAO[f.chave]);
     });
     this.controles.append(linha);
-    return { f, entrada, saida, linha };
+    return ref;
+  }
+
+  /** O controle mexido por último é o que fica à vista com a bancada recolhida. */
+  marcarAtivo(ref) {
+    if (this.ativo === ref) return;
+    this.ativo?.linha.classList.remove('ativo');
+    this.ativo = ref;
+    ref.linha.classList.add('ativo');
+  }
+
+  /** Recolher: só o cabeçalho e o controle ativo, para sentir o jogo enquanto mexe. */
+  recolher(recolhida = !this.el.classList.contains('recolhida')) {
+    this.el.classList.toggle('recolhida', recolhida);
+    this.botaoRecolher.textContent = recolhida ? 'Mostrar tudo' : 'Recolher';
+    this.botaoRecolher.setAttribute('aria-pressed', String(recolhida));
   }
 
   /** Mostra nos controles os valores que estão valendo (ex.: mudados pelo gancho). */
@@ -103,9 +127,10 @@ export class Bancada {
     const area = this.el.querySelector('.texto');
     area.value = texto;
     area.hidden = false;
+    const nada = Object.keys(diferencasDoPadrao(this.jogo.ajuste)).length === 0;
     try {
       await navigator.clipboard.writeText(texto);
-      this.avisar('Copiado! É só colar na conversa.');
+      this.avisar(nada ? 'Copiado — mas tudo ainda está no padrão.' : 'Copiado (só o que mudou)! É só colar na conversa.');
     } catch {
       // Sem permissão de área de transferência: o texto fica selecionado para copiar à mão.
       area.focus();

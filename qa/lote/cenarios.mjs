@@ -24,6 +24,7 @@ export const PERFIS = Object.freeze({
 });
 
 export function nivelPorNome(nome) {
+  if (nome && typeof nome === 'object') return nome; // nível já montado (experimentos)
   return PERFIS[nome] || NIVEIS[nome];
 }
 
@@ -44,7 +45,7 @@ export function montarPartidas(escala = 1) {
     }
   }
   // B) Proxies de gente contra os robôs (o proxy passa por todos os cantos).
-  const contra = [['novato', 'facil', 300], ['novato', 'medio', 150], ['bom', 'dificil', 300], ['bom', 'medio', 150]];
+  const contra = [['novato', 'facil', 300], ['novato', 'medio', 300], ['bom', 'dificil', 300], ['bom', 'medio', 150]];
   for (const [perfil, nivel, n] of contra) {
     for (let k = 0; k < q(n); k++) {
       const canto = k % 4;
@@ -54,7 +55,7 @@ export function montarPartidas(escala = 1) {
     }
   }
   // C) Níveis misturados: um de cada (e um Fácil a mais), girando os cantos.
-  for (let k = 0; k < q(240); k++) {
+  for (let k = 0; k < q(480); k++) {
     const base = ['dificil', 'medio', 'facil', 'facil'];
     const niveis = base.map((_, i) => base[(i + k) % 4]);
     partidas.push({ cenario: 'misto', arena: ORDEM_ARENAS[k % ORDEM_ARENAS.length], niveis, semente: semente++, rodadas: 2 });

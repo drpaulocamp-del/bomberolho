@@ -48,6 +48,7 @@ test('vida extra: molhado montado perde o bichinho, pisca invulnerável ~1 s e c
 test('a peça do aperto final ignora a vida extra', () => {
   const m = montado('saltinho', '#####', '#1.2#', '#####');
   m.tempoRestante = 100;
+  m.semente = 3; // espiral que começa no canto de cima à esquerda
   m.ajuste.inicioAperto = 100; // o aperto começa já, e a primeira peça cai em (1,1)
   avancar(m, 10);
   assert.equal(m.grade[1 * 5 + 1], K.MURO);

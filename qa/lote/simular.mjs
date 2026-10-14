@@ -3,11 +3,14 @@
 //   npm run lote                       → lote completo (≈ 2 300 partidas), tabelas em Markdown
 //   node lote/simular.mjs --escala 0.1 → lote rápido (10%)
 // Opções: --escala N · --trabalhadores N · --json caminho (padrão lote/resultado.json)
-//         --md caminho (padrão lote/resultado.md)
+//         --md caminho (padrão lote/resultado.md) · --so REGEX (só os cenários que casam)
+// Em pedaços (o contêiner pode reiniciar; cada pedaço grava o seu resultado):
+//   node lote/simular.mjs --fatia 1/4 --parcial lote/p1.json   (… 2/4, 3/4, 4/4)
+//   node lote/simular.mjs --juntar lote/p1.json,lote/p2.json,lote/p3.json,lote/p4.json
 
 import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { montarPartidas } from './cenarios.mjs';
 import { jogarPartida } from './partida.mjs';
@@ -23,16 +26,38 @@ async function principal() {
   const pastaLote = fileURLToPath(new URL('./', import.meta.url));
   const caminhoJson = opcao('json', `${pastaLote}resultado.json`);
   const caminhoMd = opcao('md', `${pastaLote}resultado.md`);
-  const partidas = montarPartidas(escala);
-  const inicio = Date.now();
-  const fatias = Array.from({ length: n }, (_, k) => partidas.filter((_, i) => i % n === k));
-  const resultados = (await Promise.all(fatias.map((fatia) => new Promise((ok, falha) => {
-    const w = new Worker(fileURLToPath(import.meta.url), { workerData: { partidas: fatia } });
-    w.once('message', ok);
-    w.once('error', falha);
-  })))).flat();
-  const segundos = (Date.now() - inicio) / 1000;
-  const md = relatorio(resultados, segundos, escala, n);
+  const juntar = opcao('juntar', null);
+  let resultados;
+  let segundos;
+  if (juntar) {
+    const pedacos = juntar.split(',').map((c) => JSON.parse(readFileSync(c, 'utf8')));
+    resultados = pedacos.flatMap((p) => p.resultados);
+    segundos = pedacos.reduce((t, p) => t + p.segundos, 0);
+  } else {
+    let partidas = montarPartidas(escala);
+    const so = opcao('so', null);
+    if (so) partidas = partidas.filter((p) => new RegExp(so).test(p.cenario));
+    const fatia = opcao('fatia', null);
+    if (fatia) {
+      const [k, total] = fatia.split('/').map(Number);
+      partidas = partidas.filter((_, i) => i % total === k - 1);
+    }
+    const inicio = Date.now();
+    const fatias = Array.from({ length: n }, (_, k) => partidas.filter((_, i) => i % n === k));
+    resultados = (await Promise.all(fatias.map((f) => new Promise((ok, falha) => {
+      const w = new Worker(fileURLToPath(import.meta.url), { workerData: { partidas: f } });
+      w.once('message', ok);
+      w.once('error', falha);
+    })))).flat();
+    segundos = (Date.now() - inicio) / 1000;
+    const parcial = opcao('parcial', null);
+    if (parcial) {
+      writeFileSync(parcial, JSON.stringify({ segundos, resultados }));
+      console.log(`pedaço ${fatia || 'inteiro'}: ${resultados.length} partidas em ${segundos.toFixed(0)} s → ${parcial}`);
+      return;
+    }
+  }
+  const md = relatorio(resultados, segundos, escala, juntar ? 'vários pedaços' : n);
   writeFileSync(caminhoJson, JSON.stringify(resumoJson(resultados, segundos), null, 1));
   writeFileSync(caminhoMd, md);
   console.log(md);
@@ -41,6 +66,12 @@ async function principal() {
 // ───────────────────────── agregação ─────────────────────────
 
 const pct = (a, b) => (b ? `${((100 * a) / b).toFixed(1)}%` : '—');
+/** Proporção com intervalo de 95% (aproximação normal): "23.4% ± 2.1". */
+const pctIC = (a, b) => {
+  if (!b) return '—';
+  const p = a / b;
+  return `${(100 * p).toFixed(1)}% ± ${(196 * Math.sqrt((p * (1 - p)) / b)).toFixed(1)}`;
+};
 const media = (l) => (l.length ? l.reduce((s, v) => s + v, 0) / l.length : 0);
 const quantil = (l, q) => {
   if (!l.length) return 0;
@@ -58,7 +89,7 @@ function relatorio(res, segundos, escala, n) {
   const rodadas = res.flatMap((r) => r.rodadas);
   const problemas = res.flatMap((r) => [...new Set(r.problemas)]);
   partes.push(`# Simulação em lote — ${res.length} partidas, ${rodadas.length} rodadas`);
-  partes.push(`Escala ${escala}, ${n} trabalhadores, ${segundos.toFixed(0)} s. Cada partida é "melhor de 2 vitórias" pelo controlador real (contagem, relógio de 2:00, aperto final, troféus).`);
+  partes.push(`Escala ${escala}, ${n} trabalhadores, ${segundos.toFixed(0)} s de processamento. Cada partida é "melhor de 2 vitórias" pelo controlador real (contagem, relógio de 2:00, aperto final, troféus).`);
 
   // 1. Visão geral por cenário
   const cenarios = [...new Set(res.map((r) => r.cenario))];
@@ -83,7 +114,13 @@ function relatorio(res, segundos, escala, n) {
   partes.push(tabela(['Nível', 'Partidas', 'Canto 0', 'Canto 1', 'Canto 2', 'Canto 3', 'Partida sem campeão'],
     ['facil', 'medio', 'dificil'].map((nv) => {
       const rs = res.filter((r) => r.cenario === `mesmo:${nv}`);
-      return [nv, rs.length, ...[0, 1, 2, 3].map((k) => pct(rs.filter((r) => r.campeao === k).length, rs.length)), pct(rs.filter((r) => r.campeao === null).length, rs.length)];
+      return [nv, rs.length, ...[0, 1, 2, 3].map((k) => pctIC(rs.filter((r) => r.campeao === k).length, rs.length)), pct(rs.filter((r) => r.campeao === null).length, rs.length)];
+    })));
+  partes.push('Por rodada (amostra maior): fração das rodadas **com vencedor** que cada canto venceu. Esperado 25% ± intervalo de 95%.');
+  partes.push(tabela(['Nível', 'Rodadas com vencedor', 'Canto 0', 'Canto 1', 'Canto 2', 'Canto 3'],
+    ['facil', 'medio', 'dificil', 'todos'].map((nv) => {
+      const rd = res.filter((r) => (nv === 'todos' ? r.cenario.startsWith('mesmo:') : r.cenario === `mesmo:${nv}`)).flatMap((r) => r.rodadas).filter((x) => x.vencedor !== null);
+      return [nv, rd.length, ...[0, 1, 2, 3].map((k) => pctIC(rd.filter((x) => x.vencedor === k).length, rd.length))];
     })));
 
   // 3. Por arena
@@ -109,16 +146,17 @@ function relatorio(res, segundos, escala, n) {
       for (const q of rd.quedas) porNivel[r.niveis[q.jogador]].quedas.push(q);
     });
   }
-  partes.push('"Aposta final" = caiu com a própria gota nos últimos 5 s do relógio, quando um empate já era certo (Médio e Difícil arriscam de propósito: pior que o empate não fica). A última coluna exclui essas apostas.');
+  partes.push('"Aposta final" = caiu com a própria gota nos últimos 5 s do relógio, quando um empate já era certo (Médio e Difícil arriscam de propósito: pior que o empate não fica). "Encurralado" = caiu com a própria gota, mas a saída estava fechada por um rival (casa vizinha com gota dele ou molhada por respingo dele). As duas últimas colunas são taxas por competidor por rodada jogada: a primeira tira só as apostas; a segunda tira também os encurralados (erro "puro", sem rival envolvido).');
   const apostou = (x) => x.motivo === 'propria' && x.restante !== null && x.restante <= 300;
-  partes.push(tabela(['Quem caiu', 'Rodadas jogadas', 'Quedas', 'Própria gota', '…dessas, aposta final', 'Própria, em cadeia', 'Rival', 'Aperto final', 'Auto-eliminação por rodada (sem apostas)'],
+  partes.push(tabela(['Quem caiu', 'Rodadas jogadas', 'Quedas', 'Própria gota', '…aposta final', '…encurralado por rival', 'Própria, em cadeia', 'Rival', 'Aperto final', 'Auto-eliminação por rodada (sem apostas)', 'Erro puro por rodada (sem apostas nem encurralados)'],
     Object.entries(porNivel).map(([nv, d]) => {
       const q = d.quedas;
       const propria = q.filter((x) => x.motivo === 'propria').length;
       const apostas = q.filter(apostou).length;
-      return [nv, d.jogadas, q.length, pct(propria, q.length), pct(apostas, q.length), pct(q.filter((x) => x.motivo === 'respingo' && x.por === x.jogador).length, q.length),
+      const cercados = q.filter((x) => x.motivo === 'propria' && !apostou(x) && x.encurralado).length;
+      return [nv, d.jogadas, q.length, pct(propria, q.length), pct(apostas, q.length), pct(cercados, q.length), pct(q.filter((x) => x.motivo === 'respingo' && x.por === x.jogador).length, q.length),
         pct(q.filter((x) => x.motivo === 'respingo' && x.por !== x.jogador).length, q.length), pct(q.filter((x) => x.motivo === 'aperto').length, q.length),
-        pct(propria - apostas, d.jogadas)];
+        pct(propria - apostas, d.jogadas), pct(propria - apostas - cercados, d.jogadas)];
     })));
 
   // 5. Proxies de gente
@@ -127,7 +165,7 @@ function relatorio(res, segundos, escala, n) {
     cenarios.filter((c) => c.includes('×')).map((c) => {
       const rs = res.filter((r) => r.cenario === c);
       const rd = rs.flatMap((r) => r.rodadas.map((x) => ({ ...x, proxy: r.proxy })));
-      return [c, rs.length, pct(rs.filter((r) => r.campeao === r.proxy).length, rs.length), pct(rd.filter((x) => x.vencedor === x.proxy).length, rd.length),
+      return [c, rs.length, pctIC(rs.filter((r) => r.campeao === r.proxy).length, rs.length), pctIC(rd.filter((x) => x.vencedor === x.proxy).length, rd.length),
         pct(rd.filter((x) => x.quedas.some((q) => q.jogador === x.proxy && q.motivo === 'propria')).length, rd.length),
         pct(rs.filter((r) => r.campeao !== null && r.campeao !== r.proxy).length, rs.length), pct(rs.filter((r) => r.campeao === null).length, rs.length)];
     })));
@@ -138,11 +176,14 @@ function relatorio(res, segundos, escala, n) {
     partes.push('## 6. Níveis misturados (1 Difícil, 1 Médio, 2 Fácil; cantos girando)');
     const vit = { dificil: 0, medio: 0, facil: 0, nenhum: 0 };
     for (const r of mistos) vit[r.campeao === null ? 'nenhum' : r.niveis[r.campeao]]++;
-    partes.push(tabela(['Campeão', 'Partidas', '%', 'Esperado se fossem iguais'], [
-      ['Difícil', vit.dificil, pct(vit.dificil, mistos.length), '25%'],
-      ['Médio', vit.medio, pct(vit.medio, mistos.length), '25%'],
-      ['Fácil (cada um)', (vit.facil / 2).toFixed(0), pct(vit.facil / 2, mistos.length), '25%'],
-      ['Sem campeão', vit.nenhum, pct(vit.nenhum, mistos.length), '—'],
+    const rv = { dificil: 0, medio: 0, facil: 0, nenhum: 0 };
+    let nr = 0;
+    for (const r of mistos) for (const x of r.rodadas) { nr++; rv[x.vencedor === null ? 'nenhum' : r.niveis[x.vencedor]]++; }
+    partes.push(tabela(['Campeão', 'Partidas', '% das partidas (IC 95%)', 'Rodadas vencidas', '% das rodadas (IC 95%)', 'Esperado se fossem iguais'], [
+      ['Difícil', vit.dificil, pctIC(vit.dificil, mistos.length), rv.dificil, pctIC(rv.dificil, nr), '25%'],
+      ['Médio', vit.medio, pctIC(vit.medio, mistos.length), rv.medio, pctIC(rv.medio, nr), '25%'],
+      ['Fácil (cada um)', (vit.facil / 2).toFixed(0), pctIC(vit.facil / 2, mistos.length), (rv.facil / 2).toFixed(0), pctIC(rv.facil / 2, nr), '25%'],
+      ['Sem campeão / empate', vit.nenhum, pct(vit.nenhum, mistos.length), rv.nenhum, pct(rv.nenhum, nr), '—'],
     ]));
   }
 

@@ -14,7 +14,7 @@ import { colDe, linDe, velocidadeDe } from '../sim/jogadores.js';
 import { gotaEm, gotasAtivasDe, alcanceAoSoltar } from '../sim/gotas.js';
 import { analisar, alcanceDaGota, SEGURO } from './perigo.js';
 import {
-  vizinhos, casasComGota, buscarSeguro, primeiroPasso, planejarFuga, casaDe, distancia, passavel,
+  vizinhos, casasComGota, buscar, buscarSeguro, primeiroPasso, planejarFuga, casaDe, distancia, passavel, ticksPorCasa, apertoDaFuga,
 } from './caminhos.js';
 import * as T from './taticas.js';
 
@@ -29,14 +29,16 @@ export const NIVEIS = Object.freeze({
     usaTatica: 0.12, usaPoder: 0.35, evitaCisco: false, duasSaidas: false, pensar: 12, notaMinimaTatica: 3, pausaEntreGotas: 70,
   }),
   // Médio: foge bem, ataca quem está na mira e encurrala de vez em quando.
+  // (Rodada 2: menos vontade de atacar — o salto do Fácil para o Médio era
+  // grande demais para crianças, e o Médio vencia o Difícil.)
   medio: Object.freeze({
-    margem: 2, reacao: 14, alcanceVisto: 0, semCadeia: false, camadas: 9, calma: 6 * S, perseguir: 0.3, perseguirFinal: 0.75, atacar: 0.7, atacaNaFuga: 0.25, atacaNoFim: true, armadilha: false, emboscada: 45, erro: 0,
-    usaTatica: 0.6, usaPoder: 0.85, evitaCisco: true, duasSaidas: true, pensar: 6, notaMinimaTatica: 2, pausaEntreGotas: 15,
+    margem: 2, reacao: 18, alcanceVisto: 0, semCadeia: false, camadas: 8, calma: 12 * S, perseguir: 0.08, perseguirFinal: 0.35, atacar: 0.3, atacaNaFuga: 0, atacaNoFim: true, armadilha: false, emboscada: 0, erro: 0,
+    usaTatica: 0.25, usaPoder: 0.85, evitaCisco: true, duasSaidas: true, pensar: 6, notaMinimaTatica: 2, pausaEntreGotas: 15,
   }),
   // Difícil: lê o perigo com antecedência, monta armadilhas (cadeia incluída),
   // usa chute, Pinça e bichinhos sempre que valem a pena; quase nunca se molha.
   dificil: Object.freeze({
-    margem: 8, reacao: 0, alcanceVisto: 0, semCadeia: false, camadas: 16, calma: 3 * S, perseguir: 0.6, perseguirFinal: 0.95, atacar: 0.95, atacaNaFuga: 0.6, atacaNoFim: true, armadilha: true, emboscada: 15, erro: 0,
+    margem: 4, cautelaFinal: true, reacao: 0, alcanceVisto: 0, semCadeia: false, camadas: 16, calma: 3 * S, perseguir: 0.6, perseguirFinal: 0.95, atacar: 0.95, atacaNaFuga: 0.6, atacaNoFim: true, armadilha: true, emboscada: 15, erro: 0,
     usaTatica: 1, usaPoder: 1, evitaCisco: true, duasSaidas: true, pensar: 4, notaMinimaTatica: 2, pausaEntreGotas: 0,
   }),
 });
@@ -55,7 +57,7 @@ export function criarRobo(id, dificuldade, semente) {
     roteiro: [], // entradas já decididas para os próximos ticks
     proximoPensar: 0,
     ultimaGota: -1000,
-    contas: { gotas: 0, ataques: 0, blocos: 0, taticas: 0, poderes: 0, fugasDeEmergencia: 0 }, // para as simulações em lote
+    contas: { gotas: 0, ataques: 0, blocos: 0, taticas: 0, chutes: 0, poderes: 0, fugasDeEmergencia: 0 }, // para as simulações em lote
   };
 }
 
@@ -81,9 +83,23 @@ export function decidir(r, m) {
   }
   if (j.segurando !== null) return VAZIA; // soltar o botão arremessa
   const ocupada = casasComGota(m, j);
-  if (n.evitaCisco) for (let i = 0; i < m.itens.length; i++) if (m.itens[i] === 'cisco') ocupada[i] = 1;
-  if (an.primeiro[aqui] !== SEGURO) return fugir(r, m, j, an, ocupada);
+  if (an.primeiro[aqui] !== SEGURO) {
+    // Colado numa gota (a própria, recém-solta, ou a de um rival): chutá-la
+    // contra alguém vale mais que só fugir — e o chute já confere a fuga.
+    if (j.chute && tempoDeJogo(m) >= n.calma && proximo(r.rng) < n.usaTatica) {
+      const t = T.taticaChute(m, j, n);
+      if (t) {
+        r.contas.taticas++;
+        r.contas.chutes++;
+        r.alvo = null;
+        return sequencia(r, t);
+      }
+    }
+    // Fugindo, o Cisco não é obstáculo: um azar passageiro é melhor que se molhar.
+    return fugir(r, m, j, an, ocupada);
+  }
   r.refugio = null;
+  if (n.evitaCisco) for (let i = 0; i < m.itens.length; i++) if (m.itens[i] === 'cisco') ocupada[i] = 1;
   return agir(r, m, j, an, ocupada);
 }
 
@@ -186,7 +202,8 @@ function agir(r, m, j, an, ocupada) {
       }
     }
     if (podeAtacar && querAtacarDaqui(r, m, j) && podeSoltar(r, m, j)) return soltar(r, m, 'ataques');
-    if (r.alvo === null || an.primeiro[r.alvo] !== SEGURO || (r.motivo === 'item' && !m.itens[r.alvo])) escolherAlvo(r, m, j, an, ocupada, podeAtacar);
+    const alvoRuim = r.alvo === null || (r.motivo !== 'chute' && an.primeiro[r.alvo] !== SEGURO) || (r.motivo === 'item' && !m.itens[r.alvo]);
+    if (alvoRuim) escolherAlvo(r, m, j, an, ocupada, podeAtacar);
   }
   if (r.alvo === aqui) {
     const motivo = r.motivo;
@@ -200,7 +217,7 @@ function agir(r, m, j, an, ocupada) {
   }
   if (r.alvo === null) escolherAlvo(r, m, j, an, ocupada, podeAtacar);
   if (r.alvo === null) return centralizar(m, j);
-  const busca = buscarSeguro(m, j, an, ocupada);
+  const busca = r.motivo === 'chute' ? buscarParaChute(m, j, an, ocupada) : buscarSeguro(m, j, an, ocupada);
   if (busca.dist[r.alvo] < 0) {
     r.alvo = null;
     return centralizar(m, j);
@@ -211,6 +228,16 @@ function agir(r, m, j, an, ocupada) {
     if (a) return sequencia(r, a);
   }
   return irPara(m, j, primeiroPasso(busca, r.alvo));
+}
+
+/**
+ * Caminho até o ponto de chute: além das casas sem perigo, aceita casas cujo
+ * perigo só começa bem depois de ele passar (a casa colada à gota está na cruz
+ * dela, mas o chute a leva embora antes).
+ */
+function buscarParaChute(m, j, an, ocupada) {
+  const T = ticksPorCasa(m, j);
+  return buscar(m, j, ocupada, (i, d) => an.primeiro[i] === SEGURO || an.primeiro[i] > d * T + 40);
 }
 
 function distanciaPorCaminho(m, j, an, ocupada, de, ate) {
@@ -241,15 +268,21 @@ function podeSoltar(r, m, j) {
   if (gotasAtivasDe(m, j.id) >= j.gotas || m.tick - r.ultimaGota < n.pausaEntreGotas) return false;
   if (m.grade[linDe(j) * m.colunas + colDe(j)] !== VAZIO || gotaEm(m, colDe(j), linDe(j))) return false;
   const hip = gotaHipotetica(m, j);
-  if (n.erro && proximo(r.rng) < n.erro) {
+  if (n.erro && tempoDeJogo(m) >= n.calma && proximo(r.rng) < n.erro) {
     // Distração do nível fácil: só confere se há alguma casa livre ao lado.
     return vizinhos(m, casaDe(m, j)).some(([v]) => passavel(m, v, casasComGota(m, j)));
   }
   const an = analisar(m, [hip]);
+  // Antes da hora de atacar (a "calma" do nível), nem para abrir bloco ele
+  // solta uma gota cuja cruz pegue um rival: é a segurança da largada (3.2).
+  if (tempoDeJogo(m) < n.calma) {
+    const cruz = alcanceDaGota(m, hip, an.ocupadas);
+    if (m.jogadores.some((o) => o.vivo && o !== j && cruz.includes(casaDe(m, o)))) return false;
+  }
   const ocupada = casasComGota(m, j, [hip]);
   const plano = planejarFuga(m, j, an, ocupada, { margem: margemParaSoltar(m, n), camadas: n.camadas, origemBloqueada: true });
   if (!plano.ok) return false;
-  if (n.duasSaidas && !faseFinal(m) && rivalPerto(m, j, 5) && plano.seguras.length < 2) return false;
+  if (n.duasSaidas && (cauteloso(m, n) || !faseFinal(m)) && rivalPerto(m, j, 5) && plano.seguras.length < 2) return false;
   return true;
 }
 
@@ -258,6 +291,18 @@ function faseFinal(m) {
   const a = m.aperto;
   if (a && a.ativo && a.seq && a.indice > a.seq.length * 0.4) return true;
   return m.jogadores.filter((o) => o.vivo).length === 2;
+}
+
+/**
+ * Cautela do Difícil na fase final: enquanto o aperto ainda cai e há mais de
+ * dois de pé, não aceita fugas justas (era ali que ele mais se molhava
+ * sozinho). No duelo, ou com a arena já fechada, arrisca como os outros.
+ */
+function cauteloso(m, n) {
+  if (!n.cautelaFinal) return false;
+  const a = m.aperto;
+  const fechada = a && a.ativo && a.seq && a.indice >= a.seq.length;
+  return !fechada && m.jogadores.filter((o) => o.vivo).length > 2;
 }
 
 /** Janela da aposta final: a gota solta agora estoura antes de o relógio zerar, por pouco. */
@@ -269,7 +314,7 @@ function apostaFinal(m) {
 
 /** Folga exigida para soltar: na fase final, até o Difícil aceita fugas justas. */
 function margemParaSoltar(m, n) {
-  return faseFinal(m) ? Math.min(n.margem, 3) : n.margem;
+  return faseFinal(m) && !cauteloso(m, n) ? Math.min(n.margem, 3) : n.margem;
 }
 
 function rivalPerto(m, j, d) {
@@ -308,8 +353,11 @@ function notaDoAtaque(m, j, i, armadilha) {
   for (const o of perto) {
     const naCruz = cruz.includes(casaDe(m, o));
     if (!naCruz && !armadilha) continue;
-    const fuga = planejarFuga(m, o, an, casasComGota(m, o, [hip]), { margem: 0, camadas: 12 });
-    const v = !fuga.ok ? 3 : fuga.seguras.length <= 2 ? 2 : naCruz ? 1 : 0;
+    // Fora da cruz só conta se a gota o alcança de outro jeito (cadeia): quem
+    // não corre perigo nenhum também tem "poucas casas seguras" na conta da
+    // fuga — e antes isso virava nota 2, gota gasta à toa.
+    if (!naCruz && an.primeiro[casaDe(m, o)] === SEGURO) continue;
+    const v = apertoDaFuga(m, o, an, casasComGota(m, o, [hip]), naCruz);
     if (v > nota) nota = v;
   }
   return nota;
@@ -428,6 +476,10 @@ function escolherAlvo(r, m, j, an, ocupada, podeAtacar) {
     if (b.v <= melhorNota) break;
     if (fugaPossivelEm(m, j, b.i, n)) { melhorNota = b.v; melhor = { i: b.i, motivo: 'bloco' }; break; }
     r.recusadas[b.i] = m.tick + 90;
+  }
+  if (podeAtacar && j.chute && proximo(r.rng) < n.usaTatica) {
+    const p = T.pontoDeChute(m, j, buscarParaChute(m, j, an, ocupada), n, ticksPorCasa(m, j));
+    if (p) considerar(p.casa, 45 - p.d * 3, 'chute');
   }
   if (podeAtacar && n.emboscada && m.tick >= r.proximaEmboscada) {
     r.proximaEmboscada = m.tick + n.emboscada;

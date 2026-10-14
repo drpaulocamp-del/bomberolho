@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { criarMundo, passo, avancar, e, centro, posicionar, K } from './ajuda.mjs';
-import { sequenciaDoAperto, proximaQueda } from '../../bomberolho/js/sim/aperto.js';
+import { sequenciaDoAperto, proximaQueda, cantoInicialDoAperto } from '../../bomberolho/js/sim/aperto.js';
 import { criarPartida, registrarRodada, sementeDaRodada, limiteDeRodadas, molhadosNaRodada } from '../../bomberolho/js/sim/partida.js';
 import { criarAjuste } from '../../bomberolho/js/sim/ajustes.js';
 import { Jogo, INTERVALO } from '../../bomberolho/js/jogo.js';
@@ -46,7 +46,7 @@ test('relógio de 2:00: quando acaba com mais de um de pé, é empate', () => {
 
 test('aperto final: espiral de fora para dentro, sentido horário, pulando pilares, até sobrar o "H" do centro', () => {
   const m = criarMundo({ semente: 4 });
-  const seq = sequenciaDoAperto(m);
+  const seq = sequenciaDoAperto(m, 0);
   const cel = (i) => [i % 15, Math.floor(i / 15)];
   assert.deepEqual(seq.slice(0, 3).map(cel), [[1, 1], [2, 1], [3, 1]], 'começa no canto de cima à esquerda, para a direita');
   assert.deepEqual(cel(seq[12]), [13, 1]);
@@ -64,8 +64,26 @@ test('aperto final: espiral de fora para dentro, sentido horário, pulando pilar
   for (let k = 1; k < seq.length; k++) assert.ok(anel(seq[k]) >= anel(seq[k - 1]) || anel(seq[k]) === 4, `ordem do anel em ${k}`);
 });
 
+test('aperto final: o canto onde a espiral começa é sorteado por rodada (M2), sempre a mesma espiral girada', () => {
+  const m = criarMundo({ semente: 4 });
+  const cel = (i) => `${i % 15},${Math.floor(i / 15)}`;
+  const base = new Set(sequenciaDoAperto(m, 0));
+  const quinas = ['1,1', '13,1', '1,11', '13,11'];
+  for (let canto = 0; canto < 4; canto++) {
+    const seq = sequenciaDoAperto(m, canto);
+    assert.equal(cel(seq[0]), quinas[canto], `começa no canto ${canto}`);
+    assert.deepEqual(new Set(seq), base, 'mesmas casas, mesmo "H" no fim');
+    assert.equal(seq.length, base.size);
+  }
+  // A semente decide o canto, em partes iguais.
+  const n = [0, 0, 0, 0];
+  for (let s = 0; s < 4000; s++) n[cantoInicialDoAperto(s)]++;
+  for (const v of n) assert.ok(v > 900 && v < 1100, `cantos equilibrados: ${n}`);
+  assert.equal(sequenciaDoAperto(m)[0], sequenciaDoAperto(m, cantoInicialDoAperto(4))[0]);
+});
+
 test('aperto final cai no ritmo certo, avisa a próxima casa, esmaga quem está embaixo e some com gota e item', () => {
-  const m = criarMundo({ semente: 4, duracao: 3700 });
+  const m = criarMundo({ semente: 3, duracao: 3700 }); // semente cuja espiral começa em (1,1)
   const r = m.ajuste;
   avancar(m, 3700 - r.inicioAperto - 1);
   assert.equal(m.aperto.ativo, false);
@@ -90,7 +108,7 @@ test('aperto final cai no ritmo certo, avisa a próxima casa, esmaga quem está 
 });
 
 test('peça do aperto não deixa ninguém dentro da parede: quem estava com meio corpo embaixo é empurrado', () => {
-  const m = criarMundo({ semente: 4, duracao: 3700 });
+  const m = criarMundo({ semente: 3, duracao: 3700 });
   posicionar(m, 1, centro(1), centro(2) - 300); // centro em (1,2), meio corpo em (1,1), a primeira a cair
   avancar(m, 3700 - m.ajuste.inicioAperto);
   avancar(m, m.aperto.ritmo);

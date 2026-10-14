@@ -61,6 +61,26 @@ test('Cisco "espirro" solta gotas sem querer, e passa adiante para quem encosta'
   posicionar(m, 1, a.x + 600, a.y);
   passo(m);
   assert.equal(b.cisco?.tipo, 'espirro', 'pegou o Cisco ao encostar');
+  assert.equal(a.cisco, null, 'e quem tinha ficou livre: o azar PASSA, não se copia (M6)');
+  b.cisco = { tipo: 'lento', restante: 300 };
+  const restante = b.cisco.restante;
+  // Continuam encostados: não volta na hora (sem pingue-pongue a cada tick).
+  avancar(m, 30, []);
+  assert.equal(a.cisco, null);
+  assert.ok(b.cisco && b.cisco.restante === restante - 30, 'o tempo que faltava segue com o novo dono');
+  // Passado o instante de imunidade, encostar de novo devolve o azar.
+  avancar(m, 40, []);
+  assert.ok(a.cisco && !b.cisco, 'depois de 1 s, quem encosta pega de volta');
+});
+
+test('Cisco nunca se espalha pelos quatro: no máximo um competidor com o azar que veio de um item', () => {
+  const m = mapa('#########', '#1234...#', '#########');
+  m.jogadores[0].cisco = { tipo: 'lento', restante: 600 };
+  m.jogadores.forEach((j, k) => posicionar(m, k, centro(1) + k * 300, centro(1)));
+  for (let t = 0; t < 300; t++) {
+    passo(m, []);
+    assert.ok(m.jogadores.filter((j) => j.cisco).length <= 1, `tick ${t}`);
+  }
 });
 
 test('Colírio Penetrante: o respingo atravessa todos os blocos do alcance, mas para no pilar', () => {

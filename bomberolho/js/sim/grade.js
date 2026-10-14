@@ -65,7 +65,7 @@ export function pisoDaArena(arena, colunas = COLUNAS, linhas = LINHAS) {
 /**
  * Sorteia blocos e itens escondidos. Usa contagens exatas (não "moeda por
  * casa") para que toda semente tenha a mesma densidade e a mesma mistura de
- * itens, e reparte os itens entre os quatro quadrantes em rodízio (cada canto
+ * itens, e reparte os itens entre os quatro quadrantes e o meio em rodízio (cada canto
  * recebe a sua parte de cada tipo — justiça numa partida de quatro cantos).
  */
 export function gerarArena(arena, rng) {
@@ -86,15 +86,21 @@ export function gerarArena(arena, rng) {
 
   const ocultos = new Array(grade.length).fill(null);
   const tipos = distribuirItens(arena.pesosItens, Math.round(nBlocos * arena.taxaItens));
-  const porQuadrante = [[], [], [], []];
-  for (const i of blocos) porQuadrante[quadrante(i)].push(i);
-  for (const lista of porQuadrante) embaralhar(rng, lista);
-  let q = inteiro(rng, 4);
+  // Cinco "montes": os quatro quadrantes e a cruz do meio (coluna e linha
+  // centrais, de ninguém). Rodízio q, q+1, q+2, q+3, meio: cada canto recebe
+  // exatamente a sua parte de cada tipo, sem que parte dela caia no meio.
+  const montes = [[], [], [], [], []];
+  for (const i of blocos) montes[quadrante(i)].push(i);
+  for (const lista of montes) embaralhar(rng, lista);
+  const q0 = inteiro(rng, 4);
+  const ordem = [q0, (q0 + 1) % 4, (q0 + 2) % 4, (q0 + 3) % 4, 4];
+  let k = 0;
   for (const tipo of tipos) {
-    for (let tentativa = 0; tentativa < 4; tentativa++, q = (q + 1) % 4) {
-      if (porQuadrante[q].length) {
-        ocultos[porQuadrante[q].pop()] = tipo;
-        q = (q + 1) % 4;
+    for (let tentativa = 0; tentativa < 5; tentativa++, k++) {
+      const monte = montes[ordem[k % 5]];
+      if (monte.length) {
+        ocultos[monte.pop()] = tipo;
+        k++;
         break;
       }
     }
@@ -102,11 +108,20 @@ export function gerarArena(arena, rng) {
   return { grade, ocultos, piso: pisoDaArena(arena) };
 }
 
-/** Quadrante (0–3) de uma casa: esquerda/direita da coluna do meio, cima/baixo da linha do meio. */
+/**
+ * Quadrante de uma casa: 0 cima/esq, 1 cima/dir, 2 baixo/esq, 3 baixo/dir, ou
+ * 4 para a cruz do meio (coluna e linha centrais). Antes a coluna e a linha do
+ * meio contavam para os quadrantes da esquerda e de cima, que assim recebiam
+ * a mesma cota de itens espalhada por mais casas — os cantos 3 e 1 levavam
+ * vantagem (medido no lote: seção 2).
+ */
 export function quadrante(i, colunas = COLUNAS, linhas = LINHAS) {
   const c = i % colunas;
   const l = Math.floor(i / colunas);
-  return (c <= (colunas - 1) / 2 ? 0 : 1) + (l <= (linhas - 1) / 2 ? 0 : 2);
+  const mc = (colunas - 1) / 2;
+  const ml = (linhas - 1) / 2;
+  if (c === mc || l === ml) return 4;
+  return (c < mc ? 0 : 1) + (l < ml ? 0 : 2);
 }
 
 /** Reparte n itens proporcionalmente aos pesos (maiores restos primeiro). */
