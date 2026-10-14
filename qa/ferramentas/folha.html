@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><title>Folha de personagens</title>
+<style>body{margin:0;background:#F5F5F7;font:14px system-ui}canvas{display:block}</style></head>
+<body>
+<canvas id="c"></canvas>
+<script type="module">
+// Folha de personagens para revisão de arte: 8 criaturinhas × expressões e poses.
+import { PERSONAGENS, ORDEM_PERSONAGENS } from '../../bomberolho/js/dados/personagens.js';
+import { desenharPersonagem } from '../../bomberolho/js/render/personagens.js';
+const params = new URLSearchParams(location.search);
+const s = Number(params.get('s') || 120);
+const fase = Number(params.get('fase') || 0.3);
+const colunas = [
+  { expressao: 'normal', dir: 'baixo' }, { expressao: 'normal', dir: 'dir', andando: true },
+  { expressao: 'susto' }, { expressao: 'alegre', bracos: 'cima' }, { expressao: 'esforco', dir: 'esq' },
+  { molhado: 1 }, { expressao: 'sono' }, { piscar: 1 }, { expressao: 'normal', bracos: 'aceno', dir: 'cima' },
+];
+const c = document.getElementById('c');
+c.width = colunas.length * s; c.height = ORDEM_PERSONAGENS.length * s * 1.1;
+const ctx = c.getContext('2d');
+ORDEM_PERSONAGENS.forEach((id, l) => colunas.forEach((o, k) => {
+  ctx.fillStyle = (k + l) % 2 ? '#E9EEF5' : '#FFFFFF';
+  ctx.fillRect(k * s, l * s * 1.1, s, s * 1.1);
+  desenharPersonagem(ctx, PERSONAGENS[id], { x: k * s + s / 2, y: l * s * 1.1 + s * 0.62, s: s * 0.95, dir: 'baixo', fase, ...o });
+}));
+document.title = 'pronto';
+</script>
+</body></html>

@@ -12,3 +12,8 @@ qa/capturas/
 *.log
 .DS_Store
 Thumbs.db
+
+# Saídas geradas pelos scripts de verificação (recriadas ao rodar o script);
+# versiona-se o script e o resumo .md, não o JSON bruto nem o log da suíte.
+qa/verificacao/**/*.json
+qa/verificacao/**/test.out

@@ -1,0 +1,830 @@
+[
+ {
+  "rotulo": "desktop-a01-inicio",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "inicio"
+ },
+ {
+  "rotulo": "desktop-a02-ajuda",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "inicio"
+ },
+ {
+  "rotulo": "desktop-a03-personagem",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "personagem"
+ },
+ {
+  "rotulo": "desktop-a04-cristalino",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "personagem"
+ },
+ {
+  "rotulo": "desktop-a05-arena",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "arena"
+ },
+ {
+  "rotulo": "desktop-a06-arena-escolhida",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "arena"
+ },
+ {
+  "rotulo": "desktop-a07-contagem",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "jogando",
+  "menu": null
+ },
+ {
+  "rotulo": "desktop-a08-jogando",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "jogando",
+  "menu": null
+ },
+ {
+  "rotulo": "desktop-a09-pausa",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "pausado",
+  "menu": null
+ },
+ {
+  "rotulo": "desktop-a10-sair",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "pausado",
+  "menu": null
+ },
+ {
+  "rotulo": "desktop após continuar",
+  "tela": "jogando"
+ },
+ {
+  "rotulo": "desktop-a11-fim-rodada",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "resultado",
+  "menu": null
+ },
+ {
+  "rotulo": "desktop-a12-resultado",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "resultado",
+  "menu": null
+ },
+ {
+  "rotulo": "desktop jogar de novo",
+  "tela": "jogando"
+ },
+ {
+  "rotulo": "desktop-a13-volta-menu",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 1280,
+  "sh": 720,
+  "fora": [],
+  "pequenos": [],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "inicio"
+ },
+ {
+  "rotulo": "desktop problemas",
+  "problemas": []
+ },
+ {
+  "rotulo": "retrato-a01-inicio",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "inicio"
+ },
+ {
+  "rotulo": "retrato-a02-ajuda",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "inicio"
+ },
+ {
+  "rotulo": "retrato-a03-personagem",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "personagem"
+ },
+ {
+  "rotulo": "retrato-a04-cristalino",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "personagem"
+ },
+ {
+  "rotulo": "retrato-a05-arena",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "arena"
+ },
+ {
+  "rotulo": "retrato-a06-arena-escolhida",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "arena"
+ },
+ {
+  "rotulo": "retrato-a07-contagem",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "jogando",
+  "menu": null
+ },
+ {
+  "rotulo": "retrato-a08-jogando",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "jogando",
+  "menu": null
+ },
+ {
+  "rotulo": "retrato-a09-pausa",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Continuar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "pausado",
+  "menu": null
+ },
+ {
+  "rotulo": "retrato-a10-sair",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Continuar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "pausado",
+  "menu": null
+ },
+ {
+  "rotulo": "retrato após continuar",
+  "tela": "jogando"
+ },
+ {
+  "rotulo": "retrato-a11-fim-rodada",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "resultado",
+  "menu": null
+ },
+ {
+  "rotulo": "retrato-a12-resultado",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "resultado",
+  "menu": null
+ },
+ {
+  "rotulo": "retrato jogar de novo",
+  "tela": "jogando"
+ },
+ {
+  "rotulo": "retrato-a13-volta-menu",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 390,
+  "sh": 844,
+  "fora": [],
+  "pequenos": [
+   "Continuar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "inicio"
+ },
+ {
+  "rotulo": "retrato problemas",
+  "problemas": []
+ },
+ {
+  "rotulo": "paisagem-a01-inicio",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Pausar 87x36",
+   "Sair da partida 81x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "inicio"
+ },
+ {
+  "rotulo": "paisagem-a02-ajuda",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Pausar 87x36",
+   "Sair da partida 81x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "inicio"
+ },
+ {
+  "rotulo": "paisagem-a03-personagem",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Pausar 87x36",
+   "Sair da partida 81x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "personagem"
+ },
+ {
+  "rotulo": "paisagem-a04-cristalino",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Pausar 87x36",
+   "Sair da partida 81x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "personagem"
+ },
+ {
+  "rotulo": "paisagem-a05-arena",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Pausar 87x36",
+   "Sair da partida 81x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "arena"
+ },
+ {
+  "rotulo": "paisagem-a06-arena-escolhida",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Pausar 87x36",
+   "Sair da partida 81x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "arena"
+ },
+ {
+  "rotulo": "paisagem-a07-contagem",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Pausar 87x36",
+   "Sair da partida 81x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "jogando",
+  "menu": null
+ },
+ {
+  "rotulo": "paisagem-a08-jogando",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Pausar 87x36",
+   "Sair da partida 81x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "jogando",
+  "menu": null
+ },
+ {
+  "rotulo": "paisagem-a09-pausa",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Continuar 107x36",
+   "Sair da partida 68x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "pausado",
+  "menu": null
+ },
+ {
+  "rotulo": "paisagem-a10-sair",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Continuar 107x36",
+   "Sair da partida 68x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "pausado",
+  "menu": null
+ },
+ {
+  "rotulo": "paisagem após continuar",
+  "tela": "jogando"
+ },
+ {
+  "rotulo": "paisagem-a11-fim-rodada",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Pausar 87x36",
+   "Sair da partida 81x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "resultado",
+  "menu": null
+ },
+ {
+  "rotulo": "paisagem-a12-resultado",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Pausar 87x36",
+   "Sair da partida 81x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "resultado",
+  "menu": null
+ },
+ {
+  "rotulo": "paisagem jogar de novo",
+  "tela": "jogando"
+ },
+ {
+  "rotulo": "paisagem-a13-volta-menu",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 844,
+  "sh": 390,
+  "fora": [],
+  "pequenos": [
+   "Continuar 107x36",
+   "Sair da partida 68x36",
+   "Som ligado (tocar pa 38x36"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "inicio"
+ },
+ {
+  "rotulo": "paisagem problemas",
+  "problemas": []
+ },
+ {
+  "rotulo": "pequeno-a01-inicio",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "inicio"
+ },
+ {
+  "rotulo": "pequeno-a02-ajuda",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "inicio"
+ },
+ {
+  "rotulo": "pequeno-a03-personagem",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "personagem"
+ },
+ {
+  "rotulo": "pequeno-a04-cristalino",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "personagem"
+ },
+ {
+  "rotulo": "pequeno-a05-arena",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "arena"
+ },
+ {
+  "rotulo": "pequeno-a06-arena-escolhida",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "arena"
+ },
+ {
+  "rotulo": "pequeno-a07-contagem",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "jogando",
+  "menu": null
+ },
+ {
+  "rotulo": "pequeno-a08-jogando",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "jogando",
+  "menu": null
+ },
+ {
+  "rotulo": "pequeno-a09-pausa",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Continuar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "pausado",
+  "menu": null
+ },
+ {
+  "rotulo": "pequeno-a10-sair",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Continuar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "pausado",
+  "menu": null
+ },
+ {
+  "rotulo": "pequeno após continuar",
+  "tela": "jogando"
+ },
+ {
+  "rotulo": "pequeno-a11-fim-rodada",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "resultado",
+  "menu": null
+ },
+ {
+  "rotulo": "pequeno-a12-resultado",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Pausar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "resultado",
+  "menu": null
+ },
+ {
+  "rotulo": "pequeno jogar de novo",
+  "tela": "jogando"
+ },
+ {
+  "rotulo": "pequeno-a13-volta-menu",
+  "rolaX": false,
+  "rolaY": false,
+  "sw": 360,
+  "sh": 640,
+  "fora": [],
+  "pequenos": [
+   "Continuar 44x40",
+   "Sair da partida 44x40",
+   "Som ligado (tocar pa 44x40"
+  ],
+  "cortados": [],
+  "tela": "menu",
+  "menu": "inicio"
+ },
+ {
+  "rotulo": "pequeno problemas",
+  "problemas": []
+ }
+]

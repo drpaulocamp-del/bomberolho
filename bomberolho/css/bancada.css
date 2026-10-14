@@ -1,0 +1,63 @@
+/* Bancada de ajuste (?ajuste=1): painel lateral no computador, gaveta de baixo
+   no celular; nunca cobre a arena inteira e fecha com um toque. */
+.bancada-abrir {
+  position: fixed;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 21;
+  min-height: 44px;
+  box-shadow: var(--sombra);
+}
+.bancada {
+  position: fixed;
+  z-index: 20;
+  top: 12px;
+  right: 12px;
+  bottom: 68px;
+  width: min(330px, calc(100vw - 24px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--borda-vidro);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  -webkit-user-select: text;
+  user-select: text;
+}
+.bancada[hidden] { display: none; }
+.bancada header { display: flex; align-items: center; gap: 8px; }
+.bancada h2 { margin: 0 auto 0 0; font-size: 1.1rem; }
+.bancada .recolher { min-height: 44px; padding: 0 12px; font-size: 0.85rem; }
+/* Recolhida: só o cabeçalho e o controle mexido por último (a arena fica à vista). */
+.bancada.recolhida { bottom: auto; padding-bottom: 6px; }
+.bancada.recolhida h2 { font-size: 0.95rem; }
+.bancada.recolhida .nota,
+.bancada.recolhida .acoes,
+.bancada.recolhida .texto,
+.bancada.recolhida .aviso-copia,
+.bancada.recolhida .controle:not(.ativo) { display: none; }
+.bancada .fechar { min-width: 44px; padding: 0; color: var(--texto); background: rgba(0, 0, 0, 0.06); }
+.bancada .nota { margin: 0; font-size: 0.82rem; color: var(--texto-suave); }
+.bancada .controle label { display: flex; justify-content: space-between; gap: 8px; font-size: 0.85rem; font-weight: 600; }
+.bancada .controle output { font-variant-numeric: tabular-nums; color: var(--texto-suave); white-space: nowrap; }
+.bancada .controle.mudado output { color: var(--azul); }
+.bancada input[type=range] { width: 100%; height: 44px; margin: 0; accent-color: var(--azul); touch-action: pan-x; }
+.bancada .acoes { display: flex; gap: 8px; }
+.bancada .acoes button { flex: 1; min-height: 44px; padding: 0 10px; }
+.bancada .texto { width: 100%; font: 0.78rem ui-monospace, monospace; border-radius: 10px; border: 1px solid rgba(0,0,0,0.15); padding: 6px; resize: none; }
+.bancada .aviso-copia { margin: 0; min-height: 1.2em; font-size: 0.85rem; font-weight: 600; color: #1F8A5C; }
+
+@media (orientation: portrait) {
+  .bancada { top: auto; left: 8px; right: 8px; bottom: 64px; width: auto; max-height: 34vh; }
+  .bancada.recolhida { bottom: 64px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .bancada { top: 8px; bottom: 60px; width: min(290px, 44vw); padding: 10px 12px; }
+}

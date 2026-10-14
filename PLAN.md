@@ -67,12 +67,34 @@ Três níveis. **Fácil** (padrão): uma criança de 6 anos tem de conseguir gan
 - **Arenas** (mínimo 4, cada uma com paleta, peças e trilha próprias; ao menos 2 com um elemento de arena simples e justo, p.ex. esteiras, túneis de lado a lado, casas escorregadias): **Jardim da Íris**, **Lago Lacrimal**, **Caverna da Pupila** (mais escura, com contraste garantido), **Vale da Retina** (cones e bastonetes), opcional **Consultório das Lentes**.
 - **Interface** no padrão do site da clínica: fonte do sistema/Inter se disponível localmente (não baixar), cantos arredondados, vidro fosco, azul `#0071E3`, texto `#1D1D1F`, fundo `#F5F5F7`, escuro `#0B0D12`. O jogo em si pode e deve ser mais colorido que o site.
 
+### 3.7 Bancada de ajuste do "sentir" (decisão do dono, entra na parte 2)
+- A referência de "sentir" do dono é o modo batalha dos clássicos de console de 16 bits do gênero, **lembrado por quem jogou** — nunca extraído de jogo nenhum (seção 2 continua valendo integralmente: nenhuma ROM é lida, desmontada ou consultada). Metas: movimento ágil com deslize de quina generoso (nunca enganchar ao virar), pavio ≈ 2,5 s, cadeia imediata, chute que desliza e para na casa certa, itens de velocidade que se sentem, aperto final tenso.
+- Painel escondido aberto por `?ajuste=1` (fora disso, invisível e sem custo): controles deslizantes, com efeito imediato na partida em andamento, para velocidade base do personagem, ganho por Lágrima Veloz, pavio, duração do respingo, tolerância do deslize de quina, velocidade do chute e momento de início do aperto final; botão **"Restaurar padrão"** e botão **"Copiar ajuste"** que copia um texto curto (JSON) com os valores, para o dono colar ao orquestrador e eles virarem o padrão.
+- Os valores vivem num único módulo de parâmetros da simulação (sem números mágicos espalhados); a simulação continua determinística para uma mesma configuração. Funciona no celular (alvos ≥ 44 px, não cobre a arena inteira, fecha com um toque).
+
+### 3.8 Itens e bichinhos extras (decisão do dono, entram na parte 2)
+Ideias de jogabilidade pedidas pelo dono. Mecânicas do gênero, implementadas do zero; **nomes, visual e sons próprios** (seção 2 vale integralmente; os bichinhos não podem lembrar montarias de jogos existentes). Nomes abaixo são ponto de partida — o executor pode refinar mantendo o tema.
+- **Já previstos e mantidos:** Frasquinho Extra (+1 gota simultânea) e Lupa (+1 alcance/força do respingo) — o dono quer que sejam frequentes e bem visíveis.
+- **Pinça (pegar e arremessar):** com o item, o botão de gota sobre/encostado numa gota sua ou alheia a **levanta**; soltar o botão **arremessa** a gota na direção em que se olha, por cima de blocos, pilares e jogadores, a uma distância fixa (ex.: 3 casas); se cair em casa ocupada, quica para a casa seguinte; ao sair pela borda, reaparece do lado oposto ou para na última casa válida (definir e documentar). O pavio continua correndo no ar; sempre centrada ao pousar; determinístico e coberto por teste.
+- **Colírio Penetrante (gota que atravessa blocos):** item raro; o respingo do jogador **atravessa** blocos destrutíveis (destrói todos no alcance do braço) mas ainda para em pilares. Visual de gota diferente e legível.
+- **Bichinhos de montar (vida extra):** surgem de um item "Estojo Surpresa" (cápsula/estojo de lente que se abre). Montado, o jogador ganha **uma vida extra**: se atingido, perde o bichinho em vez de sair da rodada, com **≈ 1 s de invulnerabilidade piscando** (única exceção à regra "sem invulnerabilidade" de 3.2). Não acumula (pegar outro estojo montado troca ou não tem efeito — definir). Cada bichinho tem **um poder** acionado por um **segundo botão de ação** (teclado e toque; no toque, botão menor ao lado da gota, só visível quando montado):
+  - **Saltinho** (sapinho-pálpebra saltador): **pula por cima de um bloco/pilar** para a casa livre seguinte.
+  - **Cascudo** (bichinho de carapaça tipo lente de contato): **protege de respingo vindo pela frente** (só do lado para onde está virado; costas e laterais vulneráveis). Indicador visual claro do lado protegido.
+  - **Disparada** (bichinho corredor): **arrancada rápida em linha reta** na direção atual até bater em algo, enquanto o botão estiver pressionado/por um trecho; não atravessa obstáculos.
+  - Pelo menos esses 3; distinguíveis por forma (daltônicos), não só cor.
+- Regras de jogo coerentes: limites máximos por atributo continuam; respingo destrói itens/estojos expostos; tudo determinístico e com testes; a IA (Médio/Difícil) usa Pinça, Penetrante e os bichinhos de forma competente, e no Fácil de forma tímida; frequências equilibradas e medidas na simulação em lote; parâmetros dos novos itens também ajustáveis na bancada (3.7).
+
+### 3.9 Aceites do dono após a parte 4, rodada 1 (não rediscutir)
+- **Dificuldade Fácil:** o dono testou o resultado medido (perfil "criança" escrito fora da IA leva a taça em ≈ 15% das partidas no Fácil, com ≈ 30% de rodadas empatadas no tempo) e **aceita o Fácil como está**. Não é bloqueador nem motivo de desconto; ajustes futuros só se não piorarem esses números.
+- **IA dos robôs (Médio/Difícil):** o dono aceita o comportamento atual (auto-eliminação do Difícil ≈ igual à do Médio, ≈ 5–6% por rodada); a escada de dificuldade aprovada na parte 2 basta. Não é bloqueador nem motivo de desconto.
+- **Celular:** medição em celular **emulado** (Playwright com toque emulado e CPU desacelerada) é **suficiente** para o dono; a ausência de teste em aparelho físico não é bloqueador nem motivo de desconto, desde que relatada com honestidade.
+
 ## 4. Partes
 
 | # | Parte | Entrega |
 |---|---|---|
 | 1 | Motor e regras centrais | Estrutura de módulos; simulação determinística (grade, movimento contínuo com deslize de quina, gotas, respingo em cruz, cadeia, blocos, itens básicos +gota/+alcance/+velocidade, eliminação); renderização funcional (ainda simples, mas já original); teclado; gancho `__bomberolho`; suíte `node --test` da simulação; uma arena jogável com 4 competidores (os 3 rivais podem ser bonecos parados ou aleatórios nesta parte). |
-| 2 | Batalha completa | IA em 3 níveis; rodadas, cronômetro, aperto final, vitória/empate, placar de troféus; chute, Super Lupa, Cisco; 4+ arenas com layout e elementos próprios; balanceamento medido por simulação em lote (milhares de partidas sem cabeça). |
+| 2 | Batalha completa | IA em 3 níveis; rodadas, cronômetro, aperto final, vitória/empate, placar de troféus; chute, Super Lupa, Cisco; 4+ arenas com layout e elementos próprios; balanceamento medido por simulação em lote (milhares de partidas sem cabeça); **bancada de ajuste** (ver 3.7); **Pinça, Colírio Penetrante e bichinhos de montar** (ver 3.8). |
 | 3 | Estética, identidade e som | 8 personagens originais animados; peças e paleta por arena; efeitos (respingo, blocos quebrando, itens, vitória); menus, seleção de personagem/arena/dificuldade, HUD, pausa, resultado, curiosidades; áudio procedural WebAudio (efeitos + música leve por arena, mudo). |
 | 4 | Celular e acabamento | Controles de toque; retrato/paisagem; desempenho e peso; robustez (aba em segundo plano, girar, redimensionar, recarregar); acessibilidade; limpeza; `README.md` com como rodar, como testar e **como integrar ao site na etapa 2** (copiar a pasta, link sugerido, nada mais). |
 
@@ -135,6 +157,8 @@ VEREDITO: APROVADO|REPROVADO
 - 20 Itens avançados: chute (desliza, para, encadeia corretamente), Super Lupa, Cisco — divertidos e equilibrados.
 - 15 Arenas: 4+, distintas, elementos de arena justos e legíveis.
 - 15 Evidência de balanceamento (tabelas de simulação em lote no relatório, reproduzíveis) e robustez (sem NaN, sem partida infinita).
+- Os itens e bichinhos de 3.8 são entrega obrigatória da parte 2 (ausente ou quebrado = bloqueador); contam dentro de "Itens avançados" e "IA".
+- A **bancada de ajuste** (3.7) é entrega obrigatória da parte 2: ausente ou quebrada = bloqueador; sua qualidade conta dentro de "Regras da batalha" e "Itens avançados".
 
 **Parte 3 — Estética, identidade e som**
 - 30 Beleza e originalidade: personagens carismáticos e inconfundivelmente próprios, tema oftalmológico presente e charmoso, arenas bonitas e distintas; uma criança acharia fofo, um adulto acharia caprichado.

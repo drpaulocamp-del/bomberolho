@@ -1,0 +1,241 @@
+{
+ "antesDoGesto": {
+  "criados": 0,
+  "audio": "inativo"
+ },
+ "depoisDoGesto": {
+  "criados": 1,
+  "audio": "running"
+ },
+ "aposMudo": {
+  "audio": "suspended",
+  "mudo": true,
+  "rotulo": "Som desligado (tocar para ligar)"
+ },
+ "recarregadoMudo": {
+  "criados": 0,
+  "audio": "inativo",
+  "mudo": true
+ },
+ "hudMudo": "Som desligado (tocar para ligar)",
+ "religado": {
+  "criados": 1,
+  "audio": "running",
+  "mudo": false
+ },
+ "problemas1": [],
+ "render": {
+  "trilhas": {
+   "menu": {
+    "pico": -6.8,
+    "rms": -26.7,
+    "janelaMax": -22.1,
+    "janelaMed": -28,
+    "estalos": {
+     "n": 0,
+     "ex": []
+    },
+    "voltaSeg": 40,
+    "frasesDistintas": 4
+   },
+   "jardim": {
+    "pico": -7.4,
+    "rms": -26.9,
+    "janelaMax": -21.9,
+    "janelaMed": -28.2,
+    "estalos": {
+     "n": 0,
+     "ex": []
+    },
+    "voltaSeg": 36.9,
+    "frasesDistintas": 4
+   },
+   "lago": {
+    "pico": -7,
+    "rms": -27.7,
+    "janelaMax": -21.6,
+    "janelaMed": -29.9,
+    "estalos": {
+     "n": 0,
+     "ex": []
+    },
+    "voltaSeg": 45.7,
+    "frasesDistintas": 4
+   },
+   "caverna": {
+    "pico": -6.6,
+    "rms": -27,
+    "janelaMax": -21.7,
+    "janelaMed": -27.9,
+    "estalos": {
+     "n": 0,
+     "ex": []
+    },
+    "voltaSeg": 41.7,
+    "frasesDistintas": 4
+   },
+   "vale": {
+    "pico": -7.5,
+    "rms": -27.8,
+    "janelaMax": -23.1,
+    "janelaMed": -29,
+    "estalos": {
+     "n": 0,
+     "ex": []
+    },
+    "voltaSeg": 34.3,
+    "frasesDistintas": 4
+   },
+   "consultorio": {
+    "pico": -7.3,
+    "rms": -27.4,
+    "janelaMax": -22.9,
+    "janelaMed": -29.8,
+    "estalos": {
+     "n": 0,
+     "ex": []
+    },
+    "voltaSeg": 38.4,
+    "frasesDistintas": 4
+   }
+  },
+  "rajada": {
+   "pico": -3.3,
+   "rms": -19.3,
+   "janelaMax": -15.9,
+   "janelaMed": -19,
+   "estalos": {
+    "n": 0,
+    "ex": []
+   }
+  },
+  "efeitos": {
+   "gota": {
+    "pico": -8.3,
+    "janelaMax": -19.4,
+    "estalos": 0
+   },
+   "respingo": {
+    "pico": -5.7,
+    "janelaMax": -15.3,
+    "estalos": 0
+   },
+   "bloco": {
+    "pico": -9,
+    "janelaMax": -23.6,
+    "estalos": 0
+   },
+   "item": {
+    "pico": -5,
+    "janelaMax": -16.8,
+    "estalos": 0
+   },
+   "itemRaro": {
+    "pico": -5.4,
+    "janelaMax": -17,
+    "estalos": 0
+   },
+   "cisco": {
+    "pico": -4.6,
+    "janelaMax": -15.2,
+    "estalos": 0
+   },
+   "espirro": {
+    "pico": -4.6,
+    "janelaMax": -20.1,
+    "estalos": 0
+   },
+   "encharcado": {
+    "pico": -8.9,
+    "janelaMax": -16.6,
+    "estalos": 0
+   },
+   "contagem": {
+    "pico": -10.2,
+    "janelaMax": -18.1,
+    "estalos": 0
+   },
+   "ja": {
+    "pico": -8.8,
+    "janelaMax": -17.2,
+    "estalos": 0
+   },
+   "aperto": {
+    "pico": -4.7,
+    "janelaMax": -17.7,
+    "estalos": 0
+   },
+   "muro": {
+    "pico": -9.8,
+    "janelaMax": -18.9,
+    "estalos": 0
+   },
+   "chute": {
+    "pico": -7.3,
+    "janelaMax": -22.5,
+    "estalos": 0
+   },
+   "salto": {
+    "pico": -10.8,
+    "janelaMax": -17.5,
+    "estalos": 0
+   },
+   "pousou": {
+    "pico": -9.5,
+    "janelaMax": -21.4,
+    "estalos": 0
+   },
+   "arremesso": {
+    "pico": -10.1,
+    "janelaMax": -19.8,
+    "estalos": 0
+   },
+   "montou": {
+    "pico": -5.4,
+    "janelaMax": -16.3,
+    "estalos": 0
+   },
+   "perdeuBichinho": {
+    "pico": -5.1,
+    "janelaMax": -16.7,
+    "estalos": 0
+   },
+   "defendeu": {
+    "pico": -10,
+    "janelaMax": -19,
+    "estalos": 0
+   },
+   "disparada": {
+    "pico": -9.7,
+    "janelaMax": -19.5,
+    "estalos": 0
+   },
+   "vitoria": {
+    "pico": -4.4,
+    "janelaMax": -14.4,
+    "estalos": 0
+   },
+   "rodada": {
+    "pico": -4.8,
+    "janelaMax": -16.7,
+    "estalos": 0
+   },
+   "empate": {
+    "pico": -6.1,
+    "janelaMax": -16.6,
+    "estalos": 0
+   },
+   "clique": {
+    "pico": -10.6,
+    "janelaMax": -26.9,
+    "estalos": 0
+   },
+   "escolha": {
+    "pico": -7.1,
+    "janelaMax": -22.2,
+    "estalos": 0
+   }
+  }
+ },
+ "problemas2": []
+}

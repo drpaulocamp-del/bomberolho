@@ -1,0 +1,68 @@
+   {"rotulo":"desktop-01-inicio","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":62,"h":62,"opacos":"38%"},"cur":["Dentro do olho tem uma lente natural: o cristalino."],"tela":"menu"}
+   {"rotulo":"desktop-01b-outra","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":62,"h":62,"opacos":"39%"},"cur":["Piscar espalha a lágrima e deixa o olho limpinho."],"tela":"menu"}
+   {"rotulo":"desktop-02-ajuda","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":62,"h":62,"opacos":"39%"},"cur":["Piscar espalha a lágrima e deixa o olho limpinho."],"tela":"menu"}
+   {"rotulo":"desktop-03-personagem","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"menu"}
+   {"rotulo":"desktop-04-iris","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"menu"}
+   {"rotulo":"desktop-05-arena","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"menu"}
+   {"rotulo":"desktop-06-arena-escolhida","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"menu"}
+   {"rotulo":"desktop-07-contagem","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"jogando"}
+   {"rotulo":"desktop-08-jogando","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"jogando"}
+   {"rotulo":"desktop-09-pausa","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":54,"h":54,"opacos":"36%"},"cur":["O nervo óptico leva as imagens do olho até o cérebro."],"tela":"pausado"}
+   {"rotulo":"desktop-10-sair","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":54,"h":54,"opacos":"37%"},"cur":["A gente pisca mais ou menos 15 vezes por minuto."],"tela":"pausado"}
+   {"rotulo":"desktop após continuar","tela":"jogando"}
+   {"rotulo":"desktop-11-fim-rodada","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":54,"h":54,"opacos":"36%"},"cur":["Nunca olhe direto para o Sol: a luz dele é forte demais."],"tela":"resultado"}
+   {"rotulo":"desktop-12-resultado","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":54,"h":54,"opacos":"36%"},"cur":["Nunca olhe direto para o Sol: a luz dele é forte demais."],"tela":"resultado"}
+   {"rotulo":"desktop jogar de novo","tela":"jogando"}
+   {"rotulo":"desktop-13-volta-menu","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":62,"h":62,"opacos":"39%"},"cur":["Piscar espalha a lágrima e deixa o olho limpinho."],"tela":"menu"}
+!! {"rotulo":"desktop problemas","problemas":["console.warning: Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently","console.warning: Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently"]}
+!! {"rotulo":"retrato-01-inicio","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Pupilo você121"],"retrato":{"w":62,"h":62,"opacos":"39%"},"cur":["A lágrima tem um pouquinho de sal. Por isso é salgadinha!"],"tela":"menu"}
+!! {"rotulo":"retrato-01b-outra","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Pupilo você121"],"retrato":{"w":62,"h":62,"opacos":"39%"},"cur":["A córnea é a janelinha transparente na frente do olho."],"tela":"menu"}
+!! {"rotulo":"retrato-02-ajuda","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Pupilo você121"],"retrato":{"w":62,"h":62,"opacos":"38%"},"cur":["A córnea é a janelinha transparente na frente do olho."],"tela":"menu"}
+!! {"rotulo":"retrato-03-personagem","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Pupilo você121"],"retrato":null,"cur":[],"tela":"menu"}
+!! {"rotulo":"retrato-04-lente","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Pupilo você121"],"retrato":null,"cur":[],"tela":"menu"}
+!! {"rotulo":"retrato-05-arena","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Pupilo você121"],"retrato":null,"cur":[],"tela":"menu"}
+!! {"rotulo":"retrato-06-arena-escolhida","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Pupilo você121"],"retrato":null,"cur":[],"tela":"menu"}
+   {"rotulo":"retrato-07-contagem","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"jogando"}
+   {"rotulo":"retrato-08-jogando","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"jogando"}
+   {"rotulo":"retrato-09-pausa","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":54,"h":54,"opacos":"37%"},"cur":["Os cones da retina veem as cores."],"tela":"pausado"}
+   {"rotulo":"retrato-10-sair","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":54,"h":54,"opacos":"36%"},"cur":["No escuro, a pupila fica maior para deixar entrar mais luz."],"tela":"pausado"}
+   {"rotulo":"retrato após continuar","tela":"jogando"}
+   {"rotulo":"retrato-11-fim-rodada","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":54,"h":54,"opacos":"38%"},"cur":["Os bebês nascem enxergando pouco e aprendem a ver aos pouquinhos."],"tela":"resultado"}
+   {"rotulo":"retrato-12-resultado","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":54,"h":54,"opacos":"38%"},"cur":["Os bebês nascem enxergando pouco e aprendem a ver aos pouquinhos."],"tela":"resultado"}
+   {"rotulo":"retrato jogar de novo","tela":"jogando"}
+!! {"rotulo":"retrato-13-volta-menu","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Cristalino você121"],"retrato":{"w":62,"h":62,"opacos":"38%"},"cur":["A córnea é a janelinha transparente na frente do olho."],"tela":"menu"}
+!! {"rotulo":"retrato problemas","problemas":["console.warning: Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently","console.warning: Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently"]}
+   {"rotulo":"paisagem-01-inicio","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":46,"h":46,"opacos":"39%"},"cur":["A imagem chega de cabeça para baixo na retina. O cérebro desvira!"],"tela":"menu"}
+   {"rotulo":"paisagem-01b-outra","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":46,"h":46,"opacos":"37%"},"cur":["O nervo óptico leva as imagens do olho até o cérebro."],"tela":"menu"}
+   {"rotulo":"paisagem-02-ajuda","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":46,"h":46,"opacos":"37%"},"cur":["O nervo óptico leva as imagens do olho até o cérebro."],"tela":"menu"}
+   {"rotulo":"paisagem-03-personagem","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"menu"}
+   {"rotulo":"paisagem-04-cilio","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"menu"}
+   {"rotulo":"paisagem-05-arena","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"menu"}
+   {"rotulo":"paisagem-06-arena-escolhida","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"menu"}
+   {"rotulo":"paisagem-07-contagem","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"jogando"}
+   {"rotulo":"paisagem-08-jogando","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":null,"cur":[],"tela":"jogando"}
+   {"rotulo":"paisagem-09-pausa","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":40,"h":40,"opacos":"36%"},"cur":["No escuro, a pupila fica maior para deixar entrar mais luz."],"tela":"pausado"}
+   {"rotulo":"paisagem-10-sair","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":40,"h":40,"opacos":"38%"},"cur":["A lágrima tem um pouquinho de sal. Por isso é salgadinha!"],"tela":"pausado"}
+   {"rotulo":"paisagem após continuar","tela":"jogando"}
+   {"rotulo":"paisagem-11-fim-rodada","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":40,"h":40,"opacos":"37%"},"cur":["O desenho de cada íris é único, como uma impressão digital."],"tela":"resultado"}
+   {"rotulo":"paisagem-12-resultado","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":40,"h":40,"opacos":"37%"},"cur":["O desenho de cada íris é único, como uma impressão digital."],"tela":"resultado"}
+   {"rotulo":"paisagem jogar de novo","tela":"jogando"}
+   {"rotulo":"paisagem-13-volta-menu","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":[],"retrato":{"w":46,"h":46,"opacos":"37%"},"cur":["O nervo óptico leva as imagens do olho até o cérebro."],"tela":"menu"}
+!! {"rotulo":"paisagem problemas","problemas":["console.warning: Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently","console.warning: Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently"]}
+!! {"rotulo":"pequeno-01-inicio","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Mácula você121"],"retrato":{"w":48,"h":48,"opacos":"39%"},"cur":["A gente pisca mais ou menos 15 vezes por minuto."],"tela":"menu"}
+!! {"rotulo":"pequeno-01b-outra","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Mácula você121"],"retrato":{"w":48,"h":48,"opacos":"39%"},"cur":["A retina fica no fundo do olho e recebe a luz."],"tela":"menu"}
+!! {"rotulo":"pequeno-02-ajuda","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Mácula você121"],"retrato":{"w":48,"h":48,"opacos":"39%"},"cur":["A retina fica no fundo do olho e recebe a luz."],"tela":"menu"}
+!! {"rotulo":"pequeno-03-personagem","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Mácula você121"],"retrato":null,"cur":[],"tela":"menu"}
+!! {"rotulo":"pequeno-04-cornea","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Mácula você121"],"retrato":null,"cur":[],"tela":"menu"}
+!! {"rotulo":"pequeno-05-arena","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Mácula você121"],"retrato":null,"cur":[],"tela":"menu"}
+!! {"rotulo":"pequeno-06-arena-escolhida","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Mácula você121"],"retrato":null,"cur":[],"tela":"menu"}
+!! {"rotulo":"pequeno-07-contagem","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Córnea você121"],"retrato":null,"cur":[],"tela":"jogando"}
+!! {"rotulo":"pequeno-08-jogando","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Córnea você121"],"retrato":null,"cur":[],"tela":"jogando"}
+!! {"rotulo":"pequeno-09-pausa","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Córnea você121"],"retrato":{"w":54,"h":54,"opacos":"38%"},"cur":["Lágrimas aparecem quando choramos e também quando rimos muito."],"tela":"pausado"}
+!! {"rotulo":"pequeno-10-sair","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Córnea você121"],"retrato":{"w":54,"h":54,"opacos":"37%"},"cur":["Os bebês nascem enxergando pouco e aprendem a ver aos pouquinhos."],"tela":"pausado"}
+   {"rotulo":"pequeno após continuar","tela":"jogando"}
+!! {"rotulo":"pequeno-11-fim-rodada","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao fora:Córnea vocêdescansando"],"retrato":{"w":54,"h":54,"opacos":"38%"},"cur":["A córnea é a janelinha transparente na frente do olho."],"tela":"resultado"}
+!! {"rotulo":"pequeno-12-resultado","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao fora:Córnea vocêdescansando"],"retrato":{"w":54,"h":54,"opacos":"38%"},"cur":["A córnea é a janelinha transparente na frente do olho."],"tela":"resultado"}
+   {"rotulo":"pequeno jogar de novo","tela":"jogando"}
+!! {"rotulo":"pequeno-13-volta-menu","rolaX":false,"rolaY":false,"fora":[],"pequenos":[],"cortados":["LI.cartao:Córnea você121"],"retrato":{"w":48,"h":48,"opacos":"39%"},"cur":["A retina fica no fundo do olho e recebe a luz."],"tela":"menu"}
+!! {"rotulo":"pequeno problemas","problemas":["console.warning: Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently","console.warning: Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently"]}

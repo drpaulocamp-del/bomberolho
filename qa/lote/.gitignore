@@ -1,0 +1,4 @@
+# Produto do lote (node lote/simular.mjs): JSON grande, recriado sob demanda.
+# Só o .md com as tabelas é versionado (ex.: resultado.md, p4.md).
+*.json
+rapido.md
