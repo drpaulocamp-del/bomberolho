@@ -9,10 +9,11 @@
   <meta name="color-scheme" content="light">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/estilo.css">
+  <link rel="stylesheet" href="css/menu.css">
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
-  <div id="app" class="app">
+  <div id="app" class="app" data-modo="jogo">
     <header class="painel">
       <div class="topo">
         <div class="marca">
@@ -23,8 +24,15 @@
           </div>
         </div>
         <div class="botoes">
-          <button id="bt-pausa" type="button" aria-pressed="false">Pausar</button>
-          <button id="bt-recomecar" type="button" class="secundario">Recomeçar</button>
+          <button id="bt-pausa" type="button" class="icone-rotulo" aria-pressed="false" aria-label="Pausar">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="5" y="4" width="3.4" height="12" rx="1.4"/><rect x="11.6" y="4" width="3.4" height="12" rx="1.4"/></svg>
+            <span>Pausar</span>
+          </button>
+          <button id="bt-sair" type="button" class="icone-rotulo secundario" aria-label="Sair da partida">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none"/></svg>
+            <span>Sair</span>
+          </button>
+          <button type="button" class="bt-som secundario so-icone" aria-label="Som ligado" aria-pressed="false"></button>
         </div>
       </div>
       <div id="barra" class="barra" aria-live="off"></div>
@@ -34,19 +42,108 @@
     <main id="palco" class="palco">
       <canvas id="arena" role="img" aria-label="Arena do Bomberolho"></canvas>
       <div id="faixa" class="faixa" hidden>
-        <span>Você foi descansar! Torça pelos outros ou</span>
-        <button id="bt-faixa" type="button">recomece</button>
+        <canvas class="faixa-retrato" width="72" height="72" aria-hidden="true"></canvas>
+        <span>Você foi descansar!</span>
+        <button id="bt-faixa" type="button">Recomeçar</button>
       </div>
       <div id="aviso" class="aviso" hidden>
         <div class="cartao-aviso" role="dialog" aria-live="polite">
+          <canvas class="aviso-arte" width="240" height="160" aria-hidden="true" hidden></canvas>
           <h2></h2>
-          <p></p>
+          <p class="aviso-texto"></p>
           <ul class="placar-trofeus" hidden></ul>
-          <button type="button"></button>
+          <div class="acoes"></div>
+          <div class="curiosidade" hidden>
+            <canvas width="96" height="96" aria-hidden="true"></canvas>
+            <div><strong>Você sabia?</strong><p></p></div>
+          </div>
         </div>
       </div>
     </main>
   </div>
+
+  <section id="menu" class="menu" hidden aria-label="Menu do Bomberolho">
+    <div class="tela tela-inicio" data-etapa="inicio">
+      <div class="inicio-cabeca">
+        <canvas class="logo" width="560" height="200" role="img" aria-label="Bomberolho"></canvas>
+        <p class="lema">A batalha das gotinhas</p>
+      </div>
+      <canvas class="desfile" width="800" height="150" aria-hidden="true"></canvas>
+      <button type="button" class="bt-grande bt-jogar" data-acao="escolher">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>
+        Jogar
+      </button>
+      <div class="inicio-rodape">
+        <button type="button" class="secundario bt-ajuda" data-acao="ajuda">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.6 7.6a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="14.6" r="1.2" fill="currentColor"/></svg>
+          Como jogar
+        </button>
+        <button type="button" class="bt-som secundario so-icone" aria-label="Som ligado" aria-pressed="false"></button>
+        <span class="tacas-salvas" title="Taças ganhas neste aparelho"></span>
+      </div>
+      <div class="curiosidade curiosidade-menu">
+        <canvas width="96" height="96" aria-hidden="true"></canvas>
+        <div><strong>Você sabia?</strong><p></p></div>
+        <button type="button" class="secundario so-icone bt-outra" aria-label="Outra curiosidade">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 8A6 6 0 1 0 16 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M16.5 3.5V8h-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="tela tela-personagem" data-etapa="personagem" hidden>
+      <div class="cabeca-etapa">
+        <button type="button" class="secundario so-icone bt-voltar" data-acao="voltar" aria-label="Voltar">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <h2>Quem é você?</h2>
+        <span class="passos" aria-hidden="true"><i class="ativo"></i><i></i></span>
+      </div>
+      <div class="escolha-personagem">
+        <div class="destaque">
+          <canvas class="destaque-arte" width="300" height="300" aria-hidden="true"></canvas>
+          <div class="destaque-texto"><strong></strong><span></span></div>
+        </div>
+        <div class="grade-personagens grade-foco" role="radiogroup" aria-label="Personagens"></div>
+      </div>
+      <button type="button" class="bt-grande" data-acao="proximo">
+        Próximo
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5 15.5 12 9 18.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <div class="tela tela-arena" data-etapa="arena" hidden>
+      <div class="cabeca-etapa">
+        <button type="button" class="secundario so-icone bt-voltar" data-acao="voltar" aria-label="Voltar">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <h2>Onde vamos jogar?</h2>
+        <span class="passos" aria-hidden="true"><i class="feito"></i><i class="ativo"></i></span>
+      </div>
+      <div class="grade-arenas grade-foco" role="radiogroup" aria-label="Arenas"></div>
+      <div class="opcoes-partida">
+        <div class="opcao">
+          <span class="rotulo-opcao">Robôs</span>
+          <div class="pilulas grade-foco" role="radiogroup" aria-label="Dificuldade dos robôs" data-campo="dificuldade"></div>
+        </div>
+        <div class="opcao">
+          <span class="rotulo-opcao">Troféus para a taça</span>
+          <div class="pilulas grade-foco" role="radiogroup" aria-label="Troféus para ganhar a taça" data-campo="rodadas"></div>
+        </div>
+      </div>
+      <button type="button" class="bt-grande bt-comecar" data-acao="comecar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>
+        Começar!
+      </button>
+    </div>
+
+    <div class="ajuda" hidden role="dialog" aria-label="Como jogar">
+      <div class="cartao-ajuda">
+        <h2>Como jogar</h2>
+        <ul class="passos-ajuda"></ul>
+        <button type="button" data-acao="fechar-ajuda">Entendi!</button>
+      </div>
+    </div>
+  </section>
   <noscript><p class="sem-js">O Bomberolho precisa de JavaScript ligado para funcionar.</p></noscript>
 </body>
 </html>

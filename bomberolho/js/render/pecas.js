@@ -308,6 +308,20 @@ function ruido(i) {
 function decorar(ctx, tema, c, l, px, i) {
   const x = (c + 0.2 + ruido(i + 7) * 0.6) * px;
   const y = (l + 0.2 + ruido(i + 13) * 0.6) * px;
+  if (tema.grama && ruido(i + 21) < 0.32) {
+    // Tufinhos de grama (Jardim): três folhinhas curvas.
+    const gx = (c + 0.15 + ruido(i + 31) * 0.7) * px;
+    const gy = (l + 0.3 + ruido(i + 37) * 0.6) * px;
+    ctx.strokeStyle = tema.grama;
+    ctx.lineWidth = px * 0.03;
+    ctx.lineCap = 'round';
+    for (const k of [-1, 0, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(gx + k * px * 0.03, gy);
+      ctx.quadraticCurveTo(gx + k * px * 0.05, gy - px * 0.06, gx + k * px * 0.08, gy - px * (k === 0 ? 0.11 : 0.08));
+      ctx.stroke();
+    }
+  }
   if (ruido(i) > 0.22) return;
   switch (tema.decoracao) {
     case 'flores': {

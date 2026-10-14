@@ -145,6 +145,10 @@ for (const [nome, tela] of [['desktop', TELAS.desktop], ['retrato', TELAS.retrat
   test(`bancada ?ajuste=1 em ${nome}: muda na hora, restaura, copia, fecha com um toque e não cobre a arena`, async () => {
     const { pagina, contexto, problemas } = await abrir(tela, '?semente=7&ajuste=1', { contexto: { permissions: ['clipboard-read', 'clipboard-write'] } });
     await pagina.waitForSelector('.bancada input[type=range]');
+    // Parte 3: em tela baixa (paisagem) a bancada abre recolhida; aqui a abrimos inteira.
+    const comecouRecolhida = await pagina.evaluate(() => document.querySelector('.bancada').classList.contains('recolhida'));
+    assert.equal(comecouRecolhida, tela.height <= 520 || tela.width <= 400, 'recolhida só em tela pequena');
+    if (comecouRecolhida) await pagina.click('.bancada .recolher');
     const n = await pagina.locator('.bancada input[type=range]').count();
     assert.ok(n >= 10, `${n} controles`);
     const pavio = pagina.locator('#ajuste-pavio');

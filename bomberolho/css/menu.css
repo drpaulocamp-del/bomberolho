@@ -1,0 +1,251 @@
+/* Menus do Bomberolho: tela inicial, escolha de personagem e de arena.
+   Vidro fosco sobre a partida de vitrine, botões grandes, uma decisão por tela. */
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background:
+    radial-gradient(circle at 15% 12%, rgba(176, 156, 255, 0.45), transparent 45%),
+    radial-gradient(circle at 88% 90%, rgba(120, 220, 170, 0.4), transparent 45%),
+    rgba(245, 245, 247, 0.8);
+}
+.menu[hidden], .menu .tela[hidden], .menu .ajuda[hidden] { display: none; }
+
+.tela {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: min(900px, 100%);
+  margin: auto;
+  animation: entrar 0.3s ease-out;
+}
+@keyframes entrar { from { opacity: 0; transform: translateY(10px); } }
+
+.bt-grande {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 0 40px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  box-shadow: 0 10px 24px rgba(0, 113, 227, 0.35), inset 0 -3px 0 rgba(0, 0, 0, 0.12);
+}
+.bt-grande svg { width: 28px; height: 28px; }
+.bt-jogar { min-width: 220px; }
+/* Brilho que pulsa (sem mexer no tamanho: o botão fica parado sob o dedo). */
+@keyframes respirar { 50% { box-shadow: 0 10px 34px rgba(0, 113, 227, 0.6), 0 0 0 8px rgba(0, 113, 227, 0.14), inset 0 -3px 0 rgba(0, 0, 0, 0.12); } }
+
+/* ── Tela inicial ── */
+.inicio-cabeca { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.logo { width: min(560px, 94%); aspect-ratio: 560 / 170; height: auto; }
+.lema { margin: -6px 0 0; font-size: 1.15rem; font-weight: 600; color: var(--texto-suave); }
+.desfile { width: min(760px, 100%); height: 130px; }
+.inicio-rodape { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; }
+.bt-ajuda { display: inline-flex; align-items: center; gap: 8px; }
+.tacas-salvas { display: inline-flex; align-items: center; gap: 5px; padding: 0 14px; min-height: 44px; border-radius: 999px; background: rgba(224, 161, 0, 0.12); color: #8A6200; font-weight: 600; }
+.tacas-salvas[hidden] { display: none; }
+.tacas-salvas svg { width: 18px; height: 18px; color: #E0A100; }
+
+.curiosidade-menu {
+  width: min(520px, 100%);
+  margin: 0;
+  padding: 8px 8px 8px 6px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--sombra);
+}
+.curiosidade-menu > div { flex: 1; }
+.curiosidade-menu canvas { width: 62px; height: 62px; }
+.curiosidade-menu p { font-size: 1rem; }
+
+/* ── Cabeçalho das etapas ── */
+.cabeca-etapa { display: flex; align-items: center; gap: 12px; width: 100%; }
+.cabeca-etapa h2 { flex: 1; margin: 0; font-size: 1.6rem; letter-spacing: -0.02em; }
+.passos { display: inline-flex; gap: 6px; }
+.passos i { width: 10px; height: 10px; border-radius: 50%; background: rgba(0, 0, 0, 0.14); }
+.passos i.ativo { width: 26px; border-radius: 5px; background: var(--azul); }
+.passos i.feito { background: rgba(0, 113, 227, 0.45); }
+
+/* Cartões selecionáveis: vidro claro; o escolhido ganha aro azul e selo. */
+.cartao-personagem, .cartao-arena, .pilula {
+  position: relative;
+  color: var(--texto);
+  background: rgba(255, 255, 255, 0.78);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 14px rgba(40, 50, 90, 0.1);
+  border-radius: 20px;
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+}
+.cartao-personagem:hover, .cartao-arena:hover, .pilula:hover { background: #FFFFFF; }
+.cartao-personagem[aria-checked="true"], .cartao-arena[aria-checked="true"], .pilula[aria-checked="true"] {
+  border-color: var(--azul);
+  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.18), 0 8px 20px rgba(0, 113, 227, 0.2);
+  background: #FFFFFF;
+}
+.cartao-personagem[aria-checked="true"]::after, .cartao-arena[aria-checked="true"]::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--azul) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5l3.2 3.2L15 7' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 18px no-repeat;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* ── Escolha do personagem ── */
+.escolha-personagem { display: grid; grid-template-columns: minmax(200px, 280px) 1fr; gap: 16px; width: 100%; align-items: center; }
+.destaque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 12px 16px;
+  border-radius: 28px;
+  background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--cor) 22%, white), rgba(255, 255, 255, 0.7) 70%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: var(--sombra);
+}
+.destaque-arte { width: 100%; max-width: 240px; aspect-ratio: 1; height: auto; }
+.destaque-texto { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; }
+.destaque-texto strong { font-size: 1.7rem; letter-spacing: -0.02em; color: var(--cor); filter: brightness(0.8); }
+.destaque-texto span { color: var(--texto-suave); font-weight: 500; }
+.grade-personagens { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.cartao-personagem { display: flex; flex-direction: column; align-items: center; gap: 0; min-height: 0; padding: 6px 4px 8px; font-size: 1rem; font-weight: 700; }
+.cartao-personagem canvas { width: 100%; max-width: 96px; aspect-ratio: 1; height: auto; }
+.cartao-personagem span { line-height: 1.1; }
+.cartao-personagem[aria-checked="true"] span { color: var(--azul); }
+
+/* ── Escolha da arena ── */
+.grade-arenas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; }
+.cartao-arena { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 8px 10px; min-height: 0; text-align: center; }
+.cartao-arena canvas { width: 100%; aspect-ratio: 15 / 11; height: auto; }
+.nome-arena { font-weight: 800; font-size: 1rem; line-height: 1.15; }
+.desc-arena { font-weight: 500; font-size: 0.82rem; color: var(--texto-suave); line-height: 1.2; }
+.opcoes-partida { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 24px; width: 100%; }
+.opcao { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.rotulo-opcao { font-weight: 700; font-size: 0.9rem; color: var(--texto-suave); }
+.pilulas { display: flex; gap: 8px; }
+.pilula { display: inline-flex; align-items: center; gap: 8px; min-height: 56px; padding: 6px 14px; font-size: 1rem; }
+.pilula-texto { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
+.pilula small { font-weight: 500; font-size: 0.74rem; color: var(--texto-suave); }
+.gotinhas, .trofeuzinhos { display: inline-flex; }
+.gotinhas svg { width: 16px; height: 16px; margin-right: -3px; }
+.trofeuzinhos svg { width: 18px; height: 18px; color: #E0A100; margin-right: -2px; }
+.pilula-trofeus b { font-size: 1.15rem; }
+
+/* ── Como jogar ── */
+.ajuda { position: fixed; inset: 0; z-index: 11; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(20, 24, 40, 0.3); }
+.cartao-ajuda {
+  width: min(440px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 18px 20px 20px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 26px;
+  box-shadow: var(--sombra);
+  animation: surgir 0.25s ease-out;
+}
+.cartao-ajuda h2 { margin: 0 0 8px; font-size: 1.5rem; }
+.passos-ajuda { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 6px; text-align: left; }
+.passos-ajuda li { display: flex; align-items: center; gap: 12px; padding: 4px 10px 4px 4px; border-radius: 14px; background: rgba(0, 113, 227, 0.06); font-weight: 600; line-height: 1.25; }
+.passos-ajuda canvas { width: 54px; height: 54px; flex: none; }
+.cartao-ajuda button { min-height: 52px; padding: 0 34px; font-size: 1.1rem; }
+
+/* ── Celular em pé ── */
+@media (orientation: portrait) {
+  .tela { gap: 12px; }
+  .desfile { height: 104px; }
+  .escolha-personagem { grid-template-columns: 1fr; gap: 10px; }
+  .destaque { flex-direction: row; justify-content: center; gap: 8px; padding: 4px 14px; }
+  .destaque-arte { width: 132px; }
+  .destaque-texto { align-items: flex-start; text-align: left; }
+  .grade-personagens { gap: 8px; }
+  .cabeca-etapa h2 { font-size: 1.35rem; }
+}
+@media (orientation: portrait) and (max-width: 430px) {
+  .menu { padding-left: 12px; padding-right: 12px; }
+  .lema { font-size: 1rem; }
+  .desfile { height: 84px; }
+  .bt-grande { min-height: 58px; font-size: 1.3rem; padding: 0 30px; }
+  .grade-arenas { gap: 8px; }
+  .cartao-arena { padding: 6px 4px 8px; border-radius: 16px; }
+  .nome-arena { font-size: 0.86rem; }
+  .desc-arena { display: none; }
+  .pilula { min-height: 52px; padding: 4px 10px; gap: 6px; font-size: 0.92rem; }
+  .pilula small { display: none; }
+  .opcoes-partida { gap: 10px; }
+  .cartao-personagem { font-size: 0.86rem; padding: 4px 2px 6px; border-radius: 16px; }
+  .curiosidade-menu p { font-size: 0.92rem; }
+}
+@media (orientation: portrait) and (max-height: 700px) {
+  .tela { gap: 9px; }
+  .destaque-arte { width: 104px; }
+  .destaque-texto strong { font-size: 1.4rem; }
+  .logo { width: min(560px, 88%); }
+  .desfile { height: 74px; }
+  .curiosidade-menu canvas { width: 48px; height: 48px; }
+}
+
+/* ── Celular deitado (tela baixa) ── */
+@media (orientation: landscape) and (max-height: 520px) {
+  .menu { padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .tela { gap: 8px; }
+  .tela-inicio { display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: "cabeca cabeca" "desfile desfile" "jogar curio" "rodape curio"; align-items: center; justify-items: center; column-gap: 18px; }
+  .inicio-cabeca { grid-area: cabeca; }
+  .logo { width: auto; height: 92px; }
+  .lema { font-size: 0.95rem; margin-top: -4px; }
+  .desfile { grid-area: desfile; height: 74px; }
+  .bt-jogar { grid-area: jogar; }
+  .inicio-rodape { grid-area: rodape; }
+  .curiosidade-menu { grid-area: curio; }
+  .curiosidade-menu canvas { width: 46px; height: 46px; }
+  .curiosidade-menu p { font-size: 0.88rem; }
+  .bt-grande { min-height: 52px; font-size: 1.2rem; padding: 0 28px; }
+  .bt-grande svg { width: 22px; height: 22px; }
+  .cabeca-etapa h2 { font-size: 1.25rem; }
+  .escolha-personagem { grid-template-columns: 200px 1fr; gap: 12px; }
+  .destaque { padding: 2px 8px 8px; }
+  .destaque-arte { width: 128px; }
+  .destaque-texto strong { font-size: 1.3rem; }
+  .destaque-texto span { font-size: 0.85rem; }
+  .grade-personagens { gap: 8px; }
+  .cartao-personagem { font-size: 0.85rem; padding: 2px 2px 4px; }
+  .cartao-personagem canvas { max-width: 66px; }
+  .grade-arenas { grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .cartao-arena { padding: 4px 4px 6px; border-radius: 14px; }
+  .nome-arena { font-size: 0.8rem; }
+  .desc-arena { display: none; }
+  .opcoes-partida { flex-wrap: nowrap; gap: 16px; }
+  .opcao { flex-direction: row; gap: 8px; }
+  .rotulo-opcao { font-size: 0.8rem; max-width: 70px; text-align: right; line-height: 1.1; }
+  .pilula { min-height: 48px; padding: 4px 10px; font-size: 0.9rem; }
+  .pilula small { display: none; }
+  .passos-ajuda canvas { width: 40px; height: 40px; }
+  .passos-ajuda { gap: 3px; }
+  .cartao-ajuda h2 { font-size: 1.2rem; margin-bottom: 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tela, .cartao-ajuda { animation: none; }
+  .bt-jogar { animation: none; }
+  .cartao-personagem, .cartao-arena, .pilula { transition: none; }
+}
+
+/* Tela larga e não tão alta (desktop): as seis arenas numa fileira só. */
+@media (min-width: 900px) and (min-height: 521px) {
+  .grade-arenas { grid-template-columns: repeat(6, 1fr); }
+  .tela-arena { width: min(1100px, 100%); }
+}

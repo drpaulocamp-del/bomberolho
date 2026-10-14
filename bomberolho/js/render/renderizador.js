@@ -1,16 +1,18 @@
 // Desenha o estado da simulação num Canvas 2D nítido em qualquer densidade de
 // pixels. Só lê o mundo; nunca o altera.
 
-import { BLOCO, MURO, TPS, CASA, DIRECOES, DURACAO_SALTO } from '../sim/constantes.js';
+import { BLOCO, MURO, VAZIO, TUNEL, TPS, CASA, DIRECOES, NOMES_DIRECOES, DURACAO_SALTO } from '../sim/constantes.js';
 import { PERSONAGENS } from '../dados/personagens.js';
 import { proximaQueda } from '../sim/aperto.js';
 import { obterTema } from './temas.js';
 import { criarPecas } from './pecas.js';
-import { desenharPersonagem } from './personagens.js';
+import { desenharPersonagem, desenharPersonagemRapido, gotinha } from './personagens.js';
 import { desenharBichinho, desenharEscudo, ALTURA_MONTADO } from './bichinhos.js';
 import { desenharGota, desenharRespingos, desenharItem, desenharQuebra, Particulas } from './efeitos.js';
 
 const TAU = Math.PI * 2;
+const DESCANSO = 130; // ticks da animação de "ir descansar" (encharca, nuvem, sobe)
+const RAROS = new Set(['superLupa', 'penetrante', 'pinca', 'chute', 'estojo']);
 const FONTE = 'system-ui, -apple-system, "Segoe UI", sans-serif';
 
 export class Renderizador {
@@ -24,6 +26,16 @@ export class Renderizador {
     this.chavePecas = '';
     this.tremor = 0;
     this.reduzido = false;
+    this.humor = []; // por jogador: { expressao, ate } (expressões passageiras)
+    this.coletas = []; // itens pegos, subindo e sumindo sobre quem pegou
+    this.relogio = 0;
+    this.humano = 0; // -1 na vitrine do menu (sem balão "Você")
+  }
+
+  /** Expressão passageira de um jogador (alegre ao pegar item, decidido ao soltar gota…). */
+  sentir(id, expressao, duracao) {
+    if (id === undefined || id === null) return;
+    this.humor[id] = { expressao, ate: this.relogio + duracao };
   }
 
   definirMovimentoReduzido(reduzido) {
@@ -95,6 +107,7 @@ export class Renderizador {
   reagir(eventos) {
     const s = this.s;
     for (const e of eventos) {
+      this.humorDoEvento(e);
       const x = (e.col + 0.5) * s;
       const y = (e.lin + 0.5) * s;
       if (e.tipo === 'respingo') {
@@ -110,9 +123,34 @@ export class Renderizador {
       } else if (e.tipo === 'muro') {
         this.particulas.emitir(10, { x, y: y + s * 0.3, vel: s * 2, subida: s * 0.3, vida: 0.5, r: s * 0.08, cores: ['rgba(255,255,255,0.85)', 'rgba(200,200,220,0.8)'], gravidade: s * 2, forma: 'bola' });
         if (!this.reduzido) this.tremor = Math.min(1, this.tremor + 0.12);
+      } else if (e.tipo === 'itemSurge') {
+        const cores = RAROS.has(e.item) ? ['#FFE58F', '#FFFFFF', '#E0A100'] : ['#FFFFFF', '#BFE8FF', '#7FD3FF'];
+        this.particulas.emitir(8, { x, y, vel: s * 1.6, subida: s * 1.4, vida: 0.7, r: s * 0.05, cores, gravidade: s * 1.5, forma: 'brilho' });
+      } else if (e.tipo === 'encharcado') {
+        this.particulas.emitir(18, { x: 0, y: 0, alvo: e.jogador, vel: s * 3.2, subida: s * 2, vida: 0.8, r: s * 0.08, cores: ['#7FD3FF', '#FFFFFF', '#3FA9F5'], gravidade: s * 8, forma: 'gota' });
+      } else if (e.tipo === 'fim' && e.vencedor !== null) {
+        this.particulas.emitir(40, { x: 0, y: 0, alvo: e.vencedor, vel: s * 4, subida: s * 4, vida: 1.6, r: s * 0.07, cores: ['#FF6F61', '#FFC93C', '#2FBF71', '#3FA9F5', '#8B5CF6', '#EC4899'], gravidade: s * 5, forma: 'confete' });
       } else if (e.tipo === 'perdeuBichinho' || e.tipo === 'defendeu') {
         this.particulas.emitir(14, { x: 0, y: 0, alvo: e.jogador, vel: s * 3, subida: s, vida: 0.7, r: s * 0.07, cores: ['#FFFFFF', '#8FD4FF', '#FFB3D9'], gravidade: s * 4, forma: 'bola' });
       }
+    }
+  }
+
+  humorDoEvento(e) {
+    switch (e.tipo) {
+      case 'item':
+        if (e.item === 'cisco') this.sentir(e.jogador, 'susto', 0.7);
+        else {
+          this.sentir(e.jogador, 'alegre', 0.8);
+          if (e.mudou !== false) this.coletas.push({ jogador: e.jogador, item: e.item, t: 0 });
+        }
+        break;
+      case 'montou': this.sentir(e.jogador, 'alegre', 1); break;
+      case 'gota': this.sentir(e.dono, 'esforco', 0.35); break;
+      case 'chute': case 'arremesso': this.sentir(e.jogador, 'esforco', 0.4); break;
+      case 'perdeuBichinho': this.sentir(e.jogador, 'susto', 0.9); break;
+      case 'defendeu': this.sentir(e.jogador, 'esforco', 0.5); break;
+      default: break;
     }
   }
 
@@ -125,6 +163,7 @@ export class Renderizador {
    */
   desenhar(mundo, anteriores, fracao, tempoSeg, dtSeg) {
     this.prepararPecas(mundo);
+    this.relogio = tempoSeg;
     const { ctx, s, dpr } = this;
     const { bloco } = this.pecas;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -155,6 +194,7 @@ export class Renderizador {
       ctx.drawImage(this.spriteDoItem(tipo), c * s, l * s + flut, s, s);
     }
 
+    this.desenharAlcance(mundo, tempoSeg);
     for (const g of mundo.gotas) if (g.estado === 'chao') desenharGota(ctx, (g.x / CASA) * s, (g.y / CASA) * s, s, g, tempoSeg);
     ctx.save();
     ctx.beginPath();
@@ -163,6 +203,7 @@ export class Renderizador {
     desenharRespingos(ctx, mundo.respingos, s, tempoSeg);
     ctx.restore();
     const posicoes = this.desenharJogadores(mundo, anteriores, fracao, tempoSeg);
+    this.desenharBocasDeTunel(mundo);
     for (const g of mundo.gotas) if (g.estado === 'voo') this.desenharVoo(mundo, g, fracao, tempoSeg);
 
     // Partículas recortadas ao interior da moldura (não "vazam" pela armação).
@@ -173,6 +214,7 @@ export class Renderizador {
     this.particulas.atualizar(dtSeg, posicoes);
     this.particulas.desenhar(ctx);
     ctx.restore();
+    this.desenharColetas(posicoes, dtSeg);
     this.desenharMensagens(mundo, tempoSeg);
   }
 
@@ -247,6 +289,7 @@ export class Renderizador {
 
   desenharJogadores(mundo, anteriores, fracao, tempoSeg) {
     const { ctx, s } = this;
+    const W = mundo.colunas;
     const posicoes = mundo.jogadores.map((j) => {
       const a = anteriores[j.id] || j;
       // Túnel: um salto grande de posição não é interpolado (senão cruza a arena).
@@ -257,44 +300,225 @@ export class Renderizador {
         y: ((a.y + (j.y - a.y) * f) / CASA) * s,
       };
     });
-    const ordem = [...posicoes].sort((p, q) => p.y - q.y || p.j.id - q.j.id);
-    for (const { j, x, y } of ordem) {
-      let molhado = 0;
-      let alfa = 1;
-      if (!j.vivo) {
-        const d = mundo.tick - j.eliminadoEm;
-        if (d > 90) continue; // já foi "descansar"
-        molhado = Math.min(1, d / 8);
-        alfa = d < 45 ? 1 : Math.max(0, 1 - (d - 45) / 45);
+    // Perto de uma boca de túnel, o boneco também aparece saindo do outro lado
+    // (cópia deslocada), e os dois são recortados na boca: entra num, sai no outro.
+    const desenhos = [];
+    for (const p of posicoes) {
+      desenhos.push(p);
+      const lin = Math.floor(p.y / s);
+      const temTunel = mundo.grade[lin * W] === TUNEL;
+      if (!temTunel || !p.j.vivo) continue;
+      const casas = p.x / s;
+      if (casas < 1.5) desenhos.push({ ...p, x: p.x + (W - 2) * s, copia: true });
+      else if (casas > W - 1.5) desenhos.push({ ...p, x: p.x - (W - 2) * s, copia: true });
+    }
+    const ordem = desenhos.sort((p, q) => p.y - q.y || p.j.id - q.j.id);
+    for (const d of ordem) {
+      const recorta = d.x < s * 1.5 || d.x > s * (W - 1.5);
+      if (recorta) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(s * 0.55, 0, s * (W - 1.1), s * mundo.linhas);
+        ctx.clip();
       }
-      // Piscando invulnerável depois de perder o bichinho.
-      if (j.invulneravel > 0 && Math.floor(mundo.tick / 4) % 2 === 0) alfa *= 0.35;
-      const noAr = j.salto ? Math.sin(Math.PI * Math.min(1, j.salto.t / DURACAO_SALTO)) * s * 0.55 : 0;
-      if (j.id === 0 && j.vivo) this.marcarHumano(mundo, x, y, tempoSeg);
-      if (j.disparada) this.rastroDeVelocidade(x, y, j.dir);
-      let yp = y - noAr;
-      let sp = s;
-      if (j.montaria) {
-        desenharBichinho(ctx, j.montaria.tipo, {
-          x, y: y - noAr, s, fase: tempoSeg + j.id, alfa, noAr: !!j.salto,
-          sentido: j.dir === 'esq' ? -1 : 1, correndo: !!j.disparada,
-        });
-        yp -= s * ALTURA_MONTADO;
-        sp = s * 0.74; // menor e mais alto: o bichinho aparece inteiro embaixo
-      }
-      if (j.montaria?.tipo === 'cascudo' && j.vivo) desenharEscudo(ctx, x, y - s * 0.05, s, j.dir, j.escudo, tempoSeg);
-      const piscar = ((tempoSeg + j.id * 1.37) % 3.4) < 0.13 ? 1 : 0;
-      desenharPersonagem(ctx, PERSONAGENS[j.personagem], {
-        x, y: yp, s: sp, dir: j.dir, andando: j.andando && j.vivo, fase: tempoSeg + j.id * 0.31,
-        piscar: j.cisco ? Math.max(piscar, (Math.floor(tempoSeg * 3) % 3 === 0) ? 1 : 0) : piscar, molhado, alfa,
-      });
-      if (j.cisco && j.vivo) this.nuvemDeCisco(x, yp, tempoSeg);
-      if (j.segurando !== null) {
-        const g = mundo.gotas.find((o) => o.id === j.segurando);
-        if (g) desenharGota(ctx, x, yp - s * 0.72, s, g, tempoSeg, { sombra: false, escala: 0.7 });
-      }
+      this.desenharUm(mundo, d, tempoSeg);
+      if (recorta) ctx.restore();
     }
     return posicoes;
+  }
+
+  /** Expressão do momento: passageira (evento), susto perto de uma gota prestes a estourar, ou normal. */
+  expressaoDe(mundo, j) {
+    if (mundo.fase === 'fim' && mundo.vencedor === j.id) return 'alegre';
+    const h = this.humor[j.id];
+    if (h && h.ate > this.relogio) return h.expressao;
+    const col = Math.floor(j.x / CASA);
+    const lin = Math.floor(j.y / CASA);
+    for (const g of mundo.gotas) {
+      if (g.estado !== 'chao' || g.pavio > 70) continue;
+      const na = (g.col === col && Math.abs(g.lin - lin) <= g.alcance) || (g.lin === lin && Math.abs(g.col - col) <= g.alcance);
+      if (na) return 'susto';
+    }
+    return 'normal';
+  }
+
+  desenharUm(mundo, { j, x, y }, tempoSeg) {
+    const { ctx, s } = this;
+    if (!j.vivo) {
+      this.desenharDescanso(mundo, j, x, y, tempoSeg);
+      return;
+    }
+    let alfa = 1;
+    // Piscando invulnerável depois de perder o bichinho.
+    if (j.invulneravel > 0 && Math.floor(mundo.tick / 4) % 2 === 0) alfa *= 0.35;
+    const venceu = mundo.fase === 'fim' && mundo.vencedor === j.id;
+    const comemora = venceu && !this.reduzido ? Math.abs(Math.sin(tempoSeg * 7)) * s * 0.18 : 0;
+    const noAr = (j.salto ? Math.sin(Math.PI * Math.min(1, j.salto.t / DURACAO_SALTO)) * s * 0.55 : 0) + comemora;
+    if (j.id === this.humano) this.marcarHumano(mundo, x, y, tempoSeg);
+    if (j.disparada) this.rastroDeVelocidade(x, y, j.dir);
+    let yp = y - noAr;
+    let sp = s * 1.08; // um tiquinho maior que a casa: lê-se melhor em tela pequena
+    if (j.montaria) {
+      desenharBichinho(ctx, j.montaria.tipo, {
+        x, y: y - noAr, s, fase: tempoSeg + j.id, alfa, noAr: !!j.salto,
+        sentido: j.dir === 'esq' ? -1 : 1, correndo: !!j.disparada,
+      });
+      yp -= s * ALTURA_MONTADO;
+      sp = s * 0.8; // menor e mais alto: o bichinho aparece inteiro embaixo
+    }
+    if (j.montaria?.tipo === 'cascudo') desenharEscudo(ctx, x, y - s * 0.05, s, j.dir, j.escudo, tempoSeg);
+    const piscar = ((tempoSeg + j.id * 1.37) % 3.4) < 0.13 ? 1 : 0;
+    desenharPersonagemRapido(ctx, PERSONAGENS[j.personagem], {
+      x, y: yp, s: sp, dir: venceu ? 'baixo' : j.dir, andando: j.andando, fase: tempoSeg + j.id * 0.31,
+      piscar: j.cisco ? Math.max(piscar, (Math.floor(tempoSeg * 3) % 3 === 0) ? 1 : 0) : piscar,
+      alfa, expressao: this.expressaoDe(mundo, j), bracos: venceu ? 'cima' : 'repouso', sombra: !noAr || noAr < 1,
+    }, this.dpr);
+    if (j.cisco) this.nuvemDeCisco(x, yp, tempoSeg);
+    if (j.segurando !== null) {
+      const g = mundo.gotas.find((o) => o.id === j.segurando);
+      if (g) desenharGota(ctx, x, yp - s * 0.72, s, g, tempoSeg, { sombra: false, escala: 0.7 });
+    }
+  }
+
+  /**
+   * "Encharcar e ir descansar", sem violência: o boneco leva o banho, aperta
+   * os olhos e chacoalha; uma nuvenzinha fofa aparece embaixo e o leva para
+   * cima, dormindo, até sumir.
+   */
+  desenharDescanso(mundo, j, x, y, tempoSeg) {
+    const d = mundo.tick - j.eliminadoEm;
+    if (d > DESCANSO) return;
+    const { ctx, s } = this;
+    const p = PERSONAGENS[j.personagem];
+    if (d < 40) {
+      const chacoalha = this.reduzido ? 0 : Math.sin(d * 1.3) * s * 0.04 * (1 - d / 40);
+      desenharPersonagem(ctx, p, { x: x + chacoalha, y, s, dir: 'baixo', fase: tempoSeg, molhado: Math.min(1, d / 6) });
+      return;
+    }
+    const k = (d - 40) / (DESCANSO - 40); // 0 → 1
+    const sobe = (this.reduzido ? 0.3 : 1) * k * k * s * 1.4;
+    const alfa = k < 0.6 ? 1 : 1 - (k - 0.6) / 0.4;
+    const nuvemY = y + s * 0.3 - sobe;
+    ctx.save();
+    ctx.globalAlpha = alfa;
+    desenharPersonagemRapido(ctx, p, { x, y: nuvemY - s * 0.4, s: s * 0.82, dir: 'baixo', fase: tempoSeg * 0.4, expressao: 'sono', sombra: false }, this.dpr);
+    nuvem(ctx, x, nuvemY, s * Math.min(1, k * 4));
+    ctx.fillStyle = '#5B6B8C';
+    ctx.textAlign = 'center';
+    for (let n = 0; n < 2; n++) {
+      const f = (k * 2 + n * 0.5) % 1;
+      ctx.globalAlpha = alfa * Math.sin(f * Math.PI);
+      ctx.font = `800 ${Math.round(s * (0.2 + f * 0.14))}px ${FONTE}`;
+      ctx.fillText('z', x + s * 0.3 + f * s * 0.2, nuvemY - s * 0.75 - f * s * 0.3);
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Alcance do respingo: no último segundo do pavio, as casas que a gota vai
+   * molhar ganham bolinhas d'água que pulsam cada vez mais forte. Lê-se
+   * "saia daqui" num relance, sem precisar contar casas.
+   */
+  desenharAlcance(mundo, tempoSeg) {
+    const { ctx, s } = this;
+    for (const g of mundo.gotas) {
+      if (g.estado !== 'chao' || g.pavio > 75) continue;
+      const forca = 1 - g.pavio / 75; // 0 → 1
+      const cor = g.penetrante ? '150, 80, 230' : '30, 130, 240';
+      const casas = [[g.col, g.lin]];
+      for (const nome of NOMES_DIRECOES) {
+        const { dc, dl } = DIRECOES[nome];
+        for (let k = 1; k <= g.alcance; k++) {
+          const c = g.col + dc * k;
+          const l = g.lin + dl * k;
+          const t = mundo.grade[l * mundo.colunas + c];
+          if (t === BLOCO) { if (!g.penetrante) break; continue; } // o bloco já mostra o choque
+          if (t !== VAZIO) break;
+          casas.push([c, l]);
+        }
+      }
+      const pulso = this.reduzido ? 0.7 : 0.6 + 0.4 * Math.sin(tempoSeg * (8 + forca * 10));
+      ctx.fillStyle = `rgba(${cor}, ${0.1 + forca * 0.16 * pulso})`;
+      for (const [c, l] of casas) {
+        ctx.beginPath();
+        ctx.roundRect(c * s + s * 0.08, l * s + s * 0.08, s * 0.84, s * 0.84, s * 0.22);
+        ctx.fill();
+      }
+      ctx.fillStyle = `rgba(${cor}, ${0.35 + forca * 0.4})`;
+      for (const [c, l] of casas) gotinha(ctx, (c + 0.5) * s, (l + 0.58) * s, s * 0.05 * (0.6 + forca * 0.6));
+    }
+  }
+
+  /**
+   * Bocas de túnel desenhadas a cada quadro: aberta (escura, com setas) ou
+   * "dormindo" (pálpebra fechada) quando a casa de chegada está ocupada.
+   * Por cima dos bonecos, um véu escuro faz quem entra sumir na boca.
+   */
+  desenharBocasDeTunel(mundo) {
+    const { ctx, s } = this;
+    const W = mundo.colunas;
+    for (let l = 0; l < mundo.linhas; l++) {
+      if (mundo.grade[l * W] !== TUNEL) continue;
+      for (const lado of [0, W - 1]) {
+        const destino = lado === 0 ? W - 2 : 1;
+        const i = l * W + destino;
+        const fechada = mundo.grade[i] !== VAZIO || mundo.gotas.some((g) => g.estado === 'chao' && g.col === destino && g.lin === l);
+        const x = lado * s;
+        const y = l * s;
+        const fora = lado === 0 ? 0 : 1; // lado de fora da boca (borda da tela)
+        if (fechada) {
+          ctx.fillStyle = '#4B3F86';
+          ctx.beginPath();
+          ctx.roundRect(x + s * 0.04, y + s * 0.1, s * 0.92, s * 0.8, s * 0.35);
+          ctx.fill();
+          ctx.strokeStyle = '#C7BCFF';
+          ctx.lineWidth = s * 0.05;
+          ctx.stroke();
+          // Pálpebra fechada com cílios: o túnel está "dormindo".
+          ctx.strokeStyle = '#E6E0FF';
+          ctx.lineWidth = s * 0.06;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.arc(x + s * 0.5, y + s * 0.38, s * 0.26, Math.PI * 0.2, Math.PI * 0.8);
+          for (const k of [-1, 0, 1]) {
+            const a = Math.PI * (0.5 - k * 0.22);
+            const bx = x + s * 0.5 + Math.cos(a) * s * 0.26;
+            const by = y + s * 0.38 + Math.sin(a) * s * 0.26;
+            ctx.moveTo(bx, by);
+            ctx.lineTo(bx + Math.cos(a) * s * 0.11, by + Math.sin(a) * s * 0.11);
+          }
+          ctx.stroke();
+        } else {
+          const g = ctx.createLinearGradient(x + fora * s, 0, x + (1 - fora) * s, 0);
+          g.addColorStop(0, 'rgba(11, 9, 24, 1)');
+          g.addColorStop(0.55, 'rgba(11, 9, 24, 0.85)');
+          g.addColorStop(1, 'rgba(11, 9, 24, 0)');
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.roundRect(x + s * 0.04, y + s * 0.1, s * 0.92, s * 0.8, s * 0.35);
+          ctx.fill();
+        }
+      }
+    }
+  }
+
+  /** Item pego: o medalhão sobe da cabeça de quem pegou, com um "+". */
+  desenharColetas(posicoes, dtSeg) {
+    if (!this.coletas.length) return;
+    const { ctx, s } = this;
+    for (const c of this.coletas) {
+      c.t += dtSeg;
+      const pos = posicoes.find((p) => p.j.id === c.jogador);
+      if (!pos) continue;
+      const k = Math.min(1, c.t / 0.9);
+      const y = pos.y - s * (0.75 + k * 0.6);
+      ctx.save();
+      ctx.globalAlpha = k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
+      const tam = s * (0.62 + Math.sin(Math.min(1, k * 3) * Math.PI) * 0.12);
+      ctx.drawImage(this.spriteDoItem(c.item), pos.x - tam / 2, y - tam / 2, tam, tam);
+      ctx.restore();
+    }
+    this.coletas = this.coletas.filter((c) => c.t < 0.9);
   }
 
   rastroDeVelocidade(x, y, dir) {
@@ -401,4 +625,25 @@ export class Renderizador {
     ctx.fillText(texto, x, y);
     ctx.restore();
   }
+}
+
+/** Nuvenzinha fofa (o "travesseiro" de quem foi descansar). */
+function nuvem(ctx, x, y, s) {
+  if (s <= 1) return;
+  ctx.save();
+  ctx.fillStyle = 'rgba(70, 90, 140, 0.18)';
+  ctx.beginPath();
+  ctx.ellipse(x, y + s * 0.12, s * 0.42, s * 0.08, 0, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.strokeStyle = '#C9D6EA';
+  ctx.lineWidth = s * 0.03;
+  ctx.beginPath();
+  for (const [dx, dy, r] of [[-0.24, 0.02, 0.15], [-0.08, -0.06, 0.19], [0.12, -0.04, 0.17], [0.27, 0.03, 0.13], [0, 0.06, 0.16]]) {
+    ctx.moveTo(x + dx * s + r * s, y + dy * s);
+    ctx.arc(x + dx * s, y + dy * s, r * s, 0, TAU);
+  }
+  ctx.stroke();
+  ctx.fill();
+  ctx.restore();
 }

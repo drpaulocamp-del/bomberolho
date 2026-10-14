@@ -8,11 +8,11 @@ const CAMPOS_ENTRADA = ['cima', 'baixo', 'esq', 'dir', 'bomba', 'acao'];
 
 export function instalarGancho(app) {
   const api = {
-    versao: '2.0.0-parte2',
+    versao: '3.0.0-parte3',
 
     /** Retrato do jogo (cópia: mexer nele não muda nada). */
     get state() {
-      return { ...app.jogo.retrato(), fps: app.fps() };
+      return { ...app.jogo.retrato(), fps: app.fps(), ...app.extras?.() };
     },
 
     /**
@@ -22,6 +22,12 @@ export function instalarGancho(app) {
      */
     start(opcoes = {}) {
       app.reiniciar(opcoes);
+      return api.state;
+    },
+
+    /** Abre o menu ('inicio', 'personagem' ou 'arena'); start() fecha e começa a partida. */
+    menu(etapa = 'inicio') {
+      app.menu(etapa);
       return api.state;
     },
 

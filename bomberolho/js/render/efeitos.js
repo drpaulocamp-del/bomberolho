@@ -523,6 +523,21 @@ export class Particulas {
       ctx.fillStyle = p.cor;
       if (p.forma === 'gota') {
         gotinha(ctx, p.x, p.y, p.r * vida + 0.5);
+      } else if (p.forma === 'confete') {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.idade * 9 + p.r);
+        ctx.fillRect(-p.r * 1.2, -p.r * 0.6, p.r * 2.4, p.r * 1.2);
+        ctx.restore();
+      } else if (p.forma === 'brilho') {
+        const r = p.r * (0.6 + vida);
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y - r * 2);
+        ctx.quadraticCurveTo(p.x, p.y, p.x + r * 2, p.y);
+        ctx.quadraticCurveTo(p.x, p.y, p.x, p.y + r * 2);
+        ctx.quadraticCurveTo(p.x, p.y, p.x - r * 2, p.y);
+        ctx.quadraticCurveTo(p.x, p.y, p.x, p.y - r * 2);
+        ctx.fill();
       } else {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r * (0.5 + vida * 0.5), 0, TAU);

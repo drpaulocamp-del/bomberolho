@@ -8,6 +8,7 @@ import { criarPartida, registrarRodada, sementeDaRodada, molhadosNaRodada } from
 import { criarRobo, decidir } from './ia/robo.js';
 import { criarRelogio, avancarRelogio, fracaoDoTick } from './nucleo/relogio.js';
 import { escalarPersonagens } from './dados/personagens.js';
+import { ORDEM_ARENAS } from './sim/arenas.js';
 
 export const HUMANO = 0;
 export const INTERVALO = 270; // 4,5 s de placar entre uma rodada e outra
@@ -26,6 +27,7 @@ export class Jogo {
     this.mundo = null;
     this.partida = null;
     this.intervalo = 0;
+    this.menu = null; // etapa do menu aberto por cima (a partida atrás é só vitrine)
   }
 
   /**
@@ -56,9 +58,11 @@ export class Jogo {
   novaRodada() {
     const { arena, dificuldade, personagem, semente, contagem } = this.opcoes;
     const s = sementeDaRodada(semente, this.partida.rodada);
+    // "Surpresa": cada rodada numa arena diferente, em rodízio a partir da semente.
+    const arenaDaRodada = arena === 'surpresa' ? ORDEM_ARENAS[(semente + this.partida.rodada - 1) % ORDEM_ARENAS.length] : arena;
     this.mundo = criarMundo({
       semente: s,
-      arena,
+      arena: arenaDaRodada,
       personagens: escalarPersonagens(personagem),
       ajuste: this.ajuste,
       contagem: contagem ? this.ajuste.contagem : 0,
@@ -135,9 +139,10 @@ export class Jogo {
     return e;
   }
 
-  /** 'jogando' (inclui a contagem), 'pausado', 'intervalo' (placar entre rodadas) ou 'resultado' (fim da partida). */
+  /** 'menu', 'jogando' (inclui a contagem), 'pausado', 'intervalo' (placar entre rodadas) ou 'resultado' (fim da partida). */
   get tela() {
     if (!this.mundo) return 'carregando';
+    if (this.menu) return 'menu';
     if (this.partida.encerrada) return 'resultado';
     if (this.pausado) return 'pausado';
     if (this.intervalo > 0 || this.mundo.fase === 'fim') return 'intervalo';
@@ -148,6 +153,8 @@ export class Jogo {
     const p = this.partida;
     return {
       tela: this.tela,
+      menu: this.menu,
+      arenaEscolhida: this.opcoes.arena,
       rodada: p.rodada,
       partida: {
         alvo: p.alvo, vitorias: [...p.vitorias], molhados: [...p.molhados], historico: [...p.historico],

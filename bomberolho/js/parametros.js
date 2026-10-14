@@ -25,3 +25,11 @@ export function lerParametros(busca) {
   const ajuste = sim(q.get('ajuste'));
   return { arena, dificuldade, semente, demo, personagem, escala, rodadas, ajuste };
 }
+
+const CHAVES_DE_JOGO = ['semente', 'arena', 'dificuldade', 'demo', 'personagem', 'rodadas', 'escala', 'ajuste'];
+
+/** Com algum parâmetro de jogo na URL (testes, links diretos), pula o menu e começa a partida. */
+export function pedeJogoDireto(busca) {
+  const q = new URLSearchParams(busca);
+  return CHAVES_DE_JOGO.some((k) => q.has(k));
+}

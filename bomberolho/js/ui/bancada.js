@@ -59,6 +59,8 @@ export class Bancada {
     this.el.querySelector('.restaurar').addEventListener('click', () => this.restaurar());
     this.el.querySelector('.copiar').addEventListener('click', () => this.copiar());
     raiz.append(this.botaoAbrir, this.el);
+    // Em tela baixa ou estreita a bancada aberta cobre metade da arena: começa recolhida.
+    if (window.matchMedia('(max-height: 520px), (max-width: 400px)').matches) this.recolher(true);
     this.sincronizar();
   }
 

@@ -14,6 +14,59 @@
 const TAU = Math.PI * 2;
 
 const OLHAR = { cima: [0, -1], baixo: [0, 1], esq: [-1, 0], dir: [1, 0] };
+// Todas as animações de "parado" repetem a cada 2π/2,2 s (respiração); andar, a cada 2π/14 s.
+const CICLO_PARADO = TAU / 2.2;
+const CICLO_ANDANDO = TAU / 14;
+const QUADROS_PARADO = 16;
+const QUADROS_ANDANDO = 8;
+const LIMITE_CACHE = 520;
+const cache = new Map();
+
+/**
+ * Mesmo desenho, mas guardado em quadros prontos (canvas fora da tela): a
+ * animação é cíclica, então cada pose é desenhada uma vez e depois só copiada.
+ * Poupa muito no celular de entrada. Encharcado e transições usam o desenho direto.
+ * @param {number} dpr densidade de pixels do canvas de destino
+ */
+export function desenharPersonagemRapido(ctx, p, o, dpr = 1) {
+  if (o.molhado) {
+    desenharPersonagem(ctx, p, o);
+    return;
+  }
+  const andando = !!o.andando;
+  const ciclo = andando ? CICLO_ANDANDO : CICLO_PARADO;
+  const quadros = andando ? QUADROS_ANDANDO : QUADROS_PARADO;
+  const fase = ((o.fase || 0) % ciclo + ciclo) % ciclo;
+  const k = Math.floor((fase / ciclo) * quadros) % quadros;
+  const s = o.s;
+  const chave = `${p.id}|${o.expressao || 'normal'}|${o.dir}|${andando ? 1 : 0}|${k}|${o.piscar ? 1 : 0}|${o.bracos || ''}|${o.sombra === false ? 0 : 1}|${Math.round(s * dpr * 4)}`;
+  let quadro = cache.get(chave);
+  if (quadro) {
+    // Usado agora: vai para o fim da fila (os menos usados saem primeiro).
+    cache.delete(chave);
+    cache.set(chave, quadro);
+  } else {
+    const w = s * 1.5;
+    const h = s * 1.5;
+    quadro = document.createElement('canvas');
+    quadro.width = Math.ceil(w * dpr);
+    quadro.height = Math.ceil(h * dpr);
+    const c = quadro.getContext('2d');
+    c.scale(dpr, dpr);
+    desenharPersonagem(c, p, { ...o, x: w / 2, y: s * 0.95, fase: (k / quadros) * ciclo, alfa: 1 });
+    if (cache.size >= LIMITE_CACHE) {
+      for (const velha of [...cache.keys()].slice(0, 80)) cache.delete(velha);
+    }
+    cache.set(chave, quadro);
+  }
+  const alfa = o.alfa ?? 1;
+  if (alfa !== 1) {
+    ctx.save();
+    ctx.globalAlpha *= alfa;
+  }
+  ctx.drawImage(quadro, o.x - s * 0.75, o.y - s * 0.95, s * 1.5, s * 1.5);
+  if (alfa !== 1) ctx.restore();
+}
 
 /**
  * @param {CanvasRenderingContext2D} ctx
@@ -132,8 +185,8 @@ function desenharBracos(ctx, p, o, cx, cy, rx, ry, s, passo, fase) {
   for (const lado of [-1, 1]) {
     // Ângulo a partir do ombro (0 = para fora, positivo = para baixo).
     let ang;
-    if (pose === 'cima') ang = -1.05 + Math.sin(fase * 10 + lado) * 0.25;
-    else if (pose === 'aceno' && lado === 1) ang = -1.2 + Math.sin(fase * 9) * 0.45;
+    if (pose === 'cima') ang = -1.05 + Math.sin(fase * 11 + lado) * 0.25;
+    else if (pose === 'aceno' && lado === 1) ang = -1.2 + Math.sin(fase * 8.8) * 0.45;
     else if (o.molhado > 0) ang = 1.25;
     else ang = 0.75 + (o.andando ? passo * lado * 0.45 : Math.sin(fase * 2.2) * 0.06);
     const ombroX = cx + lado * rx * 0.9;
@@ -227,7 +280,7 @@ function desenharIris(ctx, p, ix, iy, ir, pupila, fase) {
   // Brilhos (a Córnea tem um brilho em estrela, que pisca).
   ctx.fillStyle = '#FFFFFF';
   if (p.estilo === 'cristal') {
-    estrela4(ctx, ix - ir * 0.32, iy - ir * 0.32, ir * (0.3 + Math.sin(fase * 4) * 0.05));
+    estrela4(ctx, ix - ir * 0.32, iy - ir * 0.32, ir * (0.3 + Math.sin(fase * 4.4) * 0.05));
   } else {
     ctx.beginPath();
     ctx.arc(ix - ir * 0.32, iy - ir * 0.32, ir * 0.21, 0, TAU);
@@ -379,7 +432,7 @@ function desenharAcessorio(ctx, p, cx, cy, rx, ry, s, fase) {
       ctx.fillStyle = '#FFD1F0';
       ctx.lineWidth = s * 0.022;
       for (let k = 0; k < 5; k++) {
-        const a = (k / 5) * TAU + fase * 0.5;
+        const a = (k / 5) * TAU + fase * 0.44;
         ctx.beginPath();
         ctx.arc(fx + Math.cos(a) * s * 0.085, fy + Math.sin(a) * s * 0.085, s * 0.068, 0, TAU);
         ctx.fill();
@@ -398,7 +451,7 @@ function desenharAcessorio(ctx, p, cx, cy, rx, ry, s, fase) {
         const bx = cx + k * rx * 0.25;
         ctx.beginPath();
         ctx.moveTo(bx, topo + ry * 0.1);
-        ctx.quadraticCurveTo(bx + k * s * 0.05 + s * 0.04, topo - s * 0.16, bx + k * s * 0.09 + s * 0.12, topo - s * 0.13 + Math.sin(fase * 5 + k) * s * 0.01);
+        ctx.quadraticCurveTo(bx + k * s * 0.05 + s * 0.04, topo - s * 0.16, bx + k * s * 0.09 + s * 0.12, topo - s * 0.13 + Math.sin(fase * 4.4 + k) * s * 0.01);
         ctx.stroke();
       }
       break;
@@ -414,7 +467,7 @@ function desenharAcessorio(ctx, p, cx, cy, rx, ry, s, fase) {
       ctx.beginPath();
       ctx.ellipse(cx, topo + ry * 0.32, rx * 0.68, ry * 0.3, 0, Math.PI * 1.15, Math.PI * 1.45);
       ctx.stroke();
-      const fy = topo - s * 0.12 + Math.sin(fase * 3) * s * 0.025;
+      const fy = topo - s * 0.12 + Math.sin(fase * 2.2) * s * 0.025;
       ctx.fillStyle = '#E8FBFF';
       ctx.strokeStyle = p.escura;
       ctx.lineWidth = s * 0.025;
@@ -471,7 +524,7 @@ function desenharAcessorio(ctx, p, cx, cy, rx, ry, s, fase) {
       ctx.lineWidth = s * 0.02;
       const nx = cx + rx * 0.86;
       const ny = cy - ry * 0.5;
-      for (const a of [-0.4 + Math.sin(fase * 6) * 0.15, 0.5 + Math.sin(fase * 6 + 1) * 0.15]) {
+      for (const a of [-0.4 + Math.sin(fase * 6.6) * 0.15, 0.5 + Math.sin(fase * 6.6 + 1) * 0.15]) {
         ctx.beginPath();
         ctx.ellipse(nx + Math.cos(a) * s * 0.09, ny + Math.sin(a) * s * 0.09, s * 0.075, s * 0.032, a, 0, TAU);
         ctx.fill();
@@ -481,7 +534,7 @@ function desenharAcessorio(ctx, p, cx, cy, rx, ry, s, fase) {
     }
     case 'broto': { // brotinho de duas folhas que balança
       ctx.lineWidth = s * 0.032;
-      const balanco = Math.sin(fase * 2) * 0.12;
+      const balanco = Math.sin(fase * 2.2) * 0.12;
       const tx = cx + Math.sin(balanco) * s * 0.17;
       const ty = topo - s * 0.15;
       ctx.beginPath();

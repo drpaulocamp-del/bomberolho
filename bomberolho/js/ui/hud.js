@@ -24,6 +24,13 @@ const ICONE_BICHINHO = {
 
 const NOMES_CISCO = { lento: 'olho embaçado: anda devagar', ligeiro: 'piscando sem parar: anda depressa demais', espirro: 'espirrando: solta gotas sem querer' };
 
+/** Retrato do cartão: acordado na arena, cochilando quando foi descansar. */
+function retratar(canvas, p, vivo) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  desenharPersonagem(ctx, p, { x: 48, y: 52, s: 82, dir: 'baixo', fase: 0.4, sombra: false, expressao: vivo ? 'normal' : 'sono' });
+}
+
 function relogio(segundos) {
   const t = Math.max(0, Math.ceil(segundos));
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
@@ -49,14 +56,13 @@ export class Placar {
       retrato.className = 'retrato';
       retrato.width = 96;
       retrato.height = 96;
-      const ctx = retrato.getContext('2d');
-      desenharPersonagem(ctx, p, { x: 48, y: 50, s: 84, dir: 'baixo', andando: false, fase: 0, piscar: 0 });
+      retratar(retrato, p, true);
       const info = document.createElement('div');
       info.className = 'info';
       info.innerHTML = `<span class="nome">${p.nome}${j.id === 0 ? ' <em>você</em>' : ''}<span class="trofeus"></span></span><span class="poderes"></span>`;
       el.append(retrato, info);
       this.raiz.append(el);
-      return { el, poderes: info.querySelector('.poderes'), trofeus: info.querySelector('.trofeus') };
+      return { el, retrato, p, vivo: true, poderes: info.querySelector('.poderes'), trofeus: info.querySelector('.trofeus') };
     });
     this.chave = '';
     this.chaveBarra = '';
@@ -77,6 +83,10 @@ export class Placar {
       if (!c) return;
       const nome = PERSONAGENS[j.personagem].nome;
       c.el.classList.toggle('fora', !j.vivo);
+      if (c.vivo !== j.vivo) {
+        c.vivo = j.vivo;
+        retratar(c.retrato, c.p, j.vivo);
+      }
       c.el.setAttribute('aria-label', `${nome}: ${p.vitorias[j.id]} de ${p.alvo} troféus, ${j.vivo ? 'na arena' : 'descansando'}`);
       c.trofeus.innerHTML = Array.from({ length: p.alvo }, (_, t) => `<i class="${t < p.vitorias[j.id] ? 'ganho' : ''}">${ICONES.trofeu}</i>`).join('');
       if (!j.vivo) {

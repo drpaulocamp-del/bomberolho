@@ -1,6 +1,7 @@
 // Paletas e peças de cada arena (só aparência). Cada arena tem piso, moldura,
 // pilar e bloco com desenho próprio (ver pecas.js) e uma cor de "muro" para
-// as peças do aperto final. A parte 3 refina; aqui já é tudo distinto e legível.
+// as peças do aperto final. Pilar (fixo) sempre mais escuro e pesado que o
+// bloco (quebra), para se distinguirem num relance, também sem cor.
 
 export const TEMAS = Object.freeze({
   jardim: Object.freeze({
@@ -9,6 +10,7 @@ export const TEMAS = Object.freeze({
     pisoSombra: 'rgba(36, 92, 64, 0.16)',
     decoracao: 'flores',
     flores: ['#C3B1FF', '#FFC2DD', '#FFFFFF', '#FFE58F'],
+    grama: 'rgba(60, 160, 100, 0.45)',
     moldura: { clara: '#9B87EC', escura: '#5B45B8', brilho: 'rgba(255,255,255,0.35)', dobradica: '#E6E0FF' },
     pilar: { estilo: 'lente', base: '#AE9DF0', baseEscura: '#7560D4', lenteClara: '#F4FDFF', lenteEscura: '#9AD6F2', aro: '#5F49C2' },
     bloco: { estilo: 'polen', clara: '#FFF0B8', media: '#FFD772', escura: '#F0AE45', grao: '#D98B25', borda: '#C9842E' },
@@ -54,8 +56,8 @@ export const TEMAS = Object.freeze({
     decoracao: 'azulejos',
     lente: { aro: '#0071E3', vidro: 'rgba(160, 215, 255, 0.55)', brilho: '#FFFFFF' },
     moldura: { clara: '#8EA2BF', escura: '#46597A', brilho: 'rgba(255,255,255,0.45)', dobradica: '#F2F6FB' },
-    pilar: { estilo: 'armacao', base: '#C9D4E3', baseEscura: '#8C9BB3', lenteClara: '#FFFFFF', lenteEscura: '#CFE6FA', aro: '#2B3A55' },
-    bloco: { estilo: 'caixa', clara: '#FFFFFF', media: '#DCEBFA', escura: '#9DBBDB', grao: '#0071E3', borda: '#7193B8' },
+    pilar: { estilo: 'armacao', base: '#93A6C2', baseEscura: '#5A6C8E', lenteClara: '#FFFFFF', lenteEscura: '#DCEEFF', aro: '#1F2D4A' },
+    bloco: { estilo: 'caixa', clara: '#F2FFFB', media: '#C2F0E2', escura: '#6FCDB3', grao: '#0E9F83', borda: '#3E9C86' },
     muro: { clara: '#7D8DA6', escura: '#3A4860', risco: 'rgba(255,255,255,0.45)' },
   }),
 });

@@ -1,5 +1,6 @@
 // Mede quadros por segundo e tempo de quadro numa partida em modo demo:
-// desktop 1280×720 e "celular de entrada" (390×844, DPR 3, CPU 4× mais lenta).
+// desktop 1280×720 e "celular de entrada" (390×844, DPR 3, CPU 4× mais lenta),
+// e o menu inicial no mesmo celular lento.
 // Uso: node qa/navegador/desempenho.mjs
 
 import { subirServidor, abrirNavegador, novaPagina, esperarJogo } from './apoio.mjs';
@@ -7,6 +8,8 @@ import { subirServidor, abrirNavegador, novaPagina, esperarJogo } from './apoio.
 const cenarios = [
   { nome: 'desktop 1280×720 (DPR 1)', tela: { width: 1280, height: 720 }, dpr: 1, lentidao: 1 },
   { nome: 'celular 390×844 (DPR 3, CPU 4× mais lenta)', tela: { width: 390, height: 844 }, dpr: 3, lentidao: 4 },
+  // Parte 3: o menu (vitrine de robôs atrás + desfile animado) no mesmo celular lento.
+  { nome: 'menu no celular 390×844 (DPR 3, CPU 4× mais lenta)', tela: { width: 390, height: 844 }, dpr: 3, lentidao: 4, busca: '' },
 ];
 
 const servidor = await subirServidor();
@@ -18,7 +21,7 @@ try {
       const cdp = await contexto.newCDPSession(pagina);
       await cdp.send('Emulation.setCPUThrottlingRate', { rate: c.lentidao });
     }
-    await pagina.goto(`${servidor.url}?demo=1&semente=4`);
+    await pagina.goto(`${servidor.url}${c.busca ?? '?demo=1&semente=4'}`);
     await esperarJogo(pagina);
     const r = await pagina.evaluate(() => new Promise((ok) => {
       const tempos = [];

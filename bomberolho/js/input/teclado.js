@@ -23,6 +23,11 @@ export function criarTeclado(alvo, acoes = {}) {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     // Controles da bancada de ajuste (deslizantes, texto) usam as setas para si.
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    // Menu aberto: as teclas são dos botões do menu.
+    if (acoes.ativo && !acoes.ativo()) return;
+    // Num cartão (pausa, placar), Enter e Espaço acionam o botão em foco.
+    const botaoEmFoco = e.target && e.target.tagName === 'BUTTON';
+    if (botaoEmFoco && /^(Enter|NumpadEnter|Space)$/.test(e.code) && acoes.jogando && !acoes.jogando()) return;
     const dir = DIRECAO_POR_TECLA[e.code];
     const botao = TECLAS_GOTA.has(e.code) ? 'bomba' : TECLAS_ACAO.has(e.code) ? 'acao' : null;
     if (dir) {
