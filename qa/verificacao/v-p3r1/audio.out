@@ -1,0 +1,188 @@
+{
+ "antesDoGesto": {
+  "criados": 0,
+  "audio": "inativo"
+ },
+ "depoisDoGesto": {
+  "criados": 1,
+  "audio": "running"
+ },
+ "aposMudo": {
+  "audio": "suspended",
+  "mudo": true,
+  "rotulo": "Som desligado (tocar para ligar)"
+ },
+ "recarregadoMudo": {
+  "criados": 0,
+  "audio": "inativo",
+  "mudo": true
+ },
+ "hudMudo": "Som desligado (tocar para ligar)",
+ "religado": {
+  "criados": 1,
+  "audio": "running",
+  "mudo": false
+ },
+ "problemas1": [],
+ "render": {
+  "trilhas": {
+   "menu": {
+    "pico": -18.7,
+    "rms": -37.3,
+    "janelaMax": -33,
+    "janelaMed": -39.3,
+    "voltaSeg": 40,
+    "frasesDistintas": 2
+   },
+   "jardim": {
+    "pico": -19.7,
+    "rms": -37.5,
+    "janelaMax": -32.7,
+    "janelaMed": -39.7,
+    "voltaSeg": 36.9,
+    "frasesDistintas": 2
+   },
+   "lago": {
+    "pico": -19.3,
+    "rms": -38.1,
+    "janelaMax": -32.4,
+    "janelaMed": -41.7,
+    "voltaSeg": 45.7,
+    "frasesDistintas": 2
+   },
+   "caverna": {
+    "pico": -18.8,
+    "rms": -37.5,
+    "janelaMax": -32.5,
+    "janelaMed": -39.1,
+    "voltaSeg": 41.7,
+    "frasesDistintas": 2
+   },
+   "vale": {
+    "pico": -19.9,
+    "rms": -38.2,
+    "janelaMax": -33.7,
+    "janelaMed": -40.7,
+    "voltaSeg": 34.3,
+    "frasesDistintas": 2
+   },
+   "consultorio": {
+    "pico": -19.5,
+    "rms": -37.8,
+    "janelaMax": -33.2,
+    "janelaMed": -40.9,
+    "voltaSeg": 38.4,
+    "frasesDistintas": 2
+   }
+  },
+  "rajada": {
+   "pico": -1.7,
+   "rms": -26.9,
+   "janelaMax": -20.6,
+   "janelaMed": -26.2
+  },
+  "efeitos": {
+   "gota": {
+    "pico": -21.1,
+    "janelaMax": -34.6
+   },
+   "respingo": {
+    "pico": -16.9,
+    "janelaMax": -28.1
+   },
+   "bloco": {
+    "pico": -30.9,
+    "janelaMax": -47
+   },
+   "item": {
+    "pico": -19.9,
+    "janelaMax": -32.3
+   },
+   "itemRaro": {
+    "pico": -20,
+    "janelaMax": -32.4
+   },
+   "cisco": {
+    "pico": -18.3,
+    "janelaMax": -30.4
+   },
+   "espirro": {
+    "pico": -22.9,
+    "janelaMax": -39.1
+   },
+   "encharcado": {
+    "pico": -26.2,
+    "janelaMax": -33.6
+   },
+   "contagem": {
+    "pico": -26.6,
+    "janelaMax": -37.1
+   },
+   "ja": {
+    "pico": -24.6,
+    "janelaMax": -34.1
+   },
+   "aperto": {
+    "pico": -19.3,
+    "janelaMax": -33.5
+   },
+   "muro": {
+    "pico": -26.1,
+    "janelaMax": -37.7
+   },
+   "chute": {
+    "pico": -29,
+    "janelaMax": -44.6
+   },
+   "salto": {
+    "pico": -27.5,
+    "janelaMax": -36.5
+   },
+   "pousou": {
+    "pico": -27.7,
+    "janelaMax": -40.9
+   },
+   "arremesso": {
+    "pico": -42.9,
+    "janelaMax": -55.5
+   },
+   "montou": {
+    "pico": -20.1,
+    "janelaMax": -31.7
+   },
+   "perdeuBichinho": {
+    "pico": -20.4,
+    "janelaMax": -32.9
+   },
+   "defendeu": {
+    "pico": -28.6,
+    "janelaMax": -39.2
+   },
+   "disparada": {
+    "pico": -43.4,
+    "janelaMax": -57.7
+   },
+   "vitoria": {
+    "pico": -15.2,
+    "janelaMax": -27.3
+   },
+   "rodada": {
+    "pico": -19.8,
+    "janelaMax": -32.3
+   },
+   "empate": {
+    "pico": -21.2,
+    "janelaMax": -32.4
+   },
+   "clique": {
+    "pico": -33.2,
+    "janelaMax": -50.5
+   },
+   "escolha": {
+    "pico": -25.5,
+    "janelaMax": -40.1
+   }
+  }
+ },
+ "problemas2": []
+}

@@ -1,0 +1,277 @@
+
+> e2e
+> node --test --test-concurrency=1 "navegador/*.test.mjs"
+
+TAP version 13
+# Subtest: carrega limpo em desktop (1280×720): sem erro, aviso ou 404, arena inteira visível
+ok 1 - carrega limpo em desktop (1280×720): sem erro, aviso ou 404, arena inteira visível
+  ---
+  duration_ms: 1307.486358
+  type: 'test'
+  ...
+# Subtest: carrega limpo em retrato (390×844): sem erro, aviso ou 404, arena inteira visível
+ok 2 - carrega limpo em retrato (390×844): sem erro, aviso ou 404, arena inteira visível
+  ---
+  duration_ms: 968.880016
+  type: 'test'
+  ...
+# Subtest: carrega limpo em paisagem (844×390): sem erro, aviso ou 404, arena inteira visível
+ok 3 - carrega limpo em paisagem (844×390): sem erro, aviso ou 404, arena inteira visível
+  ---
+  duration_ms: 913.89687
+  type: 'test'
+  ...
+# Subtest: carrega limpo em pequeno (360×640): sem erro, aviso ou 404, arena inteira visível
+ok 4 - carrega limpo em pequeno (360×640): sem erro, aviso ou 404, arena inteira visível
+  ---
+  duration_ms: 965.540881
+  type: 'test'
+  ...
+# Subtest: favicon e todos os módulos respondem 200
+ok 5 - favicon e todos os módulos respondem 200
+  ---
+  duration_ms: 391.107916
+  type: 'test'
+  ...
+# Subtest: gancho __bomberolho expõe state, start, setTimeScale, input, step e demo
+ok 6 - gancho __bomberolho expõe state, start, setTimeScale, input, step e demo
+  ---
+  duration_ms: 768.571687
+  type: 'test'
+  ...
+# Subtest: input + step movem o humano, soltam gota e o respingo segue as regras
+ok 7 - input + step movem o humano, soltam gota e o respingo segue as regras
+  ---
+  duration_ms: 398.677469
+  type: 'test'
+  ...
+# Subtest: teclado: setas e WASD andam, espaço solta gota, nenhuma tecla rola a página
+ok 8 - teclado: setas e WASD andam, espaço solta gota, nenhuma tecla rola a página
+  ---
+  duration_ms: 1165.836448
+  type: 'test'
+  ...
+# Subtest: P pausa e Enter retoma; o botão Pausar também
+ok 9 - P pausa e Enter retoma; o botão Pausar também
+  ---
+  duration_ms: 1054.301765
+  type: 'test'
+  ...
+# Subtest: parâmetros de URL: ?semente=, ?dificuldade=, ?arena= e ?demo=1
+ok 10 - parâmetros de URL: ?semente=, ?dificuldade=, ?arena= e ?demo=1
+  ---
+  duration_ms: 4853.47792
+  type: 'test'
+  ...
+# Subtest: navegador e Node simulam igual: mesma semente + mesmas entradas = mesmo hash
+ok 11 - navegador e Node simulam igual: mesma semente + mesmas entradas = mesmo hash
+  ---
+  duration_ms: 652.477262
+  type: 'test'
+  ...
+# Subtest: fim de rodada mostra o resultado e Enter começa outra
+ok 12 - fim de rodada mostra o resultado e Enter começa outra
+  ---
+  duration_ms: 3033.600274
+  type: 'test'
+  ...
+# Subtest: desempenho: mantém perto de 60 quadros por segundo em partida
+ok 13 - desempenho: mantém perto de 60 quadros por segundo em partida
+  ---
+  duration_ms: 3595.900278
+  type: 'test'
+  ...
+# Subtest: contagem "3, 2, 1" trava todos; o relógio do placar começa em 2:00 e desce depois do "já"
+ok 14 - contagem "3, 2, 1" trava todos; o relógio do placar começa em 2:00 e desce depois do "já"
+  ---
+  duration_ms: 954.691313
+  type: 'test'
+  ...
+# Subtest: fim de rodada: placar entre rodadas com troféus, Enter pula para a próxima, e a taça no fim
+ok 15 - fim de rodada: placar entre rodadas com troféus, Enter pula para a próxima, e a taça no fim
+  ---
+  duration_ms: 4783.441979
+  type: 'test'
+  ...
+# Subtest: teclado: Shift usa o bichinho (Saltinho pula), e o gancho aceita o campo acao
+ok 16 - teclado: Shift usa o bichinho (Saltinho pula), e o gancho aceita o campo acao
+  ---
+  duration_ms: 489.731777
+  type: 'test'
+  ...
+# Subtest: teclado: com a Pinça, Espaço solta a gota, segurar levanta e soltar arremessa
+ok 17 - teclado: com a Pinça, Espaço solta a gota, segurar levanta e soltar arremessa
+  ---
+  duration_ms: 469.624675
+  type: 'test'
+  ...
+# Subtest: sem ?ajuste=1 a bancada não existe nem é baixada
+ok 18 - sem ?ajuste=1 a bancada não existe nem é baixada
+  ---
+  duration_ms: 1125.768173
+  type: 'test'
+  ...
+# Subtest: bancada ?ajuste=1 em desktop: muda na hora, restaura, copia, fecha com um toque e não cobre a arena
+ok 19 - bancada ?ajuste=1 em desktop: muda na hora, restaura, copia, fecha com um toque e não cobre a arena
+  ---
+  duration_ms: 1096.497815
+  type: 'test'
+  ...
+# Subtest: bancada ?ajuste=1 em retrato: muda na hora, restaura, copia, fecha com um toque e não cobre a arena
+ok 20 - bancada ?ajuste=1 em retrato: muda na hora, restaura, copia, fecha com um toque e não cobre a arena
+  ---
+  duration_ms: 1084.347625
+  type: 'test'
+  ...
+# Subtest: bancada ?ajuste=1 em paisagem: muda na hora, restaura, copia, fecha com um toque e não cobre a arena
+ok 21 - bancada ?ajuste=1 em paisagem: muda na hora, restaura, copia, fecha com um toque e não cobre a arena
+  ---
+  duration_ms: 1154.248266
+  type: 'test'
+  ...
+# Subtest: arena jardim: carrega limpa em 360×640 e roda uma partida inteira sem erro
+ok 22 - arena jardim: carrega limpa em 360×640 e roda uma partida inteira sem erro
+  ---
+  duration_ms: 2544.119873
+  type: 'test'
+  ...
+# Subtest: arena lago: carrega limpa em 360×640 e roda uma partida inteira sem erro
+ok 23 - arena lago: carrega limpa em 360×640 e roda uma partida inteira sem erro
+  ---
+  duration_ms: 4183.289056
+  type: 'test'
+  ...
+# Subtest: arena caverna: carrega limpa em 360×640 e roda uma partida inteira sem erro
+ok 24 - arena caverna: carrega limpa em 360×640 e roda uma partida inteira sem erro
+  ---
+  duration_ms: 2299.0929
+  type: 'test'
+  ...
+# Subtest: arena vale: carrega limpa em 360×640 e roda uma partida inteira sem erro
+ok 25 - arena vale: carrega limpa em 360×640 e roda uma partida inteira sem erro
+  ---
+  duration_ms: 5287.952732
+  type: 'test'
+  ...
+# Subtest: arena consultorio: carrega limpa em 360×640 e roda uma partida inteira sem erro
+ok 26 - arena consultorio: carrega limpa em 360×640 e roda uma partida inteira sem erro
+  ---
+  duration_ms: 2453.2562
+  type: 'test'
+  ...
+# Subtest: sem parâmetros abre o menu, com a vitrine de robôs rodando atrás e sem som
+ok 27 - sem parâmetros abre o menu, com a vitrine de robôs rodando atrás e sem som
+  ---
+  duration_ms: 1654.660643
+  type: 'test'
+  ...
+# Subtest: fluxo completo: Jogar → personagem → arena, robôs e troféus → partida com as escolhas
+ok 28 - fluxo completo: Jogar → personagem → arena, robôs e troféus → partida com as escolhas
+  ---
+  duration_ms: 2646.234903
+  type: 'test'
+  ...
+# Subtest: Voltar e Esc sempre levam para trás; nada de beco sem saída
+ok 29 - Voltar e Esc sempre levam para trás; nada de beco sem saída
+  ---
+  duration_ms: 2283.635233
+  type: 'test'
+  ...
+# Subtest: Sair pergunta antes; "Continuar jogando" volta e "Sair" leva ao menu
+ok 30 - Sair pergunta antes; "Continuar jogando" volta e "Sair" leva ao menu
+  ---
+  duration_ms: 3307.182901
+  type: 'test'
+  ...
+# Subtest: pausa tem Continuar, Recomeçar e Menu, e uma curiosidade verdadeira da lista
+not ok 31 - pausa tem Continuar, Recomeçar e Menu, e uma curiosidade verdadeira da lista
+  ---
+  duration_ms: 1049.497785
+  type: 'test'
+  location: '/home/user/bomberolho/qa/navegador/parte3.test.mjs:132:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    4 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 4
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/bomberolho/qa/navegador/parte3.test.mjs:142:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: fim de partida: Jogar de novo e Menu; o placar local conta a partida
+ok 32 - fim de partida: Jogar de novo e Menu; o placar local conta a partida
+  ---
+  duration_ms: 2763.857854
+  type: 'test'
+  ...
+# Subtest: preferências: personagem, arena, dificuldade e troféus lembrados ao voltar
+ok 33 - preferências: personagem, arena, dificuldade e troféus lembrados ao voltar
+  ---
+  duration_ms: 4359.762883
+  type: 'test'
+  ...
+# Subtest: mudo: o botão desliga o som, e a escolha fica guardada depois de recarregar
+ok 34 - mudo: o botão desliga o som, e a escolha fica guardada depois de recarregar
+  ---
+  duration_ms: 3286.875523
+  type: 'test'
+  ...
+# Subtest: armazenamento bloqueado: o jogo abre e joga normalmente (sem lembrar)
+ok 35 - armazenamento bloqueado: o jogo abre e joga normalmente (sem lembrar)
+  ---
+  duration_ms: 2304.298707
+  type: 'test'
+  ...
+# Subtest: arena Surpresa: cada rodada numa arena diferente
+ok 36 - arena Surpresa: cada rodada numa arena diferente
+  ---
+  duration_ms: 3854.807241
+  type: 'test'
+  ...
+# Subtest: desktop (1280×720): menus, cartões e jogo cabem na tela, alvos ≥ 44 px
+ok 37 - desktop (1280×720): menus, cartões e jogo cabem na tela, alvos ≥ 44 px
+  ---
+  duration_ms: 3176.204927
+  type: 'test'
+  ...
+# Subtest: retrato (390×844): menus, cartões e jogo cabem na tela, alvos ≥ 44 px
+ok 38 - retrato (390×844): menus, cartões e jogo cabem na tela, alvos ≥ 44 px
+  ---
+  duration_ms: 2524.719615
+  type: 'test'
+  ...
+# Subtest: paisagem (844×390): menus, cartões e jogo cabem na tela, alvos ≥ 44 px
+ok 39 - paisagem (844×390): menus, cartões e jogo cabem na tela, alvos ≥ 44 px
+  ---
+  duration_ms: 2513.23459
+  type: 'test'
+  ...
+# Subtest: pequeno (360×640): menus, cartões e jogo cabem na tela, alvos ≥ 44 px
+ok 40 - pequeno (360×640): menus, cartões e jogo cabem na tela, alvos ≥ 44 px
+  ---
+  duration_ms: 2346.952598
+  type: 'test'
+  ...
+# Subtest: reduzir movimento: o jogo respeita a preferência do sistema
+ok 41 - reduzir movimento: o jogo respeita a preferência do sistema
+  ---
+  duration_ms: 728.010032
+  type: 'test'
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 40
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 88670.465974
+EXIT 1
