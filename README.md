@@ -82,7 +82,7 @@ npx playwright install chromium     # baixa o Chromium que essa versão do Playw
 ```bash
 cd qa
 npm test             # simulação e lógica pura, com node --test, sem navegador (~30 s)
-npm run e2e          # navegador (Chromium): jogo, menus, toque, robustez (~2–3 min)
+npm run e2e          # navegador (Chromium): jogo, menus, toque, robustez (~3–4 min)
 npm run todos        # as duas, em sequência
 npm run test:regras  # só as regras, pulando os testes de partida inteira e de IA (mais rápido)
 ```
