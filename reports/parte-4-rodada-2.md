@@ -18,7 +18,7 @@ Para medir antes e depois, usei **os próprios scripts do verificador** em `qa/v
 | | Antes (início da rodada) | Depois (com o trabalho do ajudante já na árvore) |
 |---|---|---|
 | `npm test` | 188/188 | **189/189** |
-| `npm run e2e` | 55/55 | **58/58** |
+| `npm run e2e` | 55/55 | **58/58** (rodado de novo ao fechar a rodada: 189/189 e 58/58) |
 
 - Zero erros, avisos ou 404 em todos os scripts, testes e capturas.
 - O e2e ficou mais lento (98 s → 227 s): o teste novo de alcance passa por 14 telas, e outro agente rodava em paralelo na mesma máquina.
@@ -196,23 +196,61 @@ O pior caso era "Pupilo" com 3 troféus, que perdia 34 px.
   - Depois, **deitado, ele some** (`.alavanca.repouso.conhecida`), e o placar volta a ficar legível.
   - Em pé, ele fica, porque está na faixa vazia dos controles.
 
-## M2, M3, M4 — Trabalho do ajudante
+## Trabalho do ajudante (M2, M3, M4)
 
-O ajudante cuidou desses itens e documenta tudo em `reports/parte-4-rodada-2-ajudante.md`. **Quando escrevi este relatório, esse arquivo ainda não existia**, então não pude resumi-lo.
+Resumo de `reports/parte-4-rodada-2-ajudante.md`. Os detalhes e as tabelas completas estão lá.
 
-Pelo que já estava na árvore de trabalho:
+### M2 — `npm run desempenho` agora mede o que diz
 
-- **M2:** `qa/navegador/desempenho.mjs` foi reescrito.
-- **M3:** os JSON gerados grandes saíram do índice:
-  - `qa/lote/p4.json`;
-  - `qa/verificacao/v-p2r2/{l1,l2,lote}.json`;
-  - `qa/verificacao/p2r1/jogar.out.json`;
-  - os `v-p3r*/test.out`.
+`qa/navegador/desempenho.mjs` foi reescrito:
 
-  O `.gitignore` da raiz e o `qa/lote/.gitignore` ganharam as regras correspondentes.
-- **M4:** o `README.md` foi atualizado.
+- avança por `state.relogio` (começo 115 s, meio 85 s, aperto 45 s);
+- exige `aperto.ativo`, fase "jogando" e pelo menos 2 vivos;
+- se a rodada acabar antes, troca de semente; se não alcançar um momento, termina com código 1;
+- mede a janela de adaptação (1,5 s) e a estável (6 s), com fps, p95, fps mínimo em 500 ms e quadros lentos;
+- mede também a entrada no aperto em tempo real.
 
-As duas suítes (189/189 e 58/58) passaram **com essas mudanças já na árvore**. O orquestrador deve conferir o relatório do ajudante.
+Medido em 3 repetições, na mesma máquina compartilhada:
+
+| Tela | Resultado |
+|---|---|
+| Desktop | **60 fps** em todos os momentos |
+| Celular lento emulado (390×844, DPR 3, CPU 4×), aperto estável | **44–47 fps**, mínimo de 31–32 |
+| Celular lento emulado, no geral | média de 43–50 fps |
+
+O ajudante registra com honestidade os mínimos transitórios abaixo de 30 fps (0,5 s):
+
+- 25–29 fps nos 2 s após o aperto ligar;
+- 23–25 fps enquanto a densidade desce no começo;
+- 22–28 fps no menu.
+
+Memória: sem vazamento (heap de 4,45–4,61 MB entre 210 e 300 s, 57 ouvintes constantes).
+
+### M3 — arquivos gerados fora do versionamento
+
+- `git rm --cached` em `qa/lote/p4.json`, `qa/verificacao/v-p2r2/{lote,l1,l2}.json`, `qa/verificacao/p2r1/jogar.out.json` e `qa/verificacao/v-p3r*/test.out`: cerca de 9,2 MB a menos.
+- As cópias continuam no disco, e os scripts as recriam sob demanda.
+- Regras novas: `*.json` e `rapido.md` em `qa/lote/.gitignore`; `qa/verificacao/**/*.json` e `**/test.out` no `.gitignore` da raiz.
+- Nenhum script, resumo `.md` ou parecer foi apagado.
+
+### M4 — README
+
+- **Instalação numa máquina nova:** `npm i && npx playwright install chromium`.
+- **`npm run desempenho`:** descrição corrigida.
+- **Parâmetros de URL e gancho:** conferidos contra o código.
+- **Estrutura:** entrou `js/nucleo/`.
+- **Integração da etapa 2:** comando `cp -R` corrigido e conferência com `python3 -m http.server`.
+
+### `npm run capturas`
+
+O ajudante achou que esse script estava quebrado. Como `qa/navegador/capturas.mjs` não era da frente dele, só tirou a menção do README.
+
+**Consertei** (`capturas.mjs`): em tela baixa ou estreita, a bancada `?ajuste=1` começa recolhida. Agora o script toca em "Mostrar tudo" antes de preencher o pavio. `npm run capturas` roda até o fim ("nenhum erro, aviso ou 404"), e olhei a captura `bancada-paisagem.png`.
+
+### Suítes com tudo junto (minha frente e a do ajudante), ao fechar a rodada
+
+- `npm test`: **189/189** (21 s).
+- `npm run e2e`: **58/58** (199 s).
 
 ### O que fiz do lado do jogo para o M2
 
@@ -257,7 +295,8 @@ Fiz um perfil de CPU no aperto, a 390×844 com DPR 3 e CPU 4×:
 - `bomberolho/js/ui/hud.js`: classe `eu` no cartão do jogador;
 - `qa/navegador/toque.test.mjs`: 2 testes novos;
 - `qa/sim/toque.test.mjs`: 1 teste novo;
-- `qa/navegador/capturas-p4.mjs`: 11 telas, mais um filtro opcional por nome.
+- `qa/navegador/capturas-p4.mjs`: 11 telas, mais um filtro opcional por nome;
+- `qa/navegador/capturas.mjs`: abre a bancada recolhida antes de preencher o pavio (`npm run capturas` volta a funcionar).
 
 **Novo:**
 

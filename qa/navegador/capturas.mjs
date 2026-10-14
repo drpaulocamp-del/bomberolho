@@ -77,6 +77,8 @@ try {
   for (const [nome, tela] of [['desktop', TELAS.desktop], ['retrato', TELAS.retrato], ['paisagem', TELAS.paisagem]]) {
     const { pagina: pg, contexto, problemas } = await pagina(tela, '?semente=7&ajuste=1');
     await pg.waitForSelector('.bancada input[type=range]');
+    // Em tela baixa ou estreita a bancada começa recolhida (só o último controle à vista).
+    if (await pg.locator('.bancada.recolhida').count()) await pg.click('.bancada .recolher');
     await pg.locator('#ajuste-pavio').fill('141');
     await passos(pg, 200);
     await pg.screenshot({ path: `${PASTA}bancada-${nome}.png` });
