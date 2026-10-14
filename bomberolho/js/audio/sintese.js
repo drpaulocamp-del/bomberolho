@@ -42,6 +42,9 @@ export function tom(ctx, t, o) {
     lfo.stop(t + o.dur + 0.05);
   }
   const ataque = o.ataque ?? 0.005;
+  // Ganho em silêncio desde a criação: sem isto, o primeiro quadro de áudio
+  // pode passar com o ganho padrão (1) e virar um estalo de uma amostra.
+  g.gain.value = 0;
   g.gain.setValueAtTime(0.0001, t);
   g.gain.exponentialRampToValueAtTime(Math.max(0.0002, o.vol), t + ataque);
   g.gain.exponentialRampToValueAtTime(0.0001, t + o.dur);
@@ -60,6 +63,7 @@ export function ruido(ctx, buffer, t, o) {
   if (o.f2) filtro.frequency.exponentialRampToValueAtTime(o.f2, t + o.dur);
   filtro.Q.value = o.q ?? 1;
   const g = ctx.createGain();
+  g.gain.value = 0; // idem: nada de estalo na primeira amostra do ruído
   g.gain.setValueAtTime(0.0001, t);
   g.gain.exponentialRampToValueAtTime(o.vol, t + (o.ataque ?? 0.004));
   g.gain.exponentialRampToValueAtTime(0.0001, t + o.dur);
@@ -87,33 +91,33 @@ function bolhas(ctx, t, n, vol, saida) {
  */
 export const EFEITOS = {
   gota(ctx, r, t, s) { // "ploc" de gota pousando
-    tom(ctx, t, { f: 620, f2: 280, dur: 0.13, vol: 0.32, saida: s });
-    tom(ctx, t, { tipo: 'triangle', f: 1240, f2: 600, dur: 0.06, vol: 0.06, saida: s });
+    tom(ctx, t, { f: 620, f2: 280, dur: 0.13, vol: 0.5, saida: s });
+    tom(ctx, t, { tipo: 'triangle', f: 1240, f2: 600, dur: 0.06, vol: 0.1, saida: s });
   },
   respingo(ctx, r, t, s, forca = 1) { // "splash": chiado que desce + baque macio + bolhas
-    ruido(ctx, r, t, { f: 2600, f2: 420, q: 0.9, dur: 0.42, vol: 0.42 * forca, saida: s });
+    ruido(ctx, r, t, { f: 2600, f2: 420, q: 0.9, dur: 0.42, vol: 0.6 * forca, saida: s });
     ruido(ctx, r, t, { filtro: 'highpass', f: 5000, dur: 0.12, vol: 0.08 * forca, saida: s });
-    tom(ctx, t, { f: 170, f2: 55, dur: 0.24, vol: 0.38 * forca, saida: s });
+    tom(ctx, t, { f: 170, f2: 55, dur: 0.24, vol: 0.55 * forca, saida: s });
     bolhas(ctx, t, 3, 0.05, s);
   },
   bloco(ctx, r, t, s) { // tufinho se desfazendo
-    ruido(ctx, r, t, { filtro: 'highpass', f: 2200, dur: 0.13, vol: 0.12, saida: s });
-    tom(ctx, t, { tipo: 'triangle', f: 520, f2: 260, dur: 0.07, vol: 0.05, saida: s });
+    ruido(ctx, r, t, { filtro: 'highpass', f: 2200, dur: 0.13, vol: 0.32, saida: s });
+    tom(ctx, t, { tipo: 'triangle', f: 520, f2: 260, dur: 0.07, vol: 0.16, saida: s });
   },
   item(ctx, r, t, s) { // brilho subindo
-    arpejo(ctx, t, [76, 80, 83, 88], 0.055, { vol: 0.14, saida: s });
+    arpejo(ctx, t, [76, 80, 83, 88], 0.055, { vol: 0.1, saida: s });
   },
   itemRaro(ctx, r, t, s) {
-    arpejo(ctx, t, [76, 80, 83, 88, 92, 95], 0.05, { vol: 0.13, saida: s });
+    arpejo(ctx, t, [76, 80, 83, 88, 92, 95], 0.05, { vol: 0.09, saida: s });
     tom(ctx, t + 0.3, { f: freq(100), dur: 0.4, vol: 0.05, saida: s });
   },
   cisco(ctx, r, t, s) { // "uó-uó" engraçado
-    tom(ctx, t, { tipo: 'triangle', f: 420, f2: 300, dur: 0.18, vol: 0.16, saida: s, vibrato: { taxa: 18, prof: 25 } });
-    tom(ctx, t + 0.18, { tipo: 'triangle', f: 330, f2: 220, dur: 0.24, vol: 0.16, saida: s, vibrato: { taxa: 18, prof: 25 } });
+    tom(ctx, t, { tipo: 'triangle', f: 420, f2: 300, dur: 0.18, vol: 0.12, saida: s, vibrato: { taxa: 18, prof: 25 } });
+    tom(ctx, t + 0.18, { tipo: 'triangle', f: 330, f2: 220, dur: 0.24, vol: 0.12, saida: s, vibrato: { taxa: 18, prof: 25 } });
   },
   espirro(ctx, r, t, s) { // "atchim" de brinquedo
-    ruido(ctx, r, t, { f: 1800, f2: 3800, q: 2, dur: 0.12, vol: 0.12, saida: s });
-    ruido(ctx, r, t + 0.12, { f: 3000, f2: 900, q: 1, dur: 0.18, vol: 0.16, saida: s });
+    ruido(ctx, r, t, { f: 1800, f2: 3800, q: 2, dur: 0.12, vol: 0.17, saida: s });
+    ruido(ctx, r, t + 0.12, { f: 3000, f2: 900, q: 1, dur: 0.18, vol: 0.22, saida: s });
   },
   encharcado(ctx, r, t, s) { // "piuuu" descendo + bolhas: molhou, vai descansar
     tom(ctx, t, { tipo: 'triangle', f: 980, f2: 240, dur: 0.42, vol: 0.18, saida: s });
@@ -121,7 +125,7 @@ export const EFEITOS = {
     bolhas(ctx, t + 0.15, 4, 0.05, s);
   },
   contagem(ctx, r, t, s) {
-    tom(ctx, t, { f: 660, dur: 0.16, vol: 0.2, saida: s });
+    tom(ctx, t, { f: 660, dur: 0.16, vol: 0.38, saida: s });
   },
   ja(ctx, r, t, s) {
     tom(ctx, t, { tipo: 'triangle', f: 880, dur: 0.35, vol: 0.16, saida: s });
@@ -129,52 +133,55 @@ export const EFEITOS = {
   },
   aperto(ctx, r, t, s) { // aviso de duas notas, duas vezes
     for (const k of [0, 1]) {
-      tom(ctx, t + k * 0.36, { tipo: 'triangle', f: 784, dur: 0.15, vol: 0.14, saida: s });
-      tom(ctx, t + k * 0.36 + 0.17, { tipo: 'triangle', f: 587, dur: 0.15, vol: 0.14, saida: s });
+      tom(ctx, t + k * 0.36, { tipo: 'triangle', f: 784, dur: 0.15, vol: 0.11, saida: s });
+      tom(ctx, t + k * 0.36 + 0.17, { tipo: 'triangle', f: 587, dur: 0.15, vol: 0.11, saida: s });
     }
   },
   muro(ctx, r, t, s) { // peça do aperto pousando
-    tom(ctx, t, { f: 140, f2: 70, dur: 0.14, vol: 0.2, saida: s });
-    ruido(ctx, r, t, { filtro: 'lowpass', f: 900, dur: 0.08, vol: 0.06, saida: s });
+    tom(ctx, t, { f: 140, f2: 70, dur: 0.14, vol: 0.4, saida: s });
+    ruido(ctx, r, t, { filtro: 'lowpass', f: 900, dur: 0.08, vol: 0.1, saida: s });
   },
   chute(ctx, r, t, s) {
-    tom(ctx, t, { tipo: 'triangle', f: 280, f2: 520, dur: 0.08, vol: 0.16, saida: s });
-    ruido(ctx, r, t, { filtro: 'highpass', f: 3000, dur: 0.04, vol: 0.06, saida: s });
+    tom(ctx, t, { tipo: 'triangle', f: 280, f2: 520, dur: 0.1, vol: 0.55, saida: s });
+    ruido(ctx, r, t, { filtro: 'highpass', f: 3000, dur: 0.05, vol: 0.22, saida: s });
   },
   salto(ctx, r, t, s) { // "boing"
-    tom(ctx, t, { f: 260, f2: 880, dur: 0.2, vol: 0.18, saida: s, vibrato: { taxa: 30, prof: 30 } });
+    tom(ctx, t, { f: 260, f2: 880, dur: 0.2, vol: 0.28, saida: s, vibrato: { taxa: 30, prof: 30 } });
   },
   pousou(ctx, r, t, s) {
-    tom(ctx, t, { f: 400, f2: 200, dur: 0.1, vol: 0.18, saida: s });
+    tom(ctx, t, { f: 400, f2: 200, dur: 0.1, vol: 0.45, saida: s });
   },
   arremesso(ctx, r, t, s) { // "fiuu"
-    ruido(ctx, r, t, { f: 600, f2: 2600, q: 3, dur: 0.28, vol: 0.1, saida: s });
+    ruido(ctx, r, t, { f: 500, f2: 2400, q: 1.2, dur: 0.3, vol: 0.55, saida: s });
+    tom(ctx, t, { f: 380, f2: 1100, dur: 0.25, vol: 0.12, saida: s });
   },
   montou(ctx, r, t, s) { // estojo abrindo: arpejo alegre
-    arpejo(ctx, t, [72, 76, 79, 84, 79, 84], 0.06, { vol: 0.13, saida: s });
+    arpejo(ctx, t, [72, 76, 79, 84, 79, 84], 0.06, { vol: 0.09, saida: s });
   },
   perdeuBichinho(ctx, r, t, s) {
-    arpejo(ctx, t, [79, 74, 70], 0.09, { vol: 0.13, saida: s });
+    arpejo(ctx, t, [79, 74, 70], 0.09, { vol: 0.1, saida: s });
   },
   defendeu(ctx, r, t, s) { // "plim" de carapaça
-    tom(ctx, t, { tipo: 'triangle', f: 1560, dur: 0.25, vol: 0.12, saida: s });
-    tom(ctx, t, { f: 2340, dur: 0.18, vol: 0.05, saida: s });
+    tom(ctx, t, { tipo: 'triangle', f: 1560, dur: 0.25, vol: 0.2, saida: s });
+    tom(ctx, t, { f: 2340, dur: 0.18, vol: 0.08, saida: s });
   },
   disparada(ctx, r, t, s) {
-    ruido(ctx, r, t, { f: 400, f2: 1600, q: 2, dur: 0.22, vol: 0.09, saida: s });
+    ruido(ctx, r, t, { f: 300, f2: 1400, q: 1, dur: 0.25, vol: 0.5, saida: s });
+    tom(ctx, t, { tipo: 'triangle', f: 180, f2: 420, dur: 0.2, vol: 0.25, saida: s });
   },
   vitoria(ctx, r, t, s) { // fanfarrinha
-    arpejo(ctx, t, [72, 76, 79, 84], 0.12, { vol: 0.16, dur: 0.22, saida: s });
-    for (const n of [72, 76, 79, 84]) tom(ctx, t + 0.5, { tipo: 'triangle', f: freq(n), dur: 0.9, vol: 0.07, ataque: 0.02, saida: s });
+    arpejo(ctx, t, [72, 76, 79, 84], 0.12, { vol: 0.12, dur: 0.22, saida: s });
+    for (const n of [72, 76, 79, 84]) tom(ctx, t + 0.5, { tipo: 'triangle', f: freq(n), dur: 0.9, vol: 0.05, ataque: 0.02, saida: s });
   },
   rodada(ctx, r, t, s) { // ganhou uma rodada
-    arpejo(ctx, t, [79, 84, 88], 0.09, { vol: 0.14, saida: s });
+    arpejo(ctx, t, [79, 84, 88], 0.09, { vol: 0.1, saida: s });
   },
   empate(ctx, r, t, s) { // suave, sem "derrota" triste
-    arpejo(ctx, t, [76, 72, 74, 67], 0.14, { vol: 0.11, dur: 0.3, saida: s });
+    arpejo(ctx, t, [76, 72, 74, 67], 0.14, { vol: 0.08, dur: 0.3, saida: s });
   },
   clique(ctx, r, t, s) {
-    tom(ctx, t, { f: 1100, f2: 900, dur: 0.04, vol: 0.1, saida: s });
+    tom(ctx, t, { f: 1100, f2: 900, dur: 0.05, vol: 0.35, saida: s });
+    tom(ctx, t, { tipo: 'triangle', f: 2200, dur: 0.03, vol: 0.05, saida: s });
   },
   escolha(ctx, r, t, s) {
     tom(ctx, t, { tipo: 'triangle', f: 880, dur: 0.07, vol: 0.12, saida: s });

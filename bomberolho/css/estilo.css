@@ -197,7 +197,7 @@ kbd {
   border-radius: 999px;
   box-shadow: var(--sombra);
 }
-.faixa button { min-height: 40px; padding: 0 16px; }
+.faixa button { min-height: 44px; padding: 0 16px; }
 .faixa-retrato { width: 36px; height: 36px; margin: -4px -4px -4px -10px; }
 
 .sem-js { margin: 40px auto; max-width: 420px; text-align: center; }
@@ -210,7 +210,7 @@ kbd {
   .marca img { width: 34px; height: 34px; }
   h1 { font-size: 1.2rem; }
   .subtitulo { font-size: 0.78rem; }
-  .botoes button { min-height: 40px; padding: 0 14px; font-size: 0.88rem; }
+  .botoes button { min-height: 44px; padding: 0 14px; font-size: 0.88rem; }
   .placar { grid-template-columns: 1fr 1fr; gap: 6px; }
   .cartao { padding: 4px 8px 4px 4px; gap: 6px; }
   .retrato { width: 34px; height: 34px; }
@@ -243,7 +243,7 @@ kbd {
   .marca img { width: 30px; height: 30px; }
   h1 { font-size: 1.1rem; }
   .subtitulo, .dica { display: none; }
-  .botoes button { min-height: 36px; padding: 0 12px; font-size: 0.85rem; flex: 1; }
+  .botoes button { min-height: 44px; padding: 0 12px; font-size: 0.85rem; flex: 1; }
   .placar { gap: 5px; }
   .cartao { padding: 3px 8px 3px 3px; }
   .retrato { width: 30px; height: 30px; }
@@ -356,9 +356,9 @@ button.pausado:hover { background: #178A48; }
 @media (orientation: landscape) and (max-height: 520px) {
   .botoes { gap: 6px; }
   .botoes button.icone-rotulo { padding: 0 10px; gap: 4px; }
-  .botoes button.so-icone { flex: none; width: 38px; }
+  .botoes button.so-icone { flex: none; width: 44px; }
   button svg { width: 18px; height: 18px; }
-  .aviso-arte { display: none; }
+  .aviso-arte { height: 58px; margin: -6px 0 0; }
   .cartao-aviso { width: min(460px, 100%); max-width: 460px; }
   .placar-trofeus { grid-template-columns: 1fr 1fr; }
   .acoes button:first-child { min-height: 44px; flex: 1 1 auto; }

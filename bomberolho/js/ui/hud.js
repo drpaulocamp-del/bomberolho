@@ -2,7 +2,7 @@
 // competidor com retrato, troféus e poderes. Só reescreve o DOM quando algo muda.
 
 import { PERSONAGENS } from '../dados/personagens.js';
-import { desenharPersonagem } from '../render/personagens.js';
+import { desenharPersonagem, encaixarPersonagem } from '../render/personagens.js';
 import { NOMES_BICHINHOS } from '../sim/bichinhos.js';
 
 export const ICONES = {
@@ -28,7 +28,7 @@ const NOMES_CISCO = { lento: 'olho embaçado: anda devagar', ligeiro: 'piscando 
 function retratar(canvas, p, vivo) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  desenharPersonagem(ctx, p, { x: 48, y: 52, s: 82, dir: 'baixo', fase: 0.4, sombra: false, expressao: vivo ? 'normal' : 'sono' });
+  desenharPersonagem(ctx, p, { ...encaixarPersonagem(canvas.width, canvas.height), dir: 'baixo', fase: 0.4, sombra: false, expressao: vivo ? 'normal' : 'sono' });
 }
 
 function relogio(segundos) {

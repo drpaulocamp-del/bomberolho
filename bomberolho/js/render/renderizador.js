@@ -13,6 +13,8 @@ import { desenharGota, desenharRespingos, desenharItem, desenharQuebra, Particul
 const TAU = Math.PI * 2;
 const DESCANSO = 130; // ticks da animação de "ir descansar" (encharca, nuvem, sobe)
 const RAROS = new Set(['superLupa', 'penetrante', 'pinca', 'chute', 'estojo']);
+// Ticks finais do pavio em que o alcance do respingo aparece no chão (2 s).
+const JANELA_ALCANCE = 120;
 const FONTE = 'system-ui, -apple-system, "Segoe UI", sans-serif';
 
 export class Renderizador {
@@ -415,16 +417,63 @@ export class Renderizador {
   }
 
   /**
-   * Alcance do respingo: no último segundo do pavio, as casas que a gota vai
-   * molhar ganham bolinhas d'água que pulsam cada vez mais forte. Lê-se
-   * "saia daqui" num relance, sem precisar contar casas.
+   * Casa de perigo pré-desenhada (por cor): fundo translúcido, listras
+   * diagonais e contorno tracejado. A forma (listras + tracejado) diz "perigo"
+   * mesmo sem cor, em cinza e para daltônicos; a cor de cada arena foi
+   * escolhida com contraste forte contra o piso (qa/sim/temas.test.mjs).
+   */
+  spriteDePerigo(rgb) {
+    const chave = `perigo|${rgb}`;
+    if (!this.itensProntos[chave]) {
+      const { s, dpr } = this;
+      const c = document.createElement('canvas');
+      c.width = Math.ceil(s * dpr);
+      c.height = Math.ceil(s * dpr);
+      const ctx = c.getContext('2d');
+      ctx.scale(dpr, dpr);
+      const m = s * 0.07;
+      const r = s * 0.2;
+      ctx.beginPath();
+      ctx.roundRect(m, m, s - 2 * m, s - 2 * m, r);
+      ctx.fillStyle = `rgba(${rgb}, 0.34)`;
+      ctx.fill();
+      ctx.save();
+      ctx.clip();
+      ctx.strokeStyle = `rgba(${rgb}, 0.55)`;
+      ctx.lineWidth = s * 0.075;
+      ctx.beginPath();
+      for (let k = -1; k <= 4; k++) {
+        const x0 = k * s * 0.3;
+        ctx.moveTo(x0, s);
+        ctx.lineTo(x0 + s, 0);
+      }
+      ctx.stroke();
+      ctx.restore();
+      ctx.strokeStyle = `rgba(${rgb}, 0.95)`;
+      ctx.lineWidth = Math.max(1.5, s * 0.06);
+      ctx.setLineDash([s * 0.13, s * 0.09]);
+      ctx.beginPath();
+      ctx.roundRect(m, m, s - 2 * m, s - 2 * m, r);
+      ctx.stroke();
+      this.itensProntos[chave] = c;
+    }
+    return this.itensProntos[chave];
+  }
+
+  /**
+   * Alcance do respingo: nos últimos 2 s do pavio, as casas que a gota vai
+   * molhar ficam listradas e tracejadas, com uma gotinha no meio, pulsando
+   * cada vez mais forte e mais rápido. Lê-se "saia daqui" num relance, sem
+   * contar casas, também em tela pequena, em cinza e para daltônicos.
    */
   desenharAlcance(mundo, tempoSeg) {
     const { ctx, s } = this;
+    const perigo = obterTema(mundo.arena).perigo;
+    let mexeu = false;
     for (const g of mundo.gotas) {
-      if (g.estado !== 'chao' || g.pavio > 75) continue;
-      const forca = 1 - g.pavio / 75; // 0 → 1
-      const cor = g.penetrante ? '150, 80, 230' : '30, 130, 240';
+      if (g.estado !== 'chao' || g.pavio > JANELA_ALCANCE) continue;
+      const forca = 1 - g.pavio / JANELA_ALCANCE; // 0 → 1
+      const rgb = g.penetrante ? perigo.penetrante : perigo.cor;
       const casas = [[g.col, g.lin]];
       for (const nome of NOMES_DIRECOES) {
         const { dc, dl } = DIRECOES[nome];
@@ -437,16 +486,17 @@ export class Renderizador {
           casas.push([c, l]);
         }
       }
-      const pulso = this.reduzido ? 0.7 : 0.6 + 0.4 * Math.sin(tempoSeg * (8 + forca * 10));
-      ctx.fillStyle = `rgba(${cor}, ${0.1 + forca * 0.16 * pulso})`;
-      for (const [c, l] of casas) {
-        ctx.beginPath();
-        ctx.roundRect(c * s + s * 0.08, l * s + s * 0.08, s * 0.84, s * 0.84, s * 0.22);
-        ctx.fill();
-      }
-      ctx.fillStyle = `rgba(${cor}, ${0.35 + forca * 0.4})`;
-      for (const [c, l] of casas) gotinha(ctx, (c + 0.5) * s, (l + 0.58) * s, s * 0.05 * (0.6 + forca * 0.6));
+      const pulso = this.reduzido ? 0.75 : 0.5 + 0.5 * Math.sin(tempoSeg * (7 + forca * 11));
+      const sprite = this.spriteDePerigo(rgb);
+      mexeu = true;
+      ctx.globalAlpha = 0.62 + 0.38 * Math.min(1, forca * 0.6 + forca * pulso * 0.5);
+      for (const [c, l] of casas) ctx.drawImage(sprite, c * s, l * s, s, s);
+      ctx.globalAlpha = 0.75 + 0.25 * forca;
+      ctx.fillStyle = `rgb(${rgb})`;
+      const r = s * (0.09 + 0.05 * forca * (this.reduzido ? 1 : 0.6 + 0.4 * pulso));
+      for (const [c, l] of casas.slice(1)) gotinha(ctx, (c + 0.5) * s, (l + 0.62) * s, r);
     }
+    if (mexeu) ctx.globalAlpha = 1;
   }
 
   /**
@@ -563,8 +613,12 @@ export class Renderizador {
     ctx.ellipse(x, y + s * 0.38, s * 0.33, s * 0.11, 0, 0, TAU);
     ctx.stroke();
     const jogado = mundo.fase === 'contagem' ? 0 : mundo.tick - mundo.inicioJogo;
-    if (mundo.fase === 'contagem' || jogado < TPS * 3) {
-      const by = y - s * 0.86 + Math.sin(tempoSeg * 5) * s * 0.05;
+    // Balão acima do acessório (que chega a 0,87 casa), só na contagem e no
+    // primeiro segundo e meio, sumindo devagar: não cobre ninguém em jogo.
+    const visivel = mundo.fase === 'contagem' ? 1 : Math.max(0, Math.min(1, (TPS * 1.5 - jogado) / (TPS * 0.5)));
+    if (visivel > 0) {
+      ctx.globalAlpha = visivel;
+      const by = y - s * 1.2 + (this.reduzido ? 0 : Math.sin(tempoSeg * 5) * s * 0.05);
       const texto = 'Você';
       ctx.font = `700 ${Math.max(11, Math.round(s * 0.34))}px ${FONTE}`;
       const w = ctx.measureText(texto).width + s * 0.3;

@@ -4,6 +4,7 @@
 
 import { criarRuido, EFEITOS } from './sintese.js';
 import { Sequenciador } from './musica.js';
+import { criarCadeia } from './cadeia.js';
 
 const RAROS = new Set(['superLupa', 'penetrante', 'pinca', 'chute']);
 // Evento da simulação → efeito (os que pedem lógica estão em reagir()).
@@ -33,18 +34,9 @@ export class Som {
       if (!this.ctx) {
         this.ctx = new Contexto();
         this.ruido = criarRuido(this.ctx);
-        this.mestre = this.ctx.createGain();
-        this.mestre.gain.value = 0.8;
-        const compressor = this.ctx.createDynamicsCompressor();
-        compressor.threshold.value = -18;
-        compressor.ratio.value = 4;
-        this.mestre.connect(compressor).connect(this.ctx.destination);
-        this.efeitos = this.ctx.createGain();
-        this.efeitos.gain.value = 0.9;
-        this.efeitos.connect(this.mestre);
-        this.trilha = this.ctx.createGain();
-        this.trilha.gain.value = 0.55;
-        this.trilha.connect(this.mestre);
+        const cadeia = criarCadeia(this.ctx);
+        this.efeitos = cadeia.efeitos;
+        this.trilha = cadeia.trilha;
         this.seq = new Sequenciador(this.ctx, this.trilha, this.ruido);
       }
       if (this.ctx.state === 'suspended') this.ctx.resume();

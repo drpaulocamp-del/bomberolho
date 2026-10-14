@@ -8,7 +8,7 @@ import { criarMundo } from '../sim/mundo.js';
 import { BLOCO, LARGADAS } from '../sim/constantes.js';
 import { criarPecas } from '../render/pecas.js';
 import { obterTema } from '../render/temas.js';
-import { desenharPersonagem, desenharPersonagemRapido } from '../render/personagens.js';
+import { desenharPersonagem, desenharPersonagemRapido, encaixarPersonagem } from '../render/personagens.js';
 import { desenharLogo } from '../render/logo.js';
 import { desenharGota, desenharItem, desenharRespingos } from '../render/efeitos.js';
 import { ICONES } from './hud.js';
@@ -305,12 +305,13 @@ export class Menu {
     const { ctx, w, h } = prepararCanvas(this.raiz.querySelector('.desfile'));
     ctx.clearRect(0, 0, w, h);
     const n = ORDEM_PERSONAGENS.length;
-    const s = Math.min(h * 0.86, (w / n) * 0.98);
+    // Altura inteira: acessório (0,87 s) + pés (0,46 s) + pulo (0,12 s).
+    const s = Math.min(h / 1.45, (w / n) * 0.98);
     ORDEM_PERSONAGENS.forEach((id, k) => {
       const fase = this.t + k * 0.7;
       const pulo = quieto ? 0 : Math.max(0, Math.sin(fase * 3.2)) * s * 0.12;
       const x = (w / n) * (k + 0.5);
-      const y = h - s * 0.42 - pulo;
+      const y = h - s * 0.46 - pulo;
       const acenando = !quieto && Math.sin(this.t * 0.6 + k * 1.9) > 0.75;
       // Sombra à parte (encolhe no pulo): o boneco em si sai do cache de quadros.
       ctx.fillStyle = 'rgba(30, 40, 70, 0.18)';
@@ -332,7 +333,7 @@ export class Menu {
     ctx.clearRect(0, 0, w, h);
     const fase = quieto ? 0 : this.t;
     desenharPersonagemRapido(ctx, PERSONAGENS[id], {
-      x: w / 2, y: h * 0.52, s: Math.min(w, h) * 0.95, dir: 'baixo', fase,
+      ...encaixarPersonagem(w, h), dir: 'baixo', fase,
       expressao: 'normal', bracos: quieto ? 'repouso' : 'aceno', piscar: (fase % 3.1) < 0.12 ? 1 : 0,
     }, dprLimitado());
   }
@@ -344,7 +345,7 @@ export class Menu {
       const escolhido = c.id === this.escolha.personagem;
       const fase = (quieto ? 0 : this.t) + ORDEM_PERSONAGENS.indexOf(c.id) * 0.9;
       desenharPersonagemRapido(ctx, PERSONAGENS[c.id], {
-        x: w / 2, y: h * 0.55, s: Math.min(w, h) * 0.86, dir: 'baixo', fase, andando: escolhido && !quieto,
+        ...encaixarPersonagem(w, h, 0.04), dir: 'baixo', fase, andando: escolhido && !quieto,
         expressao: escolhido ? 'alegre' : 'normal', piscar: ((fase * 0.7) % 3.6) < 0.12 ? 1 : 0,
       }, dprLimitado());
     }
@@ -354,8 +355,9 @@ export class Menu {
     const recente = this.t - (this.desde ?? -9) < 1.2;
     const fase = quieto ? 0 : this.t;
     const pulo = recente && !quieto ? Math.abs(Math.sin((this.t - this.desde) * 7)) * h * 0.06 : 0;
+    const lugar = encaixarPersonagem(w, h, 0.07);
     desenharPersonagem(ctx, PERSONAGENS[this.escolha.personagem], {
-      x: w / 2, y: h * 0.56 - pulo, s: Math.min(w, h) * 0.9, dir: 'baixo', fase,
+      ...lugar, y: lugar.y - pulo, dir: 'baixo', fase,
       expressao: recente ? 'alegre' : 'normal', bracos: recente ? 'cima' : 'aceno',
       piscar: (fase % 3.2) < 0.12 ? 1 : 0, sombra: pulo < 2,
     });

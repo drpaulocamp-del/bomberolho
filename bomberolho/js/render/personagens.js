@@ -22,6 +22,24 @@ const QUADROS_ANDANDO = 8;
 const LIMITE_CACHE = 520;
 const cache = new Map();
 
+// Extensão do desenho em frações da casa s, a partir do y passado (medida em
+// qa/verificacao/p3r2/extensao.mjs com todas as poses): o acessório mais alto
+// (losango da Córnea) chega a 0,85 s acima; os pés e a sombra, 0,45 s abaixo.
+const EXT_TOPO = 0.87;
+const EXT_BASE = 0.46;
+const EXT_LARGURA = 1.2;
+
+/**
+ * Tamanho e posição para o personagem caber inteiro num quadro w×h (acessório
+ * incluído), com `folga` (fração da altura) livre em cima para pulos.
+ * Devolve { s, x, y } para desenharPersonagem.
+ */
+export function encaixarPersonagem(w, h, folga = 0) {
+  const util = h * (1 - folga);
+  const s = Math.min(util / (EXT_TOPO + EXT_BASE), w / EXT_LARGURA);
+  return { s, x: w / 2, y: h - (util - s * (EXT_TOPO + EXT_BASE)) / 2 - s * EXT_BASE };
+}
+
 /**
  * Mesmo desenho, mas guardado em quadros prontos (canvas fora da tela): a
  * animação é cíclica, então cada pose é desenhada uma vez e depois só copiada.

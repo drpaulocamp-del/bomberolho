@@ -4,7 +4,7 @@
 // O primeiro botão é sempre o caminho principal (Enter também o aciona).
 
 import { PERSONAGENS } from '../dados/personagens.js';
-import { desenharPersonagem } from '../render/personagens.js';
+import { desenharPersonagem, desenharPersonagemRapido, encaixarPersonagem } from '../render/personagens.js';
 import { ICONES } from './hud.js';
 
 const TAU = Math.PI * 2;
@@ -25,6 +25,7 @@ export class Avisos {
     this.acoesEl = elemento.querySelector('.acoes');
     this.arte = elemento.querySelector('.aviso-arte');
     this.curiosidade = elemento.querySelector('.curiosidade');
+    this.retratoCuriosidade = this.curiosidade.querySelector('canvas');
     this.faixa = document.getElementById('faixa');
     this.retratoFaixa = this.faixa.querySelector('canvas');
     this.acoesEl.addEventListener('click', (e) => {
@@ -55,7 +56,10 @@ export class Avisos {
     else if (jogo.tela === 'intervalo') chave = `intervalo${p.rodada}|${Math.ceil(jogo.intervalo / 60)}|${m.fase}`;
     else if (!humano.vivo && !jogo.demo) chave = 'fora';
     if (chave !== this.chave) this.trocar(jogo, chave);
-    if (!this.el.hidden && this.cena) this.desenharCena();
+    if (!this.el.hidden && this.cena) {
+      this.desenharCena();
+      this.desenharContador();
+    }
     if (!this.faixa.hidden) this.desenharFaixa(jogo);
   }
 
@@ -151,7 +155,8 @@ export class Avisos {
     const t = quieto ? 0.5 : this.t;
     const cena = this.cena;
     const n = cena.personagens.length;
-    const s = Math.min(h * 0.92, (w / n) * 0.95);
+    // Cabe inteiro: acessório (0,87 s) + pés (0,46 s) + pulo (0,1 s); largura ~1,2 s cada.
+    const s = Math.min(h / 1.43, (w / n) / 1.15);
     if (cena.tipo === 'taca' || cena.tipo === 'vitoria') this.confete(ctx, w, h, t, quieto, cena.tipo === 'taca' ? 26 : 12);
     cena.personagens.forEach((id, k) => {
       const x = (w / n) * (k + 0.5);
@@ -167,10 +172,33 @@ export class Avisos {
         o = { expressao: 'alegre', bracos: 'cima', fase, pulo };
       }
       desenharPersonagem(ctx, PERSONAGENS[id], {
-        x, y: h - s * 0.45 - (o.pulo || 0), s, dir: 'baixo', sombra: !o.pulo || o.pulo < 2, ...o,
+        x, y: h - s * 0.47 - (o.pulo || 0), s, dir: 'baixo', sombra: !o.pulo || o.pulo < 2, ...o,
       });
       if (cena.tipo === 'taca') taca(ctx, x + s * 0.48, h - s * 0.32, s * 0.42);
     });
+  }
+
+  /**
+   * Quem conta a curiosidade: o personagem ligado ao assunto, acenando ao lado
+   * do "Você sabia?" (parado com reduzir-movimento).
+   */
+  desenharContador() {
+    const c = this.retratoCuriosidade;
+    const id = this.quemConta;
+    if (!id || !PERSONAGENS[id] || c.clientWidth < 4) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = c.clientWidth;
+    const h = c.clientHeight;
+    if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+    const ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    const quieto = this.op.reduzido();
+    const fase = quieto ? 0 : this.t;
+    desenharPersonagemRapido(ctx, PERSONAGENS[id], {
+      ...encaixarPersonagem(w, h), dir: 'baixo', fase, sombra: false,
+      expressao: 'normal', bracos: quieto ? 'repouso' : 'aceno', piscar: (fase % 3.1) < 0.12 ? 1 : 0,
+    }, dpr);
   }
 
   confete(ctx, w, h, t, quieto, n) {
@@ -194,7 +222,7 @@ export class Avisos {
     const ctx = c.getContext('2d');
     ctx.clearRect(0, 0, c.width, c.height);
     const p = PERSONAGENS[jogo.mundo.jogadores[0].personagem];
-    desenharPersonagem(ctx, p, { x: c.width / 2, y: c.height * 0.56, s: c.width * 0.86, dir: 'baixo', expressao: 'sono', fase: this.t * 0.3, sombra: false });
+    desenharPersonagem(ctx, p, { ...encaixarPersonagem(c.width, c.height), dir: 'baixo', expressao: 'sono', fase: this.t * 0.3, sombra: false });
   }
 }
 

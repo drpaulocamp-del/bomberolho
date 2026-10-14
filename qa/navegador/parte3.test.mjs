@@ -42,7 +42,8 @@ async function medirTela(pagina) {
       rolaPagina: document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight,
       menuRola: !menu.hidden && menu.scrollHeight > menu.clientHeight + 1,
       fora,
-      menor: Math.min(...visiveis.map((b) => Math.min(b.getBoundingClientRect().height, b.getBoundingClientRect().width))),
+      // Tamanho de layout (sem o zoom da animação de entrada do cartão).
+      menor: Math.min(...visiveis.map((b) => Math.min(b.offsetHeight, b.offsetWidth))),
     };
   });
 }
@@ -55,8 +56,8 @@ test('sem parâmetros abre o menu, com a vitrine de robôs rodando atrás e sem 
   assert.equal(s.audio, 'inativo', 'nenhum áudio antes de um gesto');
   assert.equal(await pagina.isVisible('.bt-jogar'), true);
   const t0 = s.tick;
-  await pagina.waitForTimeout(600);
-  assert.ok((await estado(pagina)).tick > t0, 'a vitrine anda sozinha');
+  // Espera o quadro seguinte (sem prazo fixo de relógio): a vitrine anda sozinha.
+  await pagina.waitForFunction((t) => window.__bomberolho.state.tick > t, t0, { timeout: 15000 });
   assert.equal(await pagina.isVisible('.painel'), false, 'placar escondido no menu');
   assert.deepEqual(problemas, []);
   await contexto.close();
@@ -131,6 +132,10 @@ test('Sair pergunta antes; "Continuar jogando" volta e "Sair" leva ao menu', asy
 
 test('pausa tem Continuar, Recomeçar e Menu, e uma curiosidade verdadeira da lista', async () => {
   const { pagina, contexto } = await abrir(TELAS.desktop, '?semente=7');
+  // Relógio congelado: o tick só anda por step(), então "Recomeçar" deixa o
+  // tick em 0 mesmo com a máquina carregada (antes dependia do relógio real).
+  await pagina.evaluate(() => { const b = window.__bomberolho; b.setTimeScale(0); b.step(90); });
+  assert.ok((await estado(pagina)).tick >= 90);
   await pagina.keyboard.press('KeyP');
   const botoes = await pagina.locator('#aviso .acoes button').allTextContents();
   assert.deepEqual(botoes, ['Continuar', 'Recomeçar', 'Menu']);
@@ -257,7 +262,7 @@ for (const [nome, tela] of Object.entries(TELAS)) {
       assert.equal(m.rolaPagina, false, `${rotulo}: página rola`);
       assert.equal(m.menuRola, false, `${rotulo}: menu precisa rolar`);
       assert.deepEqual(m.fora, [], `${rotulo}: botão fora da tela`);
-      assert.ok(m.menor >= 36, `${rotulo}: botão de ${m.menor}px`);
+      assert.ok(m.menor >= 44, `${rotulo}: botão de ${m.menor}px`);
     }
     // Cartão de aviso inteiro dentro da tela.
     const cartao = await pagina.evaluate(() => {
@@ -277,6 +282,63 @@ test('reduzir movimento: o jogo respeita a preferência do sistema', async () =>
   const animacao = await pagina.evaluate(() => getComputedStyle(document.querySelector('.bt-jogar')).animationName);
   assert.equal(animacao, 'none');
   await pagina.evaluate(() => { const b = window.__bomberolho; b.setTimeScale(0); b.step(400); });
+  assert.deepEqual(problemas, []);
+  await contexto.close();
+});
+
+test('som pela cadeia real: sem estalos de uma amostra, sem estouro, efeitos audíveis e trilha abaixo dos efeitos', async () => {
+  const { pagina, contexto, problemas } = await abrir(TELAS.desktop, '?semente=1');
+  const r = await pagina.evaluate(async () => {
+    const { EFEITOS, criarRuido } = await import('./js/audio/sintese.js');
+    const { TEMAS, Sequenciador } = await import('./js/audio/musica.js');
+    const { criarCadeia } = await import('./js/audio/cadeia.js');
+    const SR = 48000;
+    const db = (v) => 20 * Math.log10(Math.max(v, 1e-9));
+    function analisar(d) {
+      let pico = 0; let estalo = 0; let soma = 0;
+      for (let i = 24; i < d.length - 24; i++) {
+        const v = Math.abs(d[i]);
+        pico = Math.max(pico, v);
+        soma += d[i] * d[i];
+        if (v < 0.05) continue;
+        // Estalo = amostra isolada várias vezes maior que tudo à sua volta (±0,5 ms).
+        let viz = 0;
+        for (let j = i - 24; j <= i + 24; j++) if (j !== i) viz = Math.max(viz, Math.abs(d[j]));
+        estalo = Math.max(estalo, v / Math.max(viz, 1e-6));
+      }
+      return { pico: db(pico), estalo, rms: db(Math.sqrt(soma / d.length)) };
+    }
+    async function render(seg, montar) {
+      const ctx = new OfflineAudioContext(1, SR * seg, SR);
+      const cadeia = criarCadeia(ctx);
+      montar(ctx, cadeia, criarRuido(ctx));
+      return analisar((await ctx.startRendering()).getChannelData(0));
+    }
+    const efeitos = {};
+    for (const nome of Object.keys(EFEITOS)) efeitos[nome] = await render(1.5, (c, cad, rr) => EFEITOS[nome](c, rr, 0.01, cad.efeitos, 1));
+    const tema = TEMAS.consultorio;
+    const col = 60 / tema.bpm / 2;
+    const trilha = await render(24, (c, cad, rr) => {
+      const seq = new Sequenciador(c, cad.trilha, rr);
+      for (let p = 0; p * col < 23; p++) seq.tocarPasso(tema, p, 0.05 + p * col, col);
+    });
+    const partida = await render(12, (c, cad, rr) => {
+      const seq = new Sequenciador(c, cad.trilha, rr);
+      seq.intenso = true;
+      for (let p = 0; p * col < 11; p++) seq.tocarPasso(tema, p, 0.05 + p * col, col);
+      for (let t = 0.3; t < 11; t += 0.5) { EFEITOS.respingo(c, rr, t, cad.efeitos, 1.3); EFEITOS.bloco(c, rr, t, cad.efeitos); EFEITOS.gota(c, rr, t + 0.2, cad.efeitos); }
+    });
+    return { efeitos, trilha, partida };
+  });
+  for (const [nome, m] of Object.entries(r.efeitos)) {
+    assert.ok(m.pico <= -1 && m.pico >= -14, `${nome}: pico de ${m.pico.toFixed(1)} dBFS (quer entre −14 e −1)`);
+    assert.ok(m.estalo < 2, `${nome}: amostra ${m.estalo.toFixed(1)}× maior que as vizinhas`);
+  }
+  assert.ok(r.trilha.estalo < 2, `trilha: amostra ${r.trilha.estalo.toFixed(1)}× maior que as vizinhas`);
+  assert.ok(r.partida.estalo < 2, `partida: amostra ${r.partida.estalo.toFixed(1)}× maior que as vizinhas`);
+  assert.ok(r.partida.pico <= -1, `partida intensa sem estouro: ${r.partida.pico.toFixed(1)} dBFS`);
+  assert.ok(r.trilha.rms < r.partida.rms - 6, `trilha (${r.trilha.rms.toFixed(1)}) ao menos 6 dB abaixo da partida (${r.partida.rms.toFixed(1)})`);
+  assert.ok(r.trilha.rms > -40, `trilha audível: ${r.trilha.rms.toFixed(1)} dB RMS`);
   assert.deepEqual(problemas, []);
   await contexto.close();
 });

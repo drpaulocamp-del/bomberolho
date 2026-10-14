@@ -133,16 +133,19 @@ test('teclado: setas e WASD andam, espaço solta gota, nenhuma tecla rola a pág
   const x0 = await pagina.evaluate(() => window.__bomberolho.state.jogadores[0].y);
   await pagina.keyboard.down('ArrowDown');
   await pagina.waitForTimeout(350);
+  await pagina.waitForFunction((y) => window.__bomberolho.state.jogadores[0].y > y, x0, { timeout: 10000 }).catch(() => {});
   await pagina.keyboard.up('ArrowDown');
   const y1 = await pagina.evaluate(() => window.__bomberolho.state.jogadores[0].y);
   assert.ok(y1 > x0, `seta para baixo andou (${x0} → ${y1})`);
   await pagina.keyboard.down('KeyW');
   await pagina.waitForTimeout(200);
+  await pagina.waitForFunction((y) => window.__bomberolho.state.jogadores[0].y < y, y1, { timeout: 10000 }).catch(() => {});
   await pagina.keyboard.up('KeyW');
   const y2 = await pagina.evaluate(() => window.__bomberolho.state.jogadores[0].y);
   assert.ok(y2 < y1, 'W andou para cima');
   await pagina.keyboard.press('Space');
   await pagina.waitForTimeout(100);
+  await pagina.waitForFunction(() => window.__bomberolho.state.gotas.length > 0, null, { timeout: 10000 }).catch(() => {});
   const gotas = await pagina.evaluate(() => window.__bomberolho.state.gotas.length);
   assert.equal(gotas, 1, 'um toque rápido no espaço solta uma gota');
   const barradas = await pagina.evaluate(() => ({ lista: window.__teclasBarradas, rolagem: scrollY }));
@@ -176,9 +179,11 @@ test('parâmetros de URL: ?semente=, ?dificuldade=, ?arena= e ?demo=1', async ()
   assert.equal(s0.arena, 'jardim');
   assert.equal(s0.demo, true);
   assert.deepEqual(s0.grade, gradeEmTexto(criarMundo({ semente: 555 })), 'mesma arena que no Node');
-  await pagina.waitForTimeout(4500); // parte 2: passa a contagem de 3 s
-  const s1 = await pagina.evaluate(() => window.__bomberolho.state);
-  const mexeu = s1.jogadores[0].x !== s0.jogadores[0].x || s1.jogadores[0].y !== s0.jogadores[0].y || s1.gotas.length > 0;
+  // Parte 2: passa a contagem de 3 s. Espera a mudança, sem prazo fixo de relógio.
+  const mexeu = await pagina.waitForFunction((p) => {
+    const s1 = window.__bomberolho.state;
+    return s1.jogadores[0].x !== p.x || s1.jogadores[0].y !== p.y || s1.gotas.length > 0;
+  }, s0.jogadores[0], { timeout: 30000 }).then(() => true, () => false);
   assert.ok(mexeu, 'no modo demo o humano anda sozinho');
   await contexto.close();
 });

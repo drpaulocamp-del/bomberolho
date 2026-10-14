@@ -72,6 +72,7 @@ function iniciarVitrine() {
     rodadas: 3, contagem: false, semente: Math.floor(Math.random() * 0x100000000) >>> 0,
   });
   jogo.consumirEventos();
+  vitrineDesenhada = false;
   placar.montar(jogo.mundo);
   ajustarTamanho();
 }
@@ -111,9 +112,14 @@ function jogar(opcoes) {
 
 // ── Pausa e saída ────────────────────────────────────────
 
+// Ícone acompanha a ação: ⏸ para pausar, ▶ para continuar.
+const ICONE_PAUSAR = '<rect x="5" y="4" width="3.4" height="12" rx="1.4"/><rect x="11.6" y="4" width="3.4" height="12" rx="1.4"/>';
+const ICONE_CONTINUAR = '<path d="M6.5 3.8v12.4c0 .8.9 1.3 1.6.9l9.6-6.2a1 1 0 0 0 0-1.8L8.1 2.9c-.7-.4-1.6.1-1.6.9z"/>';
+
 function atualizarBotaoPausa() {
   const rotulo = jogo.pausado ? 'Continuar' : 'Pausar';
   botaoPausa.querySelector('span').textContent = rotulo;
+  botaoPausa.querySelector('svg').innerHTML = jogo.pausado ? ICONE_CONTINUAR : ICONE_PAUSAR;
   botaoPausa.setAttribute('aria-label', rotulo);
   botaoPausa.setAttribute('aria-pressed', String(jogo.pausado));
   botaoPausa.classList.toggle('pausado', jogo.pausado);
@@ -239,6 +245,10 @@ let ultimoMundo = null;
 let bancada = null;
 let vitrineDaVez = false;
 let dtVitrine = 0;
+let contaVitrine = 0;
+let mediaQuadro = 16.7; // média móvel do quadro no menu (ms)
+let vitrineDesenhada = false;
+let vitrineLenta = false;
 
 /** Eventos da partida: som, placar local guardado no aparelho. */
 function tratarEventos(eventos) {
@@ -274,7 +284,10 @@ function redesenhar(dtSeg = 0) {
 function quadro(agora) {
   const dt = Math.min(agora - ultimo, 250);
   ultimo = agora;
-  jogo.quadro(dt);
+  // Com "reduzir movimento", a vitrine atrás do menu fica parada num quadro
+  // (poupa bateria e não distrai); fora do menu nada muda.
+  const vitrineParada = vitrine && movimentoReduzido.matches && vitrineDesenhada;
+  if (!vitrineParada) jogo.quadro(dt);
   // Vitrine: sem placar entre rodadas e, no fim, outra partida de robôs.
   if (vitrine && jogo.intervalo > 0) jogo.pularIntervalo();
   if (vitrine && jogo.partida.encerrada) iniciarVitrine();
@@ -282,9 +295,17 @@ function quadro(agora) {
   relogioAnimacao += dtSeg;
   // No menu, a vitrine é desenhada em quadros alternados com as animações do
   // menu (cada uma a ~30 qps): o celular simples não precisa fazer as duas juntas.
-  vitrineDaVez = !vitrineDaVez;
+  // Celular lento no menu (quadro médio acima de 40 ms): a vitrine passa a
+  // ser desenhada um quadro em cada quatro; o menu continua fluido.
+  if (vitrine) mediaQuadro = mediaQuadro * 0.95 + dt * 0.05;
+  if (mediaQuadro > 40) vitrineLenta = true;
+  else if (mediaQuadro < 24) vitrineLenta = false;
+  const vezes = vitrineLenta ? 4 : 2;
+  contaVitrine = (contaVitrine + 1) % vezes;
+  vitrineDaVez = contaVitrine === 0;
   if (!vitrine) redesenhar(dtSeg);
-  else if (vitrineDaVez) { redesenhar(dtSeg + dtVitrine); dtVitrine = 0; } else dtVitrine = dtSeg;
+  else if (vitrineParada) { /* quadro congelado */ }
+  else if (vitrineDaVez) { redesenhar(dtSeg + dtVitrine); dtVitrine = 0; vitrineDesenhada = true; } else dtVitrine += dtSeg;
 
   medidor.quadros++;
   if (agora - medidor.desde >= 1000) {

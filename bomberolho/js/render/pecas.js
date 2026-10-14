@@ -322,6 +322,34 @@ function decorar(ctx, tema, c, l, px, i) {
       ctx.stroke();
     }
   }
+  if (tema.folhinhas && ruido(i + 41) < 0.16) {
+    // Folhinha boiando com uma florzinha rosa: um toque quente no lago azul.
+    const r = px * 0.17;
+    const giro = ruido(i + 43) * TAU;
+    ctx.fillStyle = tema.folhinhas.folha;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.arc(x, y, r, giro + 0.5, giro + TAU - 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = tema.folhinhas.veio;
+    ctx.lineWidth = px * 0.012;
+    ctx.stroke();
+    const fx = x + Math.cos(giro + Math.PI) * r * 0.35;
+    const fy = y + Math.sin(giro + Math.PI) * r * 0.35;
+    ctx.fillStyle = tema.folhinhas.flor;
+    for (let k = 0; k < 5; k++) {
+      const a = (k / 5) * TAU + giro;
+      ctx.beginPath();
+      ctx.arc(fx + Math.cos(a) * r * 0.22, fy + Math.sin(a) * r * 0.22, r * 0.2, 0, TAU);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#FFE08A';
+    ctx.beginPath();
+    ctx.arc(fx, fy, r * 0.13, 0, TAU);
+    ctx.fill();
+    return;
+  }
   if (ruido(i) > 0.22) return;
   switch (tema.decoracao) {
     case 'flores': {
