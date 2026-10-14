@@ -1,0 +1,836 @@
+{
+ "desktop-facil": {
+  "contagem": [
+   "contagem",
+   2,
+   120
+  ],
+  "depoisDaGota": {
+   "vivo": true,
+   "x": 1.5,
+   "y": 2.985,
+   "rel": 116.433
+  },
+  "jogando": {
+   "vivo": false,
+   "rel": 111.183,
+   "vivos": 3
+  },
+  "aperto": {
+   "ativo": true,
+   "caidas": 26,
+   "total": 106,
+   "proxima": {
+    "col": 9,
+    "lin": 11,
+    "emTicks": 4
+   }
+  },
+  "intervaloTela": "intervalo",
+  "partidaFim": {
+   "alvo": 2,
+   "vitorias": [
+    0,
+    2,
+    0,
+    1
+   ],
+   "molhados": [
+    0,
+    5,
+    1,
+    2
+   ],
+   "historico": [
+    1,
+    3,
+    1
+   ],
+   "campeao": 1,
+   "encerrada": true,
+   "desempate": false,
+   "intervalo": 0
+  },
+  "telaFim": "resultado",
+  "geo": {
+   "canvas": [
+    406,
+    22,
+    1186,
+    698
+   ],
+   "sw": 1280,
+   "sh": 720,
+   "iw": 1280,
+   "ih": 720
+  },
+  "problemas": [],
+  "externos": []
+ },
+ "desktop-medio": {
+  "contagem": [
+   "contagem",
+   2,
+   120
+  ],
+  "depoisDaGota": {
+   "vivo": true,
+   "x": 1.5,
+   "y": 3.095,
+   "rel": 116.433
+  },
+  "jogando": {
+   "vivo": false,
+   "rel": 112.067,
+   "vivos": 3
+  },
+  "aperto": {
+   "ativo": true,
+   "caidas": 27,
+   "total": 106,
+   "proxima": {
+    "col": 8,
+    "lin": 11,
+    "emTicks": 18
+   }
+  },
+  "intervaloTela": "intervalo",
+  "partidaFim": {
+   "alvo": 2,
+   "vitorias": [
+    1,
+    1,
+    0,
+    2
+   ],
+   "molhados": [
+    1,
+    1,
+    1,
+    2
+   ],
+   "historico": [
+    null,
+    1,
+    3,
+    0,
+    3
+   ],
+   "campeao": 3,
+   "encerrada": true,
+   "desempate": false,
+   "intervalo": 0
+  },
+  "telaFim": "resultado",
+  "geo": {
+   "canvas": [
+    406,
+    22,
+    1186,
+    698
+   ],
+   "sw": 1280,
+   "sh": 720,
+   "iw": 1280,
+   "ih": 720
+  },
+  "problemas": [],
+  "externos": []
+ },
+ "desktop-dificil": {
+  "contagem": [
+   "contagem",
+   3,
+   120
+  ],
+  "depoisDaGota": {
+   "vivo": true,
+   "x": 1.5,
+   "y": 2.5,
+   "rel": 116.483
+  },
+  "jogando": {
+   "vivo": false,
+   "rel": 112.1,
+   "vivos": 3
+  },
+  "aperto": {
+   "ativo": true,
+   "caidas": 27,
+   "total": 106,
+   "proxima": {
+    "col": 8,
+    "lin": 11,
+    "emTicks": 20
+   }
+  },
+  "intervaloTela": "intervalo",
+  "partidaFim": {
+   "alvo": 2,
+   "vitorias": [
+    0,
+    1,
+    0,
+    1
+   ],
+   "molhados": [
+    1,
+    3,
+    2,
+    3
+   ],
+   "historico": [
+    3,
+    null,
+    1,
+    null,
+    null
+   ],
+   "campeao": null,
+   "encerrada": true,
+   "desempate": false,
+   "intervalo": 0
+  },
+  "telaFim": "resultado",
+  "geo": {
+   "canvas": [
+    406,
+    22,
+    1186,
+    698
+   ],
+   "sw": 1280,
+   "sh": 720,
+   "iw": 1280,
+   "ih": 720
+  },
+  "problemas": [],
+  "externos": []
+ },
+ "retrato-facil": {
+  "contagem": [
+   "contagem",
+   3,
+   120
+  ],
+  "depoisDaGota": {
+   "vivo": true,
+   "x": 1.5,
+   "y": 3.04,
+   "rel": 116.5
+  },
+  "jogando": {
+   "vivo": false,
+   "rel": 111.983,
+   "vivos": 3
+  },
+  "aperto": {
+   "ativo": true,
+   "caidas": 26,
+   "total": 106,
+   "proxima": {
+    "col": 9,
+    "lin": 11,
+    "emTicks": 22
+   }
+  },
+  "intervaloTela": "intervalo",
+  "partidaFim": {
+   "alvo": 2,
+   "vitorias": [
+    0,
+    2,
+    0,
+    1
+   ],
+   "molhados": [
+    0,
+    5,
+    1,
+    2
+   ],
+   "historico": [
+    1,
+    3,
+    1
+   ],
+   "campeao": 1,
+   "encerrada": true,
+   "desempate": false,
+   "intervalo": 0
+  },
+  "telaFim": "resultado",
+  "geo": {
+   "canvas": [
+    23,
+    222,
+    368,
+    521
+   ],
+   "sw": 390,
+   "sh": 844,
+   "iw": 390,
+   "ih": 844
+  },
+  "problemas": [],
+  "externos": []
+ },
+ "retrato-medio": {
+  "contagem": [
+   "contagem",
+   3,
+   120
+  ],
+  "depoisDaGota": {
+   "vivo": true,
+   "x": 1.5,
+   "y": 3.04,
+   "rel": 116.5
+  },
+  "jogando": {
+   "vivo": false,
+   "rel": 112.483,
+   "vivos": 3
+  },
+  "aperto": {
+   "ativo": true,
+   "caidas": 27,
+   "total": 106,
+   "proxima": {
+    "col": 8,
+    "lin": 11,
+    "emTicks": 15
+   }
+  },
+  "intervaloTela": "intervalo",
+  "partidaFim": {
+   "alvo": 2,
+   "vitorias": [
+    1,
+    1,
+    0,
+    2
+   ],
+   "molhados": [
+    1,
+    1,
+    1,
+    2
+   ],
+   "historico": [
+    null,
+    1,
+    3,
+    0,
+    3
+   ],
+   "campeao": 3,
+   "encerrada": true,
+   "desempate": false,
+   "intervalo": 0
+  },
+  "telaFim": "resultado",
+  "geo": {
+   "canvas": [
+    23,
+    236,
+    368,
+    535
+   ],
+   "sw": 390,
+   "sh": 844,
+   "iw": 390,
+   "ih": 844
+  },
+  "problemas": [],
+  "externos": []
+ },
+ "retrato-dificil": {
+  "contagem": [
+   "contagem",
+   3,
+   120
+  ],
+  "depoisDaGota": {
+   "vivo": true,
+   "x": 1.5,
+   "y": 2.5,
+   "rel": 116.467
+  },
+  "jogando": {
+   "vivo": false,
+   "rel": 112.5,
+   "vivos": 3
+  },
+  "aperto": {
+   "ativo": true,
+   "caidas": 27,
+   "total": 106,
+   "proxima": {
+    "col": 8,
+    "lin": 11,
+    "emTicks": 15
+   }
+  },
+  "intervaloTela": "intervalo",
+  "partidaFim": {
+   "alvo": 2,
+   "vitorias": [
+    0,
+    1,
+    0,
+    1
+   ],
+   "molhados": [
+    1,
+    3,
+    2,
+    3
+   ],
+   "historico": [
+    3,
+    null,
+    1,
+    null,
+    null
+   ],
+   "campeao": null,
+   "encerrada": true,
+   "desempate": false,
+   "intervalo": 0
+  },
+  "telaFim": "resultado",
+  "geo": {
+   "canvas": [
+    23,
+    222,
+    368,
+    521
+   ],
+   "sw": 390,
+   "sh": 844,
+   "iw": 390,
+   "ih": 844
+  },
+  "problemas": [],
+  "externos": []
+ },
+ "paisagem-facil": {
+  "contagem": [
+   "contagem",
+   3,
+   120
+  ],
+  "depoisDaGota": {
+   "vivo": true,
+   "x": 1.5,
+   "y": 3.04,
+   "rel": 116.483
+  },
+  "jogando": {
+   "vivo": false,
+   "rel": 111.933,
+   "vivos": 3
+  },
+  "aperto": {
+   "ativo": true,
+   "caidas": 26,
+   "total": 106,
+   "proxima": {
+    "col": 9,
+    "lin": 11,
+    "emTicks": 19
+   }
+  },
+  "intervaloTela": "intervalo",
+  "partidaFim": {
+   "alvo": 2,
+   "vitorias": [
+    2,
+    1,
+    1,
+    0
+   ],
+   "molhados": [
+    3,
+    3,
+    4,
+    2
+   ],
+   "historico": [
+    null,
+    2,
+    1,
+    0,
+    0
+   ],
+   "campeao": 0,
+   "encerrada": true,
+   "desempate": false,
+   "intervalo": 0
+  },
+  "telaFim": "resultado",
+  "geo": {
+   "canvas": [
+    336,
+    13,
+    756,
+    377
+   ],
+   "sw": 844,
+   "sh": 390,
+   "iw": 844,
+   "ih": 390
+  },
+  "problemas": [],
+  "externos": []
+ },
+ "paisagem-medio": {
+  "contagem": [
+   "contagem",
+   2,
+   120
+  ],
+  "depoisDaGota": {
+   "vivo": true,
+   "x": 1.5,
+   "y": 3.04,
+   "rel": 116.5
+  },
+  "jogando": {
+   "vivo": false,
+   "rel": 112.45,
+   "vivos": 3
+  },
+  "aperto": {
+   "ativo": true,
+   "caidas": 26,
+   "total": 106,
+   "proxima": {
+    "col": 9,
+    "lin": 11,
+    "emTicks": 21
+   }
+  },
+  "intervaloTela": "intervalo",
+  "partidaFim": {
+   "alvo": 2,
+   "vitorias": [
+    1,
+    1,
+    1,
+    0
+   ],
+   "molhados": [
+    2,
+    2,
+    0,
+    4
+   ],
+   "historico": [
+    1,
+    null,
+    2,
+    null,
+    0
+   ],
+   "campeao": null,
+   "encerrada": true,
+   "desempate": false,
+   "intervalo": 0
+  },
+  "telaFim": "resultado",
+  "geo": {
+   "canvas": [
+    336,
+    13,
+    756,
+    377
+   ],
+   "sw": 844,
+   "sh": 390,
+   "iw": 844,
+   "ih": 390
+  },
+  "problemas": [],
+  "externos": []
+ },
+ "paisagem-dificil": {
+  "contagem": [
+   "contagem",
+   2,
+   120
+  ],
+  "depoisDaGota": {
+   "vivo": true,
+   "x": 1.5,
+   "y": 2.985,
+   "rel": 116.5
+  },
+  "jogando": {
+   "vivo": false,
+   "rel": 112.533,
+   "vivos": 3
+  },
+  "aperto": {
+   "ativo": true,
+   "caidas": 27,
+   "total": 106,
+   "proxima": {
+    "col": 8,
+    "lin": 11,
+    "emTicks": 17
+   }
+  },
+  "intervaloTela": "intervalo",
+  "partidaFim": {
+   "alvo": 2,
+   "vitorias": [
+    0,
+    1,
+    0,
+    1
+   ],
+   "molhados": [
+    1,
+    7,
+    1,
+    1
+   ],
+   "historico": [
+    3,
+    null,
+    null,
+    null,
+    1
+   ],
+   "campeao": 1,
+   "encerrada": true,
+   "desempate": true,
+   "intervalo": 0
+  },
+  "telaFim": "resultado",
+  "geo": {
+   "canvas": [
+    336,
+    13,
+    756,
+    377
+   ],
+   "sw": 844,
+   "sh": 390,
+   "iw": 844,
+   "ih": 390
+  },
+  "problemas": [],
+  "externos": []
+ },
+ "pequeno-facil": {
+  "contagem": [
+   "contagem",
+   3,
+   120
+  ],
+  "depoisDaGota": {
+   "vivo": true,
+   "x": 1.5,
+   "y": 2.985,
+   "rel": 116.483
+  },
+  "jogando": {
+   "vivo": false,
+   "rel": 111.967,
+   "vivos": 3
+  },
+  "aperto": {
+   "ativo": true,
+   "caidas": 26,
+   "total": 106,
+   "proxima": {
+    "col": 9,
+    "lin": 11,
+    "emTicks": 21
+   }
+  },
+  "intervaloTela": "intervalo",
+  "partidaFim": {
+   "alvo": 2,
+   "vitorias": [
+    0,
+    2,
+    0,
+    1
+   ],
+   "molhados": [
+    0,
+    5,
+    1,
+    2
+   ],
+   "historico": [
+    1,
+    3,
+    1
+   ],
+   "campeao": 1,
+   "encerrada": true,
+   "desempate": false,
+   "intervalo": 0
+  },
+  "telaFim": "resultado",
+  "geo": {
+   "canvas": [
+    23,
+    236,
+    338,
+    509
+   ],
+   "sw": 360,
+   "sh": 640,
+   "iw": 360,
+   "ih": 640
+  },
+  "problemas": [],
+  "externos": []
+ },
+ "pequeno-medio": {
+  "contagem": [
+   "contagem",
+   3,
+   120
+  ],
+  "depoisDaGota": {
+   "vivo": true,
+   "x": 1.5,
+   "y": 2.985,
+   "rel": 116.45
+  },
+  "jogando": {
+   "vivo": false,
+   "rel": 112.5,
+   "vivos": 3
+  },
+  "aperto": {
+   "ativo": true,
+   "caidas": 27,
+   "total": 106,
+   "proxima": {
+    "col": 8,
+    "lin": 11,
+    "emTicks": 15
+   }
+  },
+  "intervaloTela": "intervalo",
+  "partidaFim": {
+   "alvo": 2,
+   "vitorias": [
+    1,
+    1,
+    0,
+    2
+   ],
+   "molhados": [
+    1,
+    1,
+    1,
+    2
+   ],
+   "historico": [
+    null,
+    1,
+    3,
+    0,
+    3
+   ],
+   "campeao": 3,
+   "encerrada": true,
+   "desempate": false,
+   "intervalo": 0
+  },
+  "telaFim": "resultado",
+  "geo": {
+   "canvas": [
+    23,
+    236,
+    338,
+    509
+   ],
+   "sw": 360,
+   "sh": 640,
+   "iw": 360,
+   "ih": 640
+  },
+  "problemas": [],
+  "externos": []
+ },
+ "pequeno-dificil": {
+  "contagem": [
+   "contagem",
+   3,
+   120
+  ],
+  "depoisDaGota": {
+   "vivo": true,
+   "x": 1.5,
+   "y": 2.5,
+   "rel": 116.483
+  },
+  "jogando": {
+   "vivo": false,
+   "rel": 112.5,
+   "vivos": 3
+  },
+  "aperto": {
+   "ativo": true,
+   "caidas": 27,
+   "total": 106,
+   "proxima": {
+    "col": 8,
+    "lin": 11,
+    "emTicks": 16
+   }
+  },
+  "intervaloTela": "intervalo",
+  "partidaFim": {
+   "alvo": 2,
+   "vitorias": [
+    0,
+    1,
+    0,
+    1
+   ],
+   "molhados": [
+    1,
+    3,
+    2,
+    3
+   ],
+   "historico": [
+    3,
+    null,
+    1,
+    null,
+    null
+   ],
+   "campeao": null,
+   "encerrada": true,
+   "desempate": false,
+   "intervalo": 0
+  },
+  "telaFim": "resultado",
+  "geo": {
+   "canvas": [
+    23,
+    236,
+    338,
+    509
+   ],
+   "sw": 360,
+   "sh": 640,
+   "iw": 360,
+   "ih": 640
+  },
+  "problemas": [],
+  "externos": []
+ }
+}
