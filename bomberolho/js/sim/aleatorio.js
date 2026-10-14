@@ -42,3 +42,11 @@ export function sementeDeTexto(valor) {
   }
   return h >>> 0;
 }
+
+/** Inteiro em [0, n) tirado do gerador guardado no próprio mundo (m.rng). */
+export function sortearNoMundo(m, n) {
+  const rng = { estado: m.rng };
+  const v = inteiro(rng, n);
+  m.rng = rng.estado;
+  return v;
+}

@@ -1,9 +1,9 @@
 // Grade da arena: geração com semente e utilidades de consulta.
 
 import {
-  COLUNAS, LINHAS, VAZIO, MOLDURA, PILAR, BLOCO, LARGADAS,
+  COLUNAS, LINHAS, VAZIO, MOLDURA, PILAR, BLOCO, TUNEL, LARGADAS,
 } from './constantes.js';
-import { embaralhar } from './aleatorio.js';
+import { embaralhar, inteiro } from './aleatorio.js';
 
 export function indice(col, lin, colunas = COLUNAS) {
   return lin * colunas + col;
@@ -33,13 +33,48 @@ export function gradeFixa(colunas = COLUNAS, linhas = LINHAS) {
   return grade;
 }
 
+/** Casas da arena que nunca recebem bloco além dos cantos (água, túnel, lente, clareira). */
+export function casasReservadas(arena, colunas = COLUNAS, linhas = LINHAS) {
+  const casas = new Set(casasDeLargada(colunas, linhas));
+  for (const chave of Object.keys(arena.piso)) {
+    const [c, l] = chave.split(',').map(Number);
+    casas.add(indice(c, l, colunas));
+  }
+  for (const l of arena.tuneis) {
+    casas.add(indice(1, l, colunas));
+    casas.add(indice(colunas - 2, l, colunas));
+  }
+  if (arena.clareira) {
+    const mc = (colunas - 1) / 2;
+    const ml = (linhas - 1) / 2;
+    for (let l = ml - 1; l <= ml + 1; l++) for (let c = mc - 2; c <= mc + 2; c++) casas.add(indice(c, l, colunas));
+  }
+  return casas;
+}
+
+/** Piso especial por casa: null, direção da correnteza ('cima'…) ou 'lente'. */
+export function pisoDaArena(arena, colunas = COLUNAS, linhas = LINHAS) {
+  const piso = new Array(colunas * linhas).fill(null);
+  for (const [chave, valor] of Object.entries(arena.piso)) {
+    const [c, l] = chave.split(',').map(Number);
+    piso[indice(c, l, colunas)] = valor;
+  }
+  return piso;
+}
+
 /**
  * Sorteia blocos e itens escondidos. Usa contagens exatas (não "moeda por
- * casa") para que toda semente tenha a mesma densidade e a mesma mistura de itens.
+ * casa") para que toda semente tenha a mesma densidade e a mesma mistura de
+ * itens, e reparte os itens entre os quatro quadrantes em rodízio (cada canto
+ * recebe a sua parte de cada tipo — justiça numa partida de quatro cantos).
  */
 export function gerarArena(arena, rng) {
   const grade = gradeFixa();
-  const reservadas = new Set(casasDeLargada());
+  for (const l of arena.tuneis) {
+    grade[indice(0, l)] = TUNEL;
+    grade[indice(COLUNAS - 1, l)] = TUNEL;
+  }
+  const reservadas = casasReservadas(arena);
   const candidatas = [];
   for (let i = 0; i < grade.length; i++) {
     if (grade[i] === VAZIO && !reservadas.has(i)) candidatas.push(i);
@@ -50,10 +85,28 @@ export function gerarArena(arena, rng) {
   for (const i of blocos) grade[i] = BLOCO;
 
   const ocultos = new Array(grade.length).fill(null);
-  const comItem = embaralhar(rng, blocos.slice()).slice(0, Math.round(nBlocos * arena.taxaItens));
-  const tipos = distribuirItens(arena.pesosItens, comItem.length);
-  comItem.forEach((i, k) => { ocultos[i] = tipos[k]; });
-  return { grade, ocultos };
+  const tipos = distribuirItens(arena.pesosItens, Math.round(nBlocos * arena.taxaItens));
+  const porQuadrante = [[], [], [], []];
+  for (const i of blocos) porQuadrante[quadrante(i)].push(i);
+  for (const lista of porQuadrante) embaralhar(rng, lista);
+  let q = inteiro(rng, 4);
+  for (const tipo of tipos) {
+    for (let tentativa = 0; tentativa < 4; tentativa++, q = (q + 1) % 4) {
+      if (porQuadrante[q].length) {
+        ocultos[porQuadrante[q].pop()] = tipo;
+        q = (q + 1) % 4;
+        break;
+      }
+    }
+  }
+  return { grade, ocultos, piso: pisoDaArena(arena) };
+}
+
+/** Quadrante (0–3) de uma casa: esquerda/direita da coluna do meio, cima/baixo da linha do meio. */
+export function quadrante(i, colunas = COLUNAS, linhas = LINHAS) {
+  const c = i % colunas;
+  const l = Math.floor(i / colunas);
+  return (c <= (colunas - 1) / 2 ? 0 : 1) + (l <= (linhas - 1) / 2 ? 0 : 2);
 }
 
 /** Reparte n itens proporcionalmente aos pesos (maiores restos primeiro). */
@@ -69,12 +122,14 @@ export function distribuirItens(pesos, n) {
   return cotas.flatMap((q) => new Array(q.qtd).fill(q.k));
 }
 
-const ITEM_POR_LETRA = { g: 'gota', a: 'alcance', v: 'velocidade' };
+export const ITEM_POR_LETRA = Object.freeze({
+  g: 'gota', a: 'alcance', v: 'velocidade', c: 'chute', s: 'superLupa', z: 'cisco', p: 'pinca', n: 'penetrante', e: 'estojo',
+});
 
 /**
  * Monta grade a partir de texto (usado nos testes e em arenas desenhadas à mão).
- * '#' moldura/pilar · 'B' bloco · '.' vazio · '1'..'4' largadas ·
- * 'g' 'a' 'v' item exposto · 'G' 'A' 'V' bloco com item escondido.
+ * '#' moldura/pilar · 'B' bloco · '.' vazio · '1'..'4' largadas · 'T' túnel ·
+ * letra minúscula de ITEM_POR_LETRA = item exposto; maiúscula = bloco com o item escondido.
  */
 export function gradeDeTexto(linhasTexto) {
   const linhas = linhasTexto.length;
@@ -90,6 +145,7 @@ export function gradeDeTexto(linhasTexto) {
       const i = indice(c, l, colunas);
       const borda = c === 0 || l === 0 || c === colunas - 1 || l === linhas - 1;
       if (ch === '#') grade[i] = borda ? MOLDURA : PILAR;
+      else if (ch === 'T') grade[i] = TUNEL;
       else if (ch === 'B') grade[i] = BLOCO;
       else if (ITEM_POR_LETRA[ch]) itens[i] = ITEM_POR_LETRA[ch];
       else if (ITEM_POR_LETRA[ch.toLowerCase()]) { grade[i] = BLOCO; ocultos[i] = ITEM_POR_LETRA[ch.toLowerCase()]; }
@@ -97,5 +153,5 @@ export function gradeDeTexto(linhasTexto) {
       else if (ch !== '.') throw new Error(`caractere desconhecido '${ch}'`);
     }
   }
-  return { grade, itens, ocultos, colunas, linhas, largadas };
+  return { grade, itens, ocultos, colunas, linhas, largadas, piso: new Array(colunas * linhas).fill(null) };
 }
